@@ -7,7 +7,7 @@ spring:
         - id: user-service
           uri: lb://user-service
           predicates:
-            - Path=/v1/users/**, /auth/**, /internal/users
+            - Path=/v1/users/**, /auth/**, /internal/users/**
         - id: product-service
           uri: lb://product-service
           predicates:
@@ -15,11 +15,11 @@ spring:
         - id: auction-service
           uri: lb://auction-service
           predicates:
-            - Path=/v1/auctions/**, /internal/bids
+            - Path=/v1/auctions/**, /internal/bids/**
         - id: payment-service
           uri: lb://payment-service
           predicates:
-            - Path=/v1/wallets/**
+            - Path=/v1/wallets/**, /internal/wallets/**, /internal/deposits/**
         - id: chat-service
           uri: lb://chat-service
           predicates:
