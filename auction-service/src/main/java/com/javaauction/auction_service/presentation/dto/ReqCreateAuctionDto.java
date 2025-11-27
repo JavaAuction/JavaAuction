@@ -1,4 +1,4 @@
-package com.javaauction.auction_service.presentation.controller.dto;
+package com.javaauction.auction_service.presentation.dto;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
