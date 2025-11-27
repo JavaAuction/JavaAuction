@@ -7,27 +7,27 @@ spring:
         - id: user-service
           uri: lb://user-service
           predicates:
-            - Path=/api/users/**
+            - Path=/v1/users/**, /auth/**, /internal/users
         - id: product-service
           uri: lb://product-service
           predicates:
-            - Path=/api/products/**
+            - Path=/v1/products/**, /v1/categories/**
         - id: auction-service
           uri: lb://auction-service
           predicates:
-            - Path=/api/auctions/**
+            - Path=/v1/auctions/**, /internal/bids
         - id: payment-service
           uri: lb://payment-service
           predicates:
-            - Path=/api/payments/**
+            - Path=/v1/wallets/**
         - id: chat-service
           uri: lb://chat-service
           predicates:
-            - Path=/api/chats/**
+            - Path=/v1/chatrooms/**
         - id: alert-service
           uri: lb://alert-service
           predicates:
-            - Path=/api/alerts/**
+            - Path=/v1/alerts/**, /internal/v1/alerts/**
 
 server:
   port: 19091
