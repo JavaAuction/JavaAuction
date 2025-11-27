@@ -1,4 +1,4 @@
-package com.javaauction.auction_service.domain.model.enums;
+package com.javaauction.auction_service.domain.entity.enums;
 
 public enum AuctionStatus {
     PENDING,

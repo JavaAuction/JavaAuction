@@ -1,6 +1,6 @@
 package com.javaauction.auction_service.presentation.dto;
 
-import com.javaauction.auction_service.domain.model.enums.AuctionStatus;
+import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
