@@ -1,0 +1,15 @@
+package com.javaauction.auction_service.presentation.controller.dto;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+public record ReqCreateAuctionDto(
+    UUID productId,
+    Long startPrice,
+    Long unit,
+    Boolean buyNowEnable,
+    Long buyNowPrice,
+    LocalDateTime endAt
+) {
+
+}
