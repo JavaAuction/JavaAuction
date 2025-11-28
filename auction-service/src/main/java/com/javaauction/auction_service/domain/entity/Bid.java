@@ -48,4 +48,8 @@ public class Bid {
     public static Bid create(UUID auctionId, String userId, Long bidPrice) {
         return new Bid(auctionId, userId, bidPrice);
     }
+
+    public void release() {
+        this.status = BidStatus.RELEASED;
+    }
 }
