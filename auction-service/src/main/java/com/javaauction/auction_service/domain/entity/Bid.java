@@ -1,6 +1,6 @@
-package com.javaauction.auction_service.domain.model.entity;
+package com.javaauction.auction_service.domain.entity;
 
-import com.javaauction.auction_service.domain.model.enums.BidStatus;
+import com.javaauction.auction_service.domain.entity.enums.BidStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
