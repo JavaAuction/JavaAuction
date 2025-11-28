@@ -11,6 +11,7 @@ import lombok.Builder;
 public record ResGetAuctionDto(
     UUID auctionId,
     UUID productId,
+    String productName,
     Long startPrice,
     Long currentPrice,
     String successfulBidder,
@@ -27,6 +28,7 @@ public record ResGetAuctionDto(
         return ResGetAuctionDto.builder()
             .auctionId(auction.getAuctionId())
             .productId(auction.getProductId())
+            .productName(auction.getProductName())
             .startPrice(auction.getStartPrice())
             .currentPrice(auction.getCurrentPrice())
             .successfulBidder(auction.getSuccessfulBidder())

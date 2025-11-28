@@ -1,9 +1,12 @@
 package com.javaauction.auction_service.application.service;
 
+import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
 import com.javaauction.auction_service.presentation.dto.request.ReqCreateAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResCreatedAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionDto;
+import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionsDto;
 import java.util.UUID;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface AuctionService {
@@ -12,4 +15,7 @@ public interface AuctionService {
 
     @Transactional(readOnly = true)
     ResGetAuctionDto getAuction(UUID auctionId);
+
+    @Transactional(readOnly = true)
+    ResGetAuctionsDto getAuctions(Pageable pageable, AuctionStatus status, String keyword);
 }
