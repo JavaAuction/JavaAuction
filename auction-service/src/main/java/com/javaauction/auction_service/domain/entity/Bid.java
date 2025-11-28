@@ -25,7 +25,7 @@ public class Bid {
     private UUID auctionId;
 
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private String userId;
 
     @Column(name = "bid_price", nullable = false)
     private Long bidPrice;
@@ -38,14 +38,14 @@ public class Bid {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    private Bid(UUID auctionId, Long userId, Long bidPrice) {
+    private Bid(UUID auctionId, String userId, Long bidPrice) {
         this.auctionId = auctionId;
         this.userId = userId;
         this.bidPrice = bidPrice;
         this.status = BidStatus.HELD;
     }
 
-    public static Bid create(UUID auctionId, Long userId, Long bidPrice) {
+    public static Bid create(UUID auctionId, String userId, Long bidPrice) {
         return new Bid(auctionId, userId, bidPrice);
     }
 }
