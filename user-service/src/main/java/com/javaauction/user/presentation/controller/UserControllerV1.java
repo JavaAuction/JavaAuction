@@ -36,7 +36,7 @@ public class UserControllerV1 {
 
     @GetMapping("/users/{userId}")
     public ApiResponse getUser(@PathVariable String userId) {
-        return userService.getUser(userId, JwtUserContext.getRoleFromHeader());
+        return userService.getUser(userId, JwtUserContext.getUsernameFromHeader(),JwtUserContext.getRoleFromHeader());
     }
 
     @GetMapping("/users/me")
