@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: user-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5434/user_db
+    username: javaauction
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:19090/eureka
+
+server:
+  port: 19092
+
+jwt:
+  secret: your-secret-key-change-this-in-production-environment-minimum-256-bits
+  expiration: 86400000 # 24시간 (밀리초)
