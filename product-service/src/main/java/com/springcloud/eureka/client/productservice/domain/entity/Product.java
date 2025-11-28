@@ -1,0 +1,51 @@
+package com.springcloud.eureka.client.productservice.domain.entity;
+
+import com.javaauction.global.infrastructure.entity.BaseEntity;
+import com.springcloud.eureka.client.productservice.domain.enums.ProductStatus;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.UUID;
+
+@Getter
+@Entity
+@Table(name = "p_product")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Product extends BaseEntity {
+    @Id
+    @Column(name = "product_id", nullable = false, updatable = false, length = 36)
+    private String id;
+
+    @Column(name = "user_id", nullable = false, length = 50)
+    private String userId;
+
+    @Column(name = "name", nullable = false, length = 100)
+    private String name;
+
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;   // S3 등 외부 저장소 URL
+
+    @Column(name = "final_price")
+    private Long finalPrice;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "product_status", nullable = false, length = 30)
+    private ProductStatus status;
+
+    public static Product create(String userId, String name, String description, String imageUrl) {
+        Product product = new Product();
+        product.id = UUID.randomUUID().toString();
+        product.userId = userId;
+        product.name = name;
+        product.description = description;
+        product.imageUrl = imageUrl;
+        product.status = ProductStatus.AUCTION_WAITING;
+        return product;
+    }
+
+}
