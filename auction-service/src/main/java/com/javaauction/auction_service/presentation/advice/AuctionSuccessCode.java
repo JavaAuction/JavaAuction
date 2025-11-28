@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum AuctionSuccessCode implements ResponseCode {
 
-    AUCTION_CREATE_SUCCESS(HttpStatus.CREATED, "AUCTION201", "경매 생성 성공");
+    AUCTION_CREATE_SUCCESS(HttpStatus.CREATED, "AUCTION201", "경매 생성 성공"),
+    AUCTION_FIND_SUCCESS(HttpStatus.CREATED, "AUCTION200", "경매 조회 성공");
 
 
     private final HttpStatus status;

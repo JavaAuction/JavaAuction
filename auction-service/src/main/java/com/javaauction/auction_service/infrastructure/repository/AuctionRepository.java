@@ -11,9 +11,11 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface AuctionRepository extends JpaRepository<Auction, UUID> {
+public interface AuctionRepository extends JpaRepository<Auction, UUID>, AuctionQuerydslRepository {
 
     boolean existsByProductIdAndDeletedAtIsNull(UUID productId);
+
+    Optional<Auction> findByAuctionIdAndDeletedAtIsNull(UUID auctionId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select a from Auction a where a.auctionId = :auctionId")

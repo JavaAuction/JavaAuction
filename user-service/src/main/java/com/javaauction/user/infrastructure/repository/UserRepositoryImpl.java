@@ -3,6 +3,8 @@ package com.javaauction.user.infrastructure.repository;
 import com.javaauction.user.domain.repository.UserRepository;
 import com.javaauction.user.domain.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -12,6 +14,11 @@ import java.util.Optional;
 public class UserRepositoryImpl implements UserRepository {
 
     private final UserJpaRepository userJpaRepository;
+
+    @Override
+    public Page<UserEntity> getUsers(Pageable pageable) {
+        return userJpaRepository.findAllByDeletedAtIsNull(pageable);
+    }
 
     @Override
     public Optional<UserEntity> findByUsername(String username) {

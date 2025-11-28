@@ -1,4 +1,4 @@
-package com.javaauction.user.application.dto;
+package com.javaauction.user.presentation.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
