@@ -3,6 +3,7 @@ package com.javaauction.user.presentation.controller;
 import com.javaauction.global.presentation.response.ApiResponse;
 import com.javaauction.user.application.dto.ReqLoginDto;
 import com.javaauction.user.application.dto.ReqSignupDto;
+import com.javaauction.user.application.dto.ReqUpdateDto;
 import com.javaauction.user.application.service.UserServiceV1;
 import com.javaauction.user.infrastructure.JWT.JwtUserContext;
 import lombok.RequiredArgsConstructor;
@@ -42,5 +43,10 @@ public class UserControllerV1 {
     @GetMapping("/users/me")
     public ApiResponse getMyInfo(){
         return userService.getMyInfo(JwtUserContext.getUsernameFromHeader());
+    }
+
+    @PutMapping("/users/me")
+    public ApiResponse updateUserInfo(@RequestBody ReqUpdateDto updateRequestDto) {
+        return userService.updateUser(updateRequestDto, JwtUserContext.getUsernameFromHeader());
     }
 }
