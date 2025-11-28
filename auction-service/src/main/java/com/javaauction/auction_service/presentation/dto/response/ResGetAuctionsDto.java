@@ -1,4 +1,4 @@
-package com.javaauction.auction_service.presentation.dto;
+package com.javaauction.auction_service.presentation.dto.response;
 
 import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
 import java.time.LocalDateTime;

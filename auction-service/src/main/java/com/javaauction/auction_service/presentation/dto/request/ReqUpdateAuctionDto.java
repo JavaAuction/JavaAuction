@@ -1,9 +1,9 @@
-package com.javaauction.auction_service.presentation.dto;
+package com.javaauction.auction_service.presentation.dto.request;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record ReqCreateAuctionDto(
+public record ReqUpdateAuctionDto(
     UUID productId,
     Long startPrice,
     Long unit,
