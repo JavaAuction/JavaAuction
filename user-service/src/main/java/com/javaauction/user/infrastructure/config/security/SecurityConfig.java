@@ -82,7 +82,7 @@ public class SecurityConfig {
                         // user
                         .requestMatchers(HttpMethod.GET, "/v1/users/me").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/v1/users/*").authenticated()
-                        .requestMatchers("/v1/users/**").hasRole("MASTER")
+                        .requestMatchers("/v1/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated() // 그 외 모든 요청 인증처리
         );
         // 필터 관리
