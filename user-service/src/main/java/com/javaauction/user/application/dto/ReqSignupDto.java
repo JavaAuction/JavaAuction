@@ -12,6 +12,7 @@ import lombok.Getter;
 public class ReqSignupDto {
     private String username;
     private String email;
+    private String name;
     private String password;
     private String slackId;
     private UserRole role;
@@ -20,6 +21,7 @@ public class ReqSignupDto {
         return UserEntity.builder()
                 .username(username)
                 .email(email)
+                .name(name)
                 .password(password)
                 .slackId(slackId)
                 .role(role)
