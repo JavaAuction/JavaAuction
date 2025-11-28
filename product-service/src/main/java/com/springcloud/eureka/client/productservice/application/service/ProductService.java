@@ -5,10 +5,12 @@ import com.springcloud.eureka.client.productservice.infrastructure.repository.Pr
 import com.springcloud.eureka.client.productservice.presentation.dto.RepProductCreateDto;
 import com.springcloud.eureka.client.productservice.presentation.dto.ReqProductCreateDto;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
 @Service
+@Transactional
 public class ProductService {
 
     private final ProductRepository productRepository;
