@@ -26,5 +26,5 @@ server:
   port: 19092
 
 jwt:
-  secret: your-secret-key-change-this-in-production-environment-minimum-256-bits
-  expiration: 86400000 # 24시간 (밀리초)
+  secret: c3BhcnRhX3Rpa2l0YWthX2JhcHppcF8xMjM0NTY3ODk=
+  expiration: 86400000
