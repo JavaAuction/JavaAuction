@@ -11,6 +11,7 @@ import com.javaauction.global.presentation.exception.BussinessException;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class AuctionServiceImpl implements AuctionService {
     private final AuctionRepository auctionRepository;
 
     @Override
+    @Transactional
     public ResCreatedAuctionDto createAuction(ReqCreateAuctionDto req) {
         // 통신 후에 상품 있는지 + 상품만든사람이랑 같은 사람인지 확인하기
 
