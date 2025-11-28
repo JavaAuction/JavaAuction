@@ -15,8 +15,9 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product extends BaseEntity {
     @Id
-    @Column(name = "product_id", nullable = false, updatable = false, length = 36)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "product_id", nullable = false, updatable = false)
+    private UUID id;
 
     @Column(name = "user_id", nullable = false, length = 50)
     private String userId;
@@ -39,7 +40,6 @@ public class Product extends BaseEntity {
 
     public static Product create(String userId, String name, String description, String imageUrl) {
         Product product = new Product();
-        product.id = UUID.randomUUID().toString();
         product.userId = userId;
         product.name = name;
         product.description = description;

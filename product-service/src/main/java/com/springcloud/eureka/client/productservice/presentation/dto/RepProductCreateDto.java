@@ -6,11 +6,12 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Getter
 @Builder
 public class RepProductCreateDto {
-    private String productId;
+    private UUID productId;
     private String userId;
     private String name;
     private String description;
