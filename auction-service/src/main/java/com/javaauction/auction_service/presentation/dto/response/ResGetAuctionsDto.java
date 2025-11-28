@@ -1,0 +1,21 @@
+package com.javaauction.auction_service.presentation.dto.response;
+
+import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
+import java.time.LocalDateTime;
+import java.util.UUID;
+import org.springframework.data.domain.Page;
+
+public record ResGetAuctionsDto(
+    Page<AuctionDTO> auctionList
+) {
+
+    public record AuctionDTO(
+        UUID auctionId,
+        UUID productId,
+        Long currentPrice,
+        LocalDateTime endAt,
+        AuctionStatus status
+    ) {
+
+    }
+}
