@@ -60,6 +60,7 @@ public class Auction extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AuctionStatus status;
+    
 
     public void update(
         String successfulBidder,

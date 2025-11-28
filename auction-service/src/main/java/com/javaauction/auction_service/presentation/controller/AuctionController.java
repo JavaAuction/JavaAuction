@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/v1/auction")
+@RequestMapping("/v1/auctions")
 public class AuctionController {
 
     private final AuctionService auctionService;
