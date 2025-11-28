@@ -1,9 +1,7 @@
 package com.javaauction.user.infrastructure.config.security;
 
-import com.javaauction.user.application.service.UserDetailsServiceImpl;
 import com.javaauction.user.domain.repository.UserRepository;
 import com.javaauction.user.infrastructure.JWT.JwtAuthenticationFilter;
-import com.javaauction.user.infrastructure.JWT.JwtAuthorizationFilter;
 import com.javaauction.user.infrastructure.JWT.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -29,7 +27,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
-    private final UserDetailsServiceImpl userDetailsService;
     private final UserRepository userRepository;
 
     @Bean
@@ -49,15 +46,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthorizationFilter jwtAuthorizationFilter() {
-        return new JwtAuthorizationFilter(jwtUtil, userDetailsService);
-    }
-
-    @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            JwtAuthenticationFilter jwtAuthenticationFilter,
-            JwtAuthorizationFilter jwtAuthorizationFilter) throws Exception {
+            JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http.httpBasic(HttpBasicConfigurer::disable);
 
         http.csrf(AbstractHttpConfigurer::disable);
@@ -68,7 +59,7 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests((authorizeHttpRequests) ->
                 authorizeHttpRequests
-
+                        // 인증이 필요 없는 경로 (gateway에서 이미 인증 처리)
                         .requestMatchers(
                                 "/v1/auth/**",
                                 "/swagger-ui.html",
@@ -79,14 +70,10 @@ public class SecurityConfig {
                                 "/springdoc/**",
                                 "/internal/**"
                         ).permitAll()
-                        // user
-                        .requestMatchers(HttpMethod.GET, "/v1/users/me").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/v1/users/*").authenticated()
-                        .requestMatchers("/v1/users/**").hasRole("MASTER")
-                        .anyRequest().authenticated() // 그 외 모든 요청 인증처리
+                        // 그 외 모든 요청은 gateway에서 인증 처리됨
+                        .anyRequest().permitAll()
         );
-        // 필터 관리
-        http.addFilterBefore(jwtAuthorizationFilter, JwtAuthenticationFilter.class);
+        // 로그인 필터만 추가 (JWT 토큰 검증은 gateway에서 처리)
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
