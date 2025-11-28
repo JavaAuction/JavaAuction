@@ -14,6 +14,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -34,7 +35,7 @@ public class AlertControllerV1 {
                 AlertType.BID,
                 "입찰이 등록되었습니다.",
                 false,
-                LocalDateTime.now()
+                Instant.now()
         );
         List<RepGetAlertsDtoV1> alerts = List.of(response);
         Page<RepGetAlertsDtoV1> alertsDtoV1Page = new PageImpl<>(alerts, pageable, 0);
@@ -48,7 +49,7 @@ public class AlertControllerV1 {
         RepPostAlertsReadDtoV1 response = new RepPostAlertsReadDtoV1(
                 alertId,
                 true,
-                LocalDateTime.now()
+                Instant.now()
         );
 
         return ResponseEntity.ok(response);

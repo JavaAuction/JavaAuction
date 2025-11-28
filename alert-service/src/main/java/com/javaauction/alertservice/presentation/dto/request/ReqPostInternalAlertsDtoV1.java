@@ -13,7 +13,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReqPostInternalAlertsDtoV1 {
-    private String userId;
     private UUID productId;
     private AlertType alertType;
 }
