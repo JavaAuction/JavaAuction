@@ -7,7 +7,7 @@ spring:
         - id: user-service
           uri: lb://user-service
           predicates:
-            - Path=/v1/users/**, /auth/**, /internal/users/**
+            - Path=/v1/users/**, /v1/auth/**, /internal/users/**
         - id: product-service
           uri: lb://product-service
           predicates:
@@ -36,3 +36,4 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:19090/eureka
+
