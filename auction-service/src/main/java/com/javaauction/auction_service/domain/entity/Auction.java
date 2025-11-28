@@ -33,8 +33,11 @@ public class Auction extends BaseEntity {
     @Column(name = "auction_id", nullable = false)
     private UUID auctionId;
 
-    @Column(name = "productId", nullable = false)
+    @Column(name = "product_id", nullable = false)
     private UUID productId;
+
+    @Column(name = "product_name", nullable = false)
+    private String productName;
 
     @Column(name = "successful_bidder")
     private String successfulBidder;
@@ -60,7 +63,7 @@ public class Auction extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AuctionStatus status;
-    
+
 
     public void update(
         String successfulBidder,
