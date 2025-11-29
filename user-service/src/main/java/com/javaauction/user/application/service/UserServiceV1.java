@@ -6,6 +6,7 @@ import com.javaauction.global.presentation.exception.BussinessException;
 import com.javaauction.global.presentation.response.ApiResponse;
 import com.javaauction.user.application.dto.ReqLoginDto;
 import com.javaauction.user.application.dto.ReqSignupDto;
+import com.javaauction.user.application.dto.ReqUpdateDto;
 import com.javaauction.user.domain.entity.UserEntity;
 import com.javaauction.user.domain.repository.UserRepository;
 import com.javaauction.user.infrastructure.JWT.JwtUtil;
@@ -13,6 +14,7 @@ import com.javaauction.user.presentation.dto.ResGetMyInfoDto;
 import com.javaauction.user.presentation.dto.ResGetUserAdminDto;
 import com.javaauction.user.presentation.dto.ResGetUserDto;
 import com.javaauction.user.presentation.dto.ResLoginDto;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -59,7 +61,7 @@ public class UserServiceV1 {
 
         log.info("회원가입 성공 - username: {}, role: {}", user.getUsername(), user.getRole());
 
-        return ApiResponse.success(BaseSuccessCode.OK);
+        return ApiResponse.success(BaseSuccessCode.CREATED);
     }
 
     public ApiResponse login(ReqLoginDto loginRequestDto) {
@@ -143,5 +145,18 @@ public class UserServiceV1 {
         UserEntity my = userRepository.findByUsername(username).orElseThrow(() -> new BussinessException(BaseErrorCode.INVALID_INPUT_VALUE));
 
         return ApiResponse.success(BaseSuccessCode.OK, ResGetMyInfoDto.of(my));
+    }
+
+    @Transactional
+    public ApiResponse updateUser(ReqUpdateDto updateRequestDto, String username) {
+        UserEntity me = userRepository.findByUsername(username).orElseThrow(() -> new BussinessException(BaseErrorCode.INVALID_INPUT_VALUE));
+
+        //password를 인코딩해서 전달
+        me.update(ReqUpdateDto.builder().name(updateRequestDto.getName())
+                .email(updateRequestDto.getEmail())
+                .password(passwordEncoder.encode(updateRequestDto.getPassword()))
+                .build());
+
+        return ApiResponse.success(BaseSuccessCode.OK);
     }
 }
