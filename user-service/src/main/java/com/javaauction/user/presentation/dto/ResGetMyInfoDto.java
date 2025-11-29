@@ -20,8 +20,6 @@ public class ResGetMyInfoDto {
 
     private String name;
 
-    private String password;
-
     private String slackId;
 
     private UUID address;

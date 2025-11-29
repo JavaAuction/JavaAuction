@@ -10,6 +10,7 @@ import com.javaauction.user.application.dto.ReqUpdateDto;
 import com.javaauction.user.domain.entity.UserEntity;
 import com.javaauction.user.domain.repository.UserRepository;
 import com.javaauction.user.infrastructure.JWT.JwtUtil;
+import com.javaauction.user.presentation.advice.UserErrorCode;
 import com.javaauction.user.presentation.dto.ResGetMyInfoDto;
 import com.javaauction.user.presentation.dto.ResGetUserAdminDto;
 import com.javaauction.user.presentation.dto.ResGetUserDto;
@@ -41,10 +42,14 @@ public class UserServiceV1 {
 
     public void signup(ReqSignupDto signupRequestDto) {
         //이미 존재하는 정보인지 확인
-        if(userRepository.findByUsername(signupRequestDto.getUsername()).isPresent()
-                ||userRepository.findByEmail(signupRequestDto.getEmail()).isPresent()
-                ||userRepository.findBySlackId(signupRequestDto.getSlackId()).isPresent()){
-            throw new BussinessException(BaseErrorCode.INVALID_INPUT_VALUE);
+        if (userRepository.findByUsername(signupRequestDto.getUsername()).isPresent()) {
+            throw new BussinessException(UserErrorCode.USER_ALREADY_EXISTS);
+        }
+        if (userRepository.findByEmail(signupRequestDto.getEmail()).isPresent()) {
+            throw new BussinessException(UserErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+        if (userRepository.findBySlackId(signupRequestDto.getSlackId()).isPresent()) {
+            throw new BussinessException(UserErrorCode.SLACK_ID_ALREADY_EXISTS);
         }
 
         UserEntity user =  UserEntity.builder()
@@ -55,6 +60,7 @@ public class UserServiceV1 {
                 .slackId(signupRequestDto.getSlackId())
                 .role(signupRequestDto.getRole())
                 .build();
+
         user.setCreate(Instant.now(),"System");
         userRepository.save(user);
     }
@@ -72,7 +78,7 @@ public class UserServiceV1 {
 
             // 사용자 정보 조회
             UserEntity user = userRepository.findByUsername(loginRequestDto.getUsername())
-                    .orElseThrow(() -> new BussinessException(BaseErrorCode.INVALID_INPUT_VALUE));
+                    .orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
 
             // JWT 토큰 생성
             String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
@@ -115,11 +121,11 @@ public class UserServiceV1 {
 
     public Object getUser(String userId, String username, String role) {
         // 권한 체크는 하지 않지만, role이 null인 경우 기본값 처리
-        UserEntity user = userRepository.findByUsername(userId).orElseThrow(() -> new BussinessException(BaseErrorCode.INVALID_INPUT_VALUE));
+        UserEntity user = userRepository.findByUsername(userId).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
 
         //삭제된 사용자일 경우
         if(user.getDeletedAt() != null){
-            throw new BussinessException(BaseErrorCode.DATA_ALREADY_DELETED);
+            throw new BussinessException(UserErrorCode.CANNOT_DELETE_DELETED_USER);
         }
 
         // 자기 자신을 검색할 경우
@@ -136,14 +142,14 @@ public class UserServiceV1 {
     }
 
     public ResGetMyInfoDto getMyInfo(String username) {
-        UserEntity my = userRepository.findByUsername(username).orElseThrow(() -> new BussinessException(BaseErrorCode.INVALID_INPUT_VALUE));
+        UserEntity my = userRepository.findByUsername(username).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
 
         return ResGetMyInfoDto.of(my);
     }
 
     @Transactional
     public void updateUser(ReqUpdateDto updateRequestDto, String username) {
-        UserEntity me = userRepository.findByUsername(username).orElseThrow(() -> new BussinessException(BaseErrorCode.INVALID_INPUT_VALUE));
+        UserEntity me = userRepository.findByUsername(username).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
 
         me.update(ReqUpdateDto.builder().name(updateRequestDto.getName())
                 .email(updateRequestDto.getEmail())
@@ -159,10 +165,10 @@ public class UserServiceV1 {
             throw new BussinessException(BaseErrorCode.ACCESS_DENIED);
         }
 
-        UserEntity user = userRepository.findByUsername(userId).orElseThrow(() -> new BussinessException(BaseErrorCode.INVALID_INPUT_VALUE));
+        UserEntity user = userRepository.findByUsername(userId).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
 
         if(user.getDeletedAt() != null){
-            throw new BussinessException(BaseErrorCode.DATA_ALREADY_DELETED);
+            throw new BussinessException(UserErrorCode.CANNOT_DELETE_DELETED_USER);
         }
 
         user.softDelete(Instant.now(), username);
