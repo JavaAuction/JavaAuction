@@ -46,8 +46,5 @@ public class UserEntity extends BaseEntity {
         if (updateRequestDto.getName() != null && !updateRequestDto.getName().isEmpty()) {
             this.name = updateRequestDto.getName();
         }
-        if (updateRequestDto.getPassword() != null && !updateRequestDto.getPassword().isEmpty()) {
-            this.password = updateRequestDto.getPassword();
-        }
     }
 }
