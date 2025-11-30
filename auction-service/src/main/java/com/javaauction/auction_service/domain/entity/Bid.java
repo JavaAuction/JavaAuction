@@ -1,20 +1,19 @@
 package com.javaauction.auction_service.domain.entity;
 
 import com.javaauction.auction_service.domain.entity.enums.BidStatus;
+import com.javaauction.global.infrastructure.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "p_bid")
-public class Bid {
+public class Bid extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,10 +32,6 @@ public class Bid {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private BidStatus status;
-
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
 
     private Bid(UUID auctionId, String userId, Long bidPrice) {
         this.auctionId = auctionId;
