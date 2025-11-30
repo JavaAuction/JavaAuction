@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -54,6 +55,7 @@ public class BidDomainService {
 
             // 새로운 입찰 생성 및 저장
             Bid newBid = Bid.create(auctionId, userId, bidPrice);
+            newBid.setCreate(Instant.now(), userId); // 임시
             bidRepository.save(newBid);
 
             // Auction 최고가 + 최고 입찰자 업데이트
