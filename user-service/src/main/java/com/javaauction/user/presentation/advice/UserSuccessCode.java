@@ -15,8 +15,10 @@ public enum UserSuccessCode implements ResponseCode {
     USER_FOUND(HttpStatus.OK, "USER-211", "유저 조회 성공"),
     MY_INFO_FOUND(HttpStatus.OK, "USER-212", "내 정보 조회 성공"),
     USER_UPDATED(HttpStatus.OK, "USER-220", "유저 정보 수정 성공"),
-    USER_DELETED(HttpStatus.OK, "USER-230", "유저 삭제 성공");
+    USER_DELETED(HttpStatus.OK, "USER-230", "유저 삭제 성공"),
 
+    ADDRESS_CREATED(HttpStatus.CREATED, "ADDRESS-201", "주소 생성이 완료되었습니다."),
+    ADDRESS_LIST_FOUND(HttpStatus.OK,"ADDRESS-210", "주소 목록 조회 성공");
     private final HttpStatus status;
     private final String code;
     private final String message;

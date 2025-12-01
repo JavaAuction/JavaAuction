@@ -47,4 +47,8 @@ public class UserEntity extends BaseEntity {
             this.name = updateRequestDto.getName();
         }
     }
+
+    public void setAddress(UUID addressId) {
+        this.address = addressId;
+    }
 }
