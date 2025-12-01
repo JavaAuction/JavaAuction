@@ -33,7 +33,7 @@ public class AlertControllerV1 {
 
     // 알림 리스트 조회
     @GetMapping
-    public ResponseEntity<Page<RepGetAlertsDtoV1>> getAlerts(
+    public ResponseEntity<ApiResponse<Page<RepGetAlertsDtoV1>>> getAlerts(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) AlertType alertType,
             @RequestParam(required = false) Boolean isRead,
@@ -47,7 +47,9 @@ public class AlertControllerV1 {
         SearchParam searchParam = new SearchParam(search, alertType, isRead);
         Page<RepGetAlertsDtoV1> getAlertsDto = alertServiceV1.getAlerts(searchParam, pageable, "tmpuser1", "USER"); // 임시로 userid, role 설정
 
-        return ResponseEntity.ok(ApiResponse.success(AlertSuccessCode.ALERT_FIND_SUCCESS, getAlertsDto).getData());
+        return ResponseEntity.ok(
+                ApiResponse.success(AlertSuccessCode.ALERT_FIND_SUCCESS, getAlertsDto)
+        );
     }
 
     // 알림 읽음 처리
