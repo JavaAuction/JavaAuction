@@ -7,14 +7,13 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum PaymentSuccessCode implements ResponseCode {
+public enum PaymentErrorCode implements ResponseCode {
 
-    PAYMENT_WALLET_CREATE_SUCCESS(HttpStatus.CREATED, "PAYMENT200", "지갑 생성 성공"),
-    PAYMENT_CHARGE_SUCCESS(HttpStatus.OK, "PAYMENT201", "잔액 충전 성공"),
-
+    PAYMENT_WALLET_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT001", "일치하는 지갑을 찾을 수 없습니다."),
+    PAYMENT_INVALID_CHARGE_TYPE(HttpStatus.BAD_REQUEST, "PAYMENT002", "충전 요청의 타입 값이 유효하지 않습니다."),
     ;
 
     private final HttpStatus status;
     private final String code;
     private final String message;
-    }
+}
