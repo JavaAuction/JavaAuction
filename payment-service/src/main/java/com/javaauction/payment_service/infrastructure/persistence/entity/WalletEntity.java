@@ -28,7 +28,6 @@ public class WalletEntity extends BaseEntity {
     private String userId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Type type;
 
     @Builder.Default
