@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 public enum PaymentErrorCode implements ResponseCode {
 
     PAYMENT_WALLET_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT001", "일치하는 지갑을 찾을 수 없습니다."),
-    PAYMENT_INVALID_CHARGE_TYPE(HttpStatus.BAD_REQUEST, "PAYMENT002", "충전 요청의 타입 값이 유효하지 않습니다."),
     ;
 
     private final HttpStatus status;
