@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
 @Service
 @RequiredArgsConstructor
 public class AddressServiceV1 {
@@ -37,6 +39,8 @@ public class AddressServiceV1 {
                 .isDefault(defaultAddress != null ? createAddressDto.isDefault() : true)
                 .build();
 
+        addressEntity.setCreate(Instant.now(),username);
+
         if(defaultAddress != null && createAddressDto.isDefault()) {
             defaultAddress.changeDefaultAddress(false);
         }
@@ -45,6 +49,7 @@ public class AddressServiceV1 {
 
         if(addressEntity.isDefault()) {
             user.setAddress(addressEntity.getAddressId());
+            user.setUpdated(Instant.now(),username);
         }
     }
 }

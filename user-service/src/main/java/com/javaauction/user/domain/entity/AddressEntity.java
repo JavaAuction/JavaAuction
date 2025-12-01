@@ -1,5 +1,6 @@
 package com.javaauction.user.domain.entity;
 
+import com.javaauction.global.infrastructure.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AddressEntity {
+public class AddressEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "address_id", nullable = false, unique = true)
