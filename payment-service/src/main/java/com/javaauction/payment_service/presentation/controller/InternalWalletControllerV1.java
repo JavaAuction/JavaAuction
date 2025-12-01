@@ -5,6 +5,7 @@ import com.javaauction.payment_service.application.service.WalletServiceV1;
 import com.javaauction.payment_service.presentation.advice.PaymentSuccessCode;
 import com.javaauction.payment_service.presentation.dto.request.ReqCreateWalletDto;
 import com.javaauction.payment_service.presentation.dto.response.ResCreateWalletDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class InternalWalletControllerV1 {
     private final WalletServiceV1 walletService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ResCreateWalletDto>> createWallet(@RequestBody ReqCreateWalletDto request) {
+    public ResponseEntity<ApiResponse<ResCreateWalletDto>> createWallet(@Valid @RequestBody ReqCreateWalletDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.success(
                         PaymentSuccessCode.PAYMENT_WALLET_CREATE_SUCCESS,
