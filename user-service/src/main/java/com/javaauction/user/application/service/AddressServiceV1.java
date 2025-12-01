@@ -8,12 +8,18 @@ import com.javaauction.user.domain.entity.UserEntity;
 import com.javaauction.user.domain.repository.AddressRepository;
 import com.javaauction.user.domain.repository.UserRepository;
 import com.javaauction.user.presentation.advice.UserErrorCode;
+import com.javaauction.user.presentation.dto.ResGetAddressDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -64,6 +70,25 @@ public class AddressServiceV1 {
         if(addressEntity.isDefault()) {
             user.setAddress(addressEntity.getAddressId());
             user.setUpdated(Instant.now(),username);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Object getAddress(int page, int size, String sortBy, boolean isAsc, String role, String username) {
+        if ("ADMIN".equals(role)) {
+            // ADMIN - 전체 조회
+            if (!List.of(10, 30, 50).contains(size)) size = 10;
+            if (sortBy == null || sortBy.isBlank() || !sortBy.equals("modifiedAt")) sortBy = "createdAt";
+
+            Pageable pageable = PageRequest.of(page > 0 ? page - 1 : page, size, isAsc ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy);
+            Page<AddressEntity> addressList = addressRepository.findAll(pageable);
+            return addressList.map(ResGetAddressDto::of);
+        } else {
+            // USER - 본인 주소 조회
+            UserEntity user = userRepository.findByUsername(username).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
+            return addressRepository.findByUser(user).stream()
+                    .map(ResGetAddressDto::of)
+                    .collect(Collectors.toList());
         }
     }
 }
