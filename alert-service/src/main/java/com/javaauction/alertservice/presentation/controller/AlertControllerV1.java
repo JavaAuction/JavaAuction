@@ -54,14 +54,11 @@ public class AlertControllerV1 {
 
     // 알림 읽음 처리
     @PostMapping("/{alertId}/read")
-    public ResponseEntity<RepPostAlertsReadDtoV1> readAlert(@PathVariable UUID alertId) {
-        RepPostAlertsReadDtoV1 response = new RepPostAlertsReadDtoV1(
-                alertId,
-                true,
-                Instant.now()
+    public ResponseEntity<ApiResponse<RepPostAlertsReadDtoV1>> readAlert(@PathVariable UUID alertId) {
+        RepPostAlertsReadDtoV1 postAlertsReadDto = alertServiceV1.postAlertsRead(alertId, "tmpuser1", "USER"); // 임시로 userid, role 설정
+        return ResponseEntity.ok(
+                ApiResponse.success(AlertSuccessCode.ALERT_FIND_SUCCESS, postAlertsReadDto)
         );
-
-        return ResponseEntity.ok(response);
     }
 
     // 알림 삭제
