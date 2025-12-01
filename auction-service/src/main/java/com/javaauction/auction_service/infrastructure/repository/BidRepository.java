@@ -33,6 +33,9 @@ public interface BidRepository extends JpaRepository<Bid, UUID> {
             @Param("userId") String userId,
             @Param("bidPrice") Long bidPrice
     );
+
+    // 최신 입찰 순 입찰 내역 조회
+    List<Bid> findByAuctionIdOrderByCreatedAtDesc(UUID auctionId);
 }
 
 

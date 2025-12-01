@@ -1,5 +1,6 @@
 package com.javaauction.auction_service.presentation.dto.response;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +23,6 @@ public class ResGetBidsDto {
     public static class BidDto {
         private UUID bidId;
         private Long bidPrice;
-        private LocalDateTime createdAt;
+        private Instant createdAt;
     }
 }
