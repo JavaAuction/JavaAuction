@@ -1,7 +1,9 @@
 package com.javaauction.payment_service.application.service;
 
 import com.javaauction.payment_service.domain.model.Wallet;
+import com.javaauction.payment_service.domain.model.WalletTransaction;
 import com.javaauction.payment_service.domain.repository.WalletRepository;
+import com.javaauction.payment_service.domain.repository.WalletTransactionRepository;
 import com.javaauction.payment_service.presentation.advice.PaymentException;
 import com.javaauction.payment_service.presentation.dto.request.ReqChargeDto;
 import com.javaauction.payment_service.presentation.dto.request.ReqCreateWalletDto;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+import static com.javaauction.payment_service.domain.model.WalletTransaction.TransactionType.CHARGE;
 import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.PAYMENT_WALLET_NOT_FOUND;
 
 @Service
@@ -21,6 +24,7 @@ import static com.javaauction.payment_service.presentation.advice.PaymentErrorCo
 public class WalletServiceV1 {
 
     private final WalletRepository walletRepository;
+    private final WalletTransactionRepository walletTransactionRepository;
 
     @Transactional
     public ResCreateWalletDto createWallet(ReqCreateWalletDto request) {
@@ -39,17 +43,25 @@ public class WalletServiceV1 {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new PaymentException(PAYMENT_WALLET_NOT_FOUND));
 
+        long chargeAmount = request.getAmount();
         long beforeBalance = wallet.getBalance();
-        long afterBalance = beforeBalance + request.getAmount();
+        long afterBalance = beforeBalance + chargeAmount;
 
         Wallet charged = Wallet.builder()
                 .id(wallet.getId())
                 .userId(wallet.getUserId())
                 .balance(afterBalance)
                 .build();
-
         walletRepository.save(charged);
 
-        return ResChargeDto.from(charged, request.getAmount(), beforeBalance);
+        walletTransactionRepository.save(
+                WalletTransaction.builder()
+                        .walletId(wallet.getId())
+                        .type(CHARGE)
+                        .amount(chargeAmount)
+                        .build()
+        );
+
+        return ResChargeDto.from(charged, chargeAmount, beforeBalance);
     }
 }
