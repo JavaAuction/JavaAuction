@@ -4,7 +4,6 @@ import com.javaauction.alertservice.application.service.AlertServiceV1;
 import com.javaauction.alertservice.presentation.advice.AlertSuccessCode;
 import com.javaauction.alertservice.presentation.dto.request.ReqPostInternalAlertsDtoV1;
 import com.javaauction.alertservice.presentation.dto.response.RepPostInternalAlertsDtoV1;
-import com.javaauction.global.infrastructure.code.ResponseCode;
 import com.javaauction.global.presentation.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

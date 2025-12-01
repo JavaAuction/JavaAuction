@@ -17,7 +17,7 @@ import java.util.UUID;
 public class RepPostInternalAlertsDtoV1 {
     private UUID alertId;
     private String userId;
-    private UUID productId;
+    private UUID auctionId;
     private AlertType alertType;
     private String content;
     private boolean isRead;

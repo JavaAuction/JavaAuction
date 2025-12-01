@@ -13,6 +13,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReqPostInternalAlertsDtoV1 {
-    private UUID productId;
+    private UUID auctionId;
     private AlertType alertType;
 }

@@ -45,7 +45,7 @@ public class AlertServiceV1 {
 
         Alert alert = Alert.ofNewAlert(
                 userId,
-                reqDto.getProductId(),
+                reqDto.getAuctionId(),
                 reqDto.getAlertType(),
                 message
                 );
@@ -55,7 +55,7 @@ public class AlertServiceV1 {
         return new RepPostInternalAlertsDtoV1(
                 alert.getAlertId(),
                 userId,
-                alert.getProductId(),
+                alert.getAuctionId(),
                 alert.getAlertType(),
                 alert.getContent(),
                 alert.isRead(),

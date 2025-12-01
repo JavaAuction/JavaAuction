@@ -20,8 +20,8 @@ public class Alert extends BaseEntity {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @Column(name = "product_id", nullable = false)
-    private UUID productId;
+    @Column(name = "auction_id", nullable = false)
+    private UUID auctionId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "alert_type", nullable = false)
@@ -33,16 +33,16 @@ public class Alert extends BaseEntity {
     @Column(name = "content")
     private String content;
 
-    private Alert(String userId, UUID productId, AlertType alertType, String content) {
+    private Alert(String userId, UUID auctionId, AlertType alertType, String content) {
         this.userId = userId;
-        this.productId = productId;
+        this.auctionId = auctionId;
         this.alertType = alertType;
         this.isRead = false;
         this.content = content;
     }
 
-    public static Alert ofNewAlert(String userId, UUID productId, AlertType alertType, String content) {
-        return new Alert(userId, productId, alertType, content);
+    public static Alert ofNewAlert(String userId, UUID auctionId, AlertType alertType, String content) {
+        return new Alert(userId, auctionId, alertType, content);
     }
 
     public void alertRead() {
