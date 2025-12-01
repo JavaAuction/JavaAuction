@@ -8,7 +8,6 @@ import com.javaauction.auction_service.domain.service.BidDomainService;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
-import com.javaauction.auction_service.presentation.advice.BidErrorCode;
 import com.javaauction.auction_service.presentation.dto.response.ResGetBidsDto;
 import com.javaauction.global.presentation.exception.BussinessException;
 import lombok.RequiredArgsConstructor;
@@ -61,6 +60,7 @@ public class BidService {
                         .bidId(b.getBidId())
                         .bidPrice(b.getBidPrice())
                         .createdAt(b.getCreatedAt())
+                        .status(b.getStatus())
                         .build()
                 )
                 .toList();
