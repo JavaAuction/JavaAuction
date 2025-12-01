@@ -6,6 +6,8 @@ import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
 import com.javaauction.auction_service.presentation.dto.request.ReqCreateAuctionDto;
+import com.javaauction.auction_service.presentation.dto.request.ReqUpdateAuctionDto;
+import com.javaauction.auction_service.presentation.dto.request.ReqUpdateStatusAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResCreatedAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionsDto;
@@ -74,6 +76,67 @@ public class AuctionServiceImpl implements AuctionService {
         Page<Auction> auctions = auctionRepository.auctions(pageable, status, keyword);
 
         return ResGetAuctionsDto.from(auctions);
+    }
+
+    @Transactional
+    @Override
+    public void reRegisterAuction(UUID auctionId) {
+
+        Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
+            .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
+
+        switch (auction.getStatus()) {
+            case IN_PROGRESS -> throw new BussinessException(AuctionErrorCode.AUCTION_IN_PROGRESS);
+            case SUCCESSFUL_BID ->
+                throw new BussinessException(AuctionErrorCode.AUCTION_SUCCESSFUL_BID);
+//            case PENDING -> throw new BussinessException(AuctionErrorCode.AUCTION_PENDING);
+            default -> {
+                auction.reRegister();
+            }
+        }
+    }
+
+    @Transactional
+    @Override
+    public void deleteAuction(UUID auctionId, String user) {
+        Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
+            .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
+
+        if (auction.getStatus() == AuctionStatus.IN_PROGRESS) {
+            throw new BussinessException(AuctionErrorCode.AUCTION_IN_PROGRESS);
+        }
+
+        auction.softDelete(Instant.now(), user);
+    }
+
+
+    @Transactional
+    @Override
+    public void updateAuction(UUID auctionId, String user, ReqUpdateAuctionDto req) {
+        Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
+            .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
+
+        if (!(auction.getStatus() == AuctionStatus.PENDING)) {
+            throw new BussinessException(AuctionErrorCode.AUCTION_NOT_PENDING);
+        }
+
+        auction.update(
+            req.successfulBidder() != null ? req.successfulBidder() : auction.getSuccessfulBidder(),
+            req.startPrice() != null ? req.startPrice() : auction.getStartPrice(),
+            req.unit() != null ? req.unit() : auction.getUnit(),
+            req.buyNowEnable() != null ? req.buyNowEnable() : auction.getBuyNowEnable(),
+            req.buyNowPrice() != null ? req.buyNowPrice() : auction.getBuyNowPrice(),
+            req.endedAt() != null ? req.endedAt() : auction.getEndedAt()
+        );
+    }
+
+    @Transactional
+    @Override
+    public void UpdateAuctionStatus(UUID auctionId, ReqUpdateStatusAuctionDto req) {
+        Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
+            .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
+
+        auction.updateStatus(req.status());
     }
 
 
