@@ -1,11 +1,13 @@
 package com.javaauction.auction_service.presentation.dto.response;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import com.javaauction.auction_service.domain.entity.enums.BidStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Builder
@@ -22,6 +24,7 @@ public class ResGetBidsDto {
     public static class BidDto {
         private UUID bidId;
         private Long bidPrice;
-        private LocalDateTime createdAt;
+        private Instant createdAt;
+        private BidStatus status;
     }
 }
