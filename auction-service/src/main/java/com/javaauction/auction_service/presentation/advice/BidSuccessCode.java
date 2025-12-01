@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum BidSuccessCode implements ResponseCode {
 
-    BID_CREATE_SUCCESS(HttpStatus.CREATED, "BID201", "입찰 성공");
+    BID_CREATE_SUCCESS(HttpStatus.CREATED, "BID201", "입찰 성공"),
+    BID_FIND_SUCCESS(HttpStatus.OK, "BID202", "입찰 목록 조회 성공");
 
     private final HttpStatus status;
     private final String code;
