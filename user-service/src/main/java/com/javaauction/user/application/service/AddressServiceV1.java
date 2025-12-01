@@ -97,31 +97,47 @@ public class AddressServiceV1 {
 
     @Transactional
     public void updateAddress(UUID addressId, ReqUpdateAddressDto req, String username) {
-        AddressEntity address = addressRepository.findByAddressId(addressId).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
-        UserEntity user = userRepository.findByUsername(username).orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+        AddressEntity address = addressRepository.findByAddressId(addressId)
+                .orElseThrow(() -> new BussinessException(UserErrorCode.ADDRESS_NOT_FOUND));
+
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
         if(!address.getUser().getUsername().equals(username)) {
             throw new BussinessException(BaseErrorCode.ACCESS_DENIED);
         }
 
-        List<AddressEntity> existingAddresses = addressRepository.findByUser(user);
-        boolean isDuplicate = existingAddresses.stream()
-                .anyMatch(existing ->
-                        existing.getAddress().equals(req.getAddress()) &&
-                                existing.getPostcode().equals(req.getPostcode()) &&
-                                existing.getDetail().equals(req.getAddressDetail())
+        // 중복 주소 체크 (자기 자신 제외)
+        List<AddressEntity> userAddresses = addressRepository.findByUser(user);
+        boolean isDuplicate = userAddresses.stream()
+                .filter(a -> !a.getAddressId().equals(address.getAddressId()))
+                .anyMatch(a ->
+                        a.getAddress().equals(req.getAddress()) &&
+                                a.getPostcode().equals(req.getPostcode()) &&
+                                a.getDetail().equals(req.getAddressDetail())
                 );
 
         if (isDuplicate) {
             throw new BussinessException(UserErrorCode.ADDRESS_ALREADY_EXISTS);
         }
 
-        if(req.isDefault()== true){
-            addressRepository.findByUserAndIsDefault(user, true).changeDefaultAddress(false);
+        AddressEntity currentDefault = addressRepository.findByUserAndIsDefault(user, true);
+
+        // 현재 수정 중인 주소가 기본 주소인데, req.isDefault == false → 기본 주소 사라짐
+        if (!req.isDefault() && currentDefault.getAddressId().equals(address.getAddressId())) {
+            throw new BussinessException(UserErrorCode.ADDRESS_DEFAULT_DISAPPEAR);
+        }
+
+        // default=true로 변경하는 경우 → 기존 default 해제
+        if (req.isDefault()) {
+            if (!currentDefault.getAddressId().equals(address.getAddressId())) {
+                currentDefault.changeDefaultAddress(false);
+            }
+            user.setAddress(addressId);  // 유저의 default 주소 id 갱신
         }
 
         address.update(req);
-        address.setUpdated(Instant.now(),username);
+        address.setUpdated(Instant.now(), username);
     }
 }
 
