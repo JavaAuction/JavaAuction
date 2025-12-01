@@ -16,9 +16,4 @@ public class Wallet {
 
     @Builder.Default
     private final Long balance = 0L;
-
-    public enum Type {
-        CHARGE,
-        WITHDRAW
-    }
 }
