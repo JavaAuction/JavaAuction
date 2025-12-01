@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface BidRepository extends JpaRepository<Bid, UUID> {
+public interface BidRepository extends JpaRepository<Bid, UUID>, BidQueryDslRepository{
 
     // 이전 최고 입찰자(최고가) 탐색용 쿼리
     @Query("""
