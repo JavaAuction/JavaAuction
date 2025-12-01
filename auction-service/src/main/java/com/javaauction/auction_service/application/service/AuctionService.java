@@ -2,6 +2,7 @@ package com.javaauction.auction_service.application.service;
 
 import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
 import com.javaauction.auction_service.presentation.dto.request.ReqCreateAuctionDto;
+import com.javaauction.auction_service.presentation.dto.request.ReqUpdateAuctionDto;
 import com.javaauction.auction_service.presentation.dto.request.ReqUpdateStatusAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResCreatedAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionDto;
@@ -27,7 +28,7 @@ public interface AuctionService {
     void deleteAuction(UUID auctionId, String user);
 
     @Transactional
-    void updateAuction(UUID auctionId, String user);
+    void updateAuction(UUID auctionId, String user, ReqUpdateAuctionDto req);
 
     @Transactional
     void UpdateAuctionStatus(UUID auctionId, ReqUpdateStatusAuctionDto req);

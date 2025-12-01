@@ -4,6 +4,7 @@ import com.javaauction.auction_service.application.service.AuctionService;
 import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
 import com.javaauction.auction_service.presentation.advice.AuctionSuccessCode;
 import com.javaauction.auction_service.presentation.dto.request.ReqCreateAuctionDto;
+import com.javaauction.auction_service.presentation.dto.request.ReqUpdateAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResCreatedAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionsDto;
@@ -16,7 +17,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -73,21 +73,12 @@ public class AuctionController {
     }
 
 
-    @DeleteMapping("/{auctionId}")
-    public ResponseEntity<ApiResponse<Void>> deleteAuction(
-        @PathVariable("auctionId") UUID id
-    ) {
-        auctionService.deleteAuction(id, "temp");
-        return ResponseEntity.ok(
-            ApiResponse.success(AuctionSuccessCode.AUCTION_DELETED));
-    }
-
-
     @PutMapping("/{auctionId}")
     public ResponseEntity<ApiResponse<Void>> updateAuction(
-        @PathVariable("auctionId") UUID id
+        @PathVariable("auctionId") UUID id,
+        @RequestBody ReqUpdateAuctionDto req
     ) {
-        auctionService.updateAuction(id, "temp");
+        auctionService.updateAuction(id, "temp", req);
         return ResponseEntity.ok(
             ApiResponse.success(AuctionSuccessCode.AUCTION_UPDATED));
     }

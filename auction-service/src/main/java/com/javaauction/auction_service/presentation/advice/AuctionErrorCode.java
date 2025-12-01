@@ -8,8 +8,11 @@ import org.springframework.http.HttpStatus;
 public enum AuctionErrorCode implements ResponseCode {
     AUCTION_NOT_FOUND("AUCTION000", "해당 경매를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     AUCTION_ALREADY_EXIST("AUCTION001", "해당 상품에 대한 경매가 존재합니다.", HttpStatus.FOUND),
-    AUCTION_END_LATER("AUCTION003", "경매시간은 최소 한시간 이후여야합니다.", HttpStatus.BAD_REQUEST);
-
+    AUCTION_END_LATER("AUCTION003", "경매시간은 최소 한시간 이후여야합니다.", HttpStatus.BAD_REQUEST),
+    AUCTION_IN_PROGRESS("AUCTION004", "현재 진행중인 경매입니다.", HttpStatus.BAD_REQUEST),
+    AUCTION_SUCCESSFUL_BID("AUCTION005", "이미 낙찰된 경매입니다.", HttpStatus.BAD_REQUEST),
+    AUCTION_PENDING("AUCTION006", "대기중인 경매입니다.", HttpStatus.BAD_REQUEST),
+    AUCTION_NOT_PENDING("AUCTION007", "경매 대기중일때만 수정 가능합니다.", HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String message;
