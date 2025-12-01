@@ -26,7 +26,7 @@ public class WalletControllerV1 {
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.success(
-                        PaymentSuccessCode.PAYMENT_WALLET_CREATE_SUCCESS,
+                        PaymentSuccessCode.PAYMENT_CHARGE_SUCCESS,
                         walletService.charge(walletId, request)
                 )
         );
