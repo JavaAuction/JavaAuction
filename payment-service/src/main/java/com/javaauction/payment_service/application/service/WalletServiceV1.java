@@ -40,14 +40,9 @@ public class WalletServiceV1 {
                 .orElseThrow(() -> new PaymentException(PAYMENT_WALLET_NOT_FOUND));
 
         long beforeBalance = wallet.getBalance();
-        long afterBalance = beforeBalance + request.getAmount();
+        long chargeAmount = request.getAmount();
 
-        Wallet charged = Wallet.builder()
-                .id(wallet.getId())
-                .userId(wallet.getUserId())
-                .balance(afterBalance)
-                .build();
-
+        Wallet charged = wallet.withBalance(beforeBalance + chargeAmount);
         walletRepository.save(charged);
 
         return ResChargeDto.from(charged, request.getAmount(), beforeBalance);
