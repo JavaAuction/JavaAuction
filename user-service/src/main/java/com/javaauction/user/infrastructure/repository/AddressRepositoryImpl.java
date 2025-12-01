@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -34,5 +36,10 @@ public class AddressRepositoryImpl implements AddressRepository {
     @Override
     public AddressEntity save(AddressEntity address) {
         return addressJpaRepository.save(address);
+    }
+
+    @Override
+    public Optional<AddressEntity> findByAddressId(UUID addressId) {
+        return addressJpaRepository.findById(addressId);
     }
 }

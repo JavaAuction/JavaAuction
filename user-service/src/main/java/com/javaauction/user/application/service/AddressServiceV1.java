@@ -3,11 +3,13 @@ package com.javaauction.user.application.service;
 import com.javaauction.global.infrastructure.code.BaseErrorCode;
 import com.javaauction.global.presentation.exception.BussinessException;
 import com.javaauction.user.application.dto.ReqCreateAddressDto;
+import com.javaauction.user.application.dto.ReqUpdateAddressDto;
 import com.javaauction.user.domain.entity.AddressEntity;
 import com.javaauction.user.domain.entity.UserEntity;
 import com.javaauction.user.domain.repository.AddressRepository;
 import com.javaauction.user.domain.repository.UserRepository;
 import com.javaauction.user.presentation.advice.UserErrorCode;
+import com.javaauction.user.presentation.advice.UserException;
 import com.javaauction.user.presentation.dto.ResGetAddressDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -90,6 +93,35 @@ public class AddressServiceV1 {
                     .map(ResGetAddressDto::of)
                     .collect(Collectors.toList());
         }
+    }
+
+    @Transactional
+    public void updateAddress(UUID addressId, ReqUpdateAddressDto req, String username) {
+        AddressEntity address = addressRepository.findByAddressId(addressId).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
+        UserEntity user = userRepository.findByUsername(username).orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+
+        if(!address.getUser().getUsername().equals(username)) {
+            throw new BussinessException(BaseErrorCode.ACCESS_DENIED);
+        }
+
+        List<AddressEntity> existingAddresses = addressRepository.findByUser(user);
+        boolean isDuplicate = existingAddresses.stream()
+                .anyMatch(existing ->
+                        existing.getAddress().equals(req.getAddress()) &&
+                                existing.getPostcode().equals(req.getPostcode()) &&
+                                existing.getDetail().equals(req.getAddressDetail())
+                );
+
+        if (isDuplicate) {
+            throw new BussinessException(UserErrorCode.ADDRESS_ALREADY_EXISTS);
+        }
+
+        if(req.isDefault()== true){
+            addressRepository.findByUserAndIsDefault(user, true).changeDefaultAddress(false);
+        }
+
+        address.update(req);
+        address.setUpdated(Instant.now(),username);
     }
 }
 

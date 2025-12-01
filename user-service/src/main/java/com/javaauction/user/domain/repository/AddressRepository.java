@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface AddressRepository {
@@ -14,4 +16,5 @@ public interface AddressRepository {
     Page<AddressEntity> findAll(Pageable pageable);
     AddressEntity findByUserAndIsDefault(UserEntity user, boolean isDefault);
     AddressEntity save(AddressEntity address);
+    Optional<AddressEntity> findByAddressId(UUID addressId);
 }

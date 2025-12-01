@@ -2,6 +2,7 @@ package com.javaauction.user.presentation.controller;
 
 import com.javaauction.global.presentation.response.ApiResponse;
 import com.javaauction.user.application.dto.ReqCreateAddressDto;
+import com.javaauction.user.application.dto.ReqUpdateAddressDto;
 import com.javaauction.user.application.service.AddressServiceV1;
 import com.javaauction.user.domain.entity.AddressEntity;
 import com.javaauction.user.infrastructure.JWT.JwtUserContext;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/v1/address")
@@ -40,6 +42,12 @@ public class AddressControllerV1 {
             @RequestParam(value = "isAsc", defaultValue = "false") boolean isAsc) {
 
         return ResponseEntity.ok(ApiResponse.success(UserSuccessCode.ADDRESS_LIST_FOUND, addressService.getAddress(page - 1, size, sortBy, isAsc, JwtUserContext.getRoleFromHeader(), JwtUserContext.getUsernameFromHeader())));
+    }
+
+    @PostMapping("/{addressId}")
+    public ResponseEntity<ApiResponse<Void>> updateAddress(@PathVariable UUID addressId, @RequestBody ReqUpdateAddressDto req) {
+        addressService.updateAddress(addressId, req, JwtUserContext.getUsernameFromHeader());
+        return ResponseEntity.ok(ApiResponse.success(UserSuccessCode.ADDRESS_UPDATED));
     }
 }
 
