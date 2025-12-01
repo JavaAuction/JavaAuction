@@ -13,7 +13,6 @@ public class Wallet {
 
     private final UUID id;
     private final String userId;
-    private final Type type;
 
     @Builder.Default
     private final Long balance = 0L;
