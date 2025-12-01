@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
 import java.util.UUID;
 
 @Getter
@@ -30,6 +29,7 @@ public class ResGetMyInfoDto {
                 .name(user.getName())
                 .email(user.getEmail())
                 .slackId(user.getSlackId())
+                .address(user.getAddress())
                 .build();
     }
 }
