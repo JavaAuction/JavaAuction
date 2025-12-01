@@ -15,7 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class RepPostAlertsReadDtoV1 {
     private UUID alertId;
-    private boolean isRead;
+    private Boolean isRead;
     @JsonFormat(shape = JsonFormat.Shape.STRING,
             pattern = "yyyy-MM-dd HH:mm:ss",
             timezone = "Asia/Seoul")

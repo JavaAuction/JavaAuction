@@ -1,18 +1,16 @@
 package com.javaauction.alertservice.application.service;
 
 import com.javaauction.alertservice.domain.entity.Alert;
-import com.javaauction.alertservice.domain.enums.AlertType;
-import com.javaauction.alertservice.domain.repository.AlertRepository;
 import com.javaauction.alertservice.infrastructure.repository.AlertJpaRepository;
-import com.javaauction.alertservice.presentation.advice.AlertErrorCode;
+import com.javaauction.alertservice.presentation.dto.common.SearchParam;
 import com.javaauction.alertservice.presentation.dto.request.ReqPostInternalAlertsDtoV1;
+import com.javaauction.alertservice.presentation.dto.response.RepGetAlertsDtoV1;
 import com.javaauction.alertservice.presentation.dto.response.RepPostInternalAlertsDtoV1;
-import com.javaauction.global.presentation.exception.BussinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Arrays;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +24,7 @@ public class AlertServiceV1 {
     // 알림 생성
     @Transactional
     public RepPostInternalAlertsDtoV1 postInternalAlertsDtoV1(ReqPostInternalAlertsDtoV1 reqDto) {
-        // todo : 상품 존재 여부 확인
+        // todo : 경매 존재 여부 확인
 
         String message = "";
 
@@ -58,8 +56,19 @@ public class AlertServiceV1 {
                 alert.getAuctionId(),
                 alert.getAlertType(),
                 alert.getContent(),
-                alert.isRead(),
+                alert.getIsRead(),
                 alert.getCreatedAt());
     }
 
+
+    // 알림 리스트 조회
+    public Page<RepGetAlertsDtoV1> getAlerts(SearchParam searchParam, Pageable pagable, String userId, String role) {
+        Page<RepGetAlertsDtoV1> page = alertRepository.findAlertPage(searchParam, pagable, userId, role);
+
+        // todo : 알림의 경매 ID로 상품 이름 가져오기
+
+        return page;
+    }
 }
+
+

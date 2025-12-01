@@ -28,7 +28,7 @@ public class Alert extends BaseEntity {
     private AlertType alertType;
 
     @Column(name = "is_read", nullable = false)
-    private boolean isRead;
+    private Boolean isRead;
 
     @Column(name = "content")
     private String content;
