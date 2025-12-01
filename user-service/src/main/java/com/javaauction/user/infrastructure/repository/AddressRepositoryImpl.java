@@ -4,6 +4,8 @@ import com.javaauction.user.domain.entity.AddressEntity;
 import com.javaauction.user.domain.entity.UserEntity;
 import com.javaauction.user.domain.repository.AddressRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,6 +19,11 @@ public class AddressRepositoryImpl implements AddressRepository {
     @Override
     public List<AddressEntity> findByUser(UserEntity user) {
         return addressJpaRepository.findByUser(user);
+    }
+
+    @Override
+    public Page<AddressEntity> findAll(Pageable pageable) {
+        return addressJpaRepository.findAll(pageable);
     }
 
     @Override

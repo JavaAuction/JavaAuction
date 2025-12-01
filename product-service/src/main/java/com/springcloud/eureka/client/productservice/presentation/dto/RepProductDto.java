@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class RepProductCreateDto {
+public class RepProductDto {
     private UUID productId;
     private String userId;
     private String name;
@@ -22,8 +22,8 @@ public class RepProductCreateDto {
     private Instant updatedAt;
     private Instant deletedAt;
 
-    public static RepProductCreateDto from(Product product) {
-        return RepProductCreateDto.builder()
+    public static RepProductDto from(Product product) {
+        return RepProductDto.builder()
                 .productId(product.getId())
                 .userId(product.getUserId())
                 .name(product.getName())
