@@ -13,7 +13,9 @@ public enum UserErrorCode implements ResponseCode {
     SLACK_ID_ALREADY_EXISTS("USER-003", "이미 등록된 Slack ID입니다.", HttpStatus.CONFLICT),
     INVALID_LOGIN("USER-004", "아이디 또는 비밀번호가 잘못되었습니다.", HttpStatus.UNAUTHORIZED),
     CANNOT_DELETE_DELETED_USER("USER-005", "이미 삭제된 유저입니다.", HttpStatus.CONFLICT),
-    UNAUTHORIZED_USER_ACCESS("USER-006", "해당 유저에 접근할 권한이 없습니다.", HttpStatus.FORBIDDEN);
+    UNAUTHORIZED_USER_ACCESS("USER-006", "해당 유저에 접근할 권한이 없습니다.", HttpStatus.FORBIDDEN),
+
+    ADDRESS_ALREADY_EXISTS("ADDRESS-001","이미 해당 주소가 존재합니다.", HttpStatus.CONFLICT);
 
     private final String code;
     private final String message;

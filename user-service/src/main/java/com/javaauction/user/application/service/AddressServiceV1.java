@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +39,19 @@ public class AddressServiceV1 {
                 .detail(createAddressDto.getAddressDetail())
                 .isDefault(defaultAddress != null ? createAddressDto.isDefault() : true)
                 .build();
+
+        //중복 확인
+        List<AddressEntity> existingAddresses = addressRepository.findByUser(user);
+        boolean isDuplicate = existingAddresses.stream()
+                .anyMatch(existing ->
+                        existing.getAddress().equals(createAddressDto.getAddress()) &&
+                                existing.getPostcode().equals(createAddressDto.getPostcode()) &&
+                                existing.getDetail().equals(createAddressDto.getAddressDetail())
+                );
+
+        if (isDuplicate) {
+            throw new BussinessException(UserErrorCode.ADDRESS_ALREADY_EXISTS);
+        }
 
         addressEntity.setCreate(Instant.now(),username);
 
