@@ -1,16 +1,22 @@
 package com.javaauction.alertservice.presentation.controller;
 
+import com.javaauction.alertservice.application.service.AlertServiceV1;
 import com.javaauction.alertservice.domain.enums.AlertType;
+import com.javaauction.alertservice.presentation.advice.AlertSuccessCode;
+import com.javaauction.alertservice.presentation.dto.common.SearchParam;
 import com.javaauction.alertservice.presentation.dto.request.ReqDeleteAlertsDtoV1;
 import com.javaauction.alertservice.presentation.dto.response.RepDeleteAlertsDtoV1;
 import com.javaauction.alertservice.presentation.dto.response.RepGetAlertsDtoV1;
 import com.javaauction.alertservice.presentation.dto.response.RepPostAlertsReadDtoV1;
 import com.javaauction.alertservice.presentation.dto.response.RepPostInternalAlertsDtoV1;
+import com.javaauction.global.presentation.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,27 +29,28 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RequestMapping("/v1/alerts")
 public class AlertControllerV1 {
+    private final AlertServiceV1 alertServiceV1;
+
     // 알림 리스트 조회
     @GetMapping
     public ResponseEntity<Page<RepGetAlertsDtoV1>> getAlerts(
-            @PageableDefault(size = 10) Pageable pageable
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) AlertType alertType,
+            @RequestParam(required = false) Boolean isRead,
+            @PageableDefault(size = 10)
+            @SortDefault.SortDefaults({
+                    @SortDefault(sort = "isRead", direction = Sort.Direction.ASC),
+                    @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
+            }) Pageable pageable
     ) {
 
-        RepGetAlertsDtoV1 response = new RepGetAlertsDtoV1(
-                UUID.randomUUID(),
-                "샘플 상품명",
-                AlertType.BID,
-                "입찰이 등록되었습니다.",
-                false,
-                Instant.now()
-        );
-        List<RepGetAlertsDtoV1> alerts = List.of(response);
-        Page<RepGetAlertsDtoV1> alertsDtoV1Page = new PageImpl<>(alerts, pageable, 0);
+        SearchParam searchParam = new SearchParam(search, alertType, isRead);
+        Page<RepGetAlertsDtoV1> getAlertsDto = alertServiceV1.getAlerts(searchParam, pageable, "tmpuser1", "USER"); // 임시로 userid, role 설정
 
-        return ResponseEntity.ok(alertsDtoV1Page);
+        return ResponseEntity.ok(ApiResponse.success(AlertSuccessCode.ALERT_FIND_SUCCESS, getAlertsDto).getData());
     }
 
-    // 채팅 읽음 처리
+    // 알림 읽음 처리
     @PostMapping("/{alertId}/read")
     public ResponseEntity<RepPostAlertsReadDtoV1> readAlert(@PathVariable UUID alertId) {
         RepPostAlertsReadDtoV1 response = new RepPostAlertsReadDtoV1(
@@ -55,7 +62,7 @@ public class AlertControllerV1 {
         return ResponseEntity.ok(response);
     }
 
-    // 업체 삭제
+    // 알림 삭제
     @DeleteMapping
     public ResponseEntity<RepDeleteAlertsDtoV1> deleteVendor(@RequestBody ReqDeleteAlertsDtoV1 request) {
 
