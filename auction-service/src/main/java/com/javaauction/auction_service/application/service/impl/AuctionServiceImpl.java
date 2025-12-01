@@ -6,6 +6,7 @@ import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
 import com.javaauction.auction_service.presentation.dto.request.ReqCreateAuctionDto;
+import com.javaauction.auction_service.presentation.dto.request.ReqUpdateStatusAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResCreatedAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionsDto;
@@ -74,6 +75,43 @@ public class AuctionServiceImpl implements AuctionService {
         Page<Auction> auctions = auctionRepository.auctions(pageable, status, keyword);
 
         return ResGetAuctionsDto.from(auctions);
+    }
+
+    @Transactional
+    @Override
+    public void reRegisterAuction(UUID auctionId) {
+
+        Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
+            .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
+
+        auction.reRegister();
+    }
+
+    @Transactional
+    @Override
+    public void deleteAuction(UUID auctionId, String user) {
+        Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
+            .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
+
+        auction.softDelete(Instant.now(), user);
+    }
+
+
+    @Transactional
+    @Override
+    public void updateAuction(UUID auctionId, String user) {
+        Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
+            .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
+
+    }
+
+    @Transactional
+    @Override
+    public void UpdateAuctionStatus(UUID auctionId, ReqUpdateStatusAuctionDto req) {
+        Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
+            .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
+
+        auction.updateStatus(req.status());
     }
 
 

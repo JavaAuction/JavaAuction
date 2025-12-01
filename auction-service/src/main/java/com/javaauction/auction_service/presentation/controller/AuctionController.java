@@ -67,7 +67,9 @@ public class AuctionController {
     public ResponseEntity<ApiResponse<Void>> reRegisterAuction(
         @PathVariable("auctionId") UUID id
     ) {
-        return null;
+        auctionService.reRegisterAuction(id);
+        return ResponseEntity.ok(
+            ApiResponse.success(AuctionSuccessCode.AUCTION_RE_REGISTER_SUCCESS));
     }
 
 
@@ -75,7 +77,9 @@ public class AuctionController {
     public ResponseEntity<ApiResponse<Void>> deleteAuction(
         @PathVariable("auctionId") UUID id
     ) {
-        return null;
+        auctionService.deleteAuction(id, "temp");
+        return ResponseEntity.ok(
+            ApiResponse.success(AuctionSuccessCode.AUCTION_DELETED));
     }
 
 
@@ -83,7 +87,9 @@ public class AuctionController {
     public ResponseEntity<ApiResponse<Void>> updateAuction(
         @PathVariable("auctionId") UUID id
     ) {
-        return null;
+        auctionService.updateAuction(id, "temp");
+        return ResponseEntity.ok(
+            ApiResponse.success(AuctionSuccessCode.AUCTION_UPDATED));
     }
 
 }
