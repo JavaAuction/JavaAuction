@@ -4,8 +4,10 @@ import com.javaauction.global.presentation.exception.BussinessException;
 import com.springcloud.eureka.client.productservice.domain.entity.Product;
 import com.springcloud.eureka.client.productservice.domain.enums.ProductStatus;
 import com.springcloud.eureka.client.productservice.domain.error.ProductErrorCode;
+import com.springcloud.eureka.client.productservice.infrastructure.client.UserServiceClient;
 import com.springcloud.eureka.client.productservice.infrastructure.repository.ProductRepository;
 import com.springcloud.eureka.client.productservice.presentation.dto.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,18 +19,16 @@ import java.util.UUID;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ProductService {
 
     private final ProductRepository productRepository;
-
-    public ProductService(ProductRepository productRepository){
-        this.productRepository = productRepository;
-    }
+    private final UserServiceClient userServiceClient;
 
     // 상품 생성
-    public RepProductDto createProduct(String userId, ReqProductCreateDto request){
-        Product product = request.toEntity(userId);
-        product.setCreate(Instant.now(), userId);
+    public RepProductDto createProduct(String username, ReqProductCreateDto request){
+        Product product = request.toEntity(username);
+        product.setCreate(Instant.now(), username);
         Product saved = productRepository.save(product);
         return RepProductDto.from(saved);
     }
@@ -73,7 +73,7 @@ public class ProductService {
     }
 
     // 상품 정보 수정
-    public RepProductDto updateProduct(UUID productId, ReqProductUpdateDto request, String userId) {
+    public RepProductDto updateProduct(UUID productId, ReqProductUpdateDto request, String username) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
 
@@ -87,29 +87,29 @@ public class ProductService {
             product.changeImageUrl(request.getImageUrl());
         }
 
-        product.setUpdated(Instant.now(), userId);
+        product.setUpdated(Instant.now(), username);
 
         return RepProductDto.from(product);
     }
 
     // 상품 상태 변경 (판매 완료)
-    public RepProductDto updateProductStatus(UUID productId, ReqProductStatusUpdateDto request, String userId) {
+    public RepProductDto updateProductStatus(UUID productId, ReqProductStatusUpdateDto request, String username) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
 
         // SOLD 등으로 상태 변경
         product.changeStatus(request.getProductStatus(), request.getFinalPrice());
-        product.setUpdated(Instant.now(), userId);
+        product.setUpdated(Instant.now(), username);
 
         return RepProductDto.from(product);
     }
 
     // 상품 논리 삭제
-    public void deleteProduct(UUID productId, String userId) {
+    public void deleteProduct(UUID productId, String username) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
 
-        product.softDelete(Instant.now(), userId);
+        product.softDelete(Instant.now(), username);
     }
 
 }

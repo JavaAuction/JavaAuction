@@ -21,7 +21,7 @@ public class Product extends BaseEntity {
     private UUID id;
 
     @Column(name = "user_id", nullable = false, length = 50)
-    private String userId;
+    private String userId; // username
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
