@@ -54,10 +54,15 @@ public class Product extends BaseEntity {
     }
 
     public void changeDescription(String description) {
-        this.description = name;
+        this.description = description;
     }
 
     public void changeImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public void changeStatus(ProductStatus productStatus, Long finalPrice) {
+        this.status =productStatus;
+        this.finalPrice = finalPrice;
     }
 }
