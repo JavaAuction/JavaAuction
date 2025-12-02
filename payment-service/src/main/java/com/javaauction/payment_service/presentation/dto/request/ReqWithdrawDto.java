@@ -18,5 +18,5 @@ public class ReqWithdrawDto {
 
     @NotNull
     @Min(1)
-    private Long amount;
+    private Long withdrawAmount;
 }
