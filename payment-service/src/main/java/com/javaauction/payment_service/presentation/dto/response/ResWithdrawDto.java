@@ -9,15 +9,15 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class ResChargeDto {
+public class ResWithdrawDto {
 
     private WalletDto wallet;
     private WalletTransactionDto walletTransaction;
 
-    public static ResChargeDto from(WalletDto walletDto, WalletTransactionDto walletTransactionDto) {
-        return ResChargeDto.builder()
-                .wallet(walletDto)
-                .walletTransaction(walletTransactionDto)
+    public static ResWithdrawDto from(WalletDto wallet, WalletTransactionDto walletTransaction) {
+        return ResWithdrawDto.builder()
+                .wallet(wallet)
+                .walletTransaction(walletTransaction)
                 .build();
     }
 
@@ -25,14 +25,14 @@ public class ResChargeDto {
     @Builder
     public static class WalletDto {
         private UUID walletId;
-        private Long beforeCharge;
-        private Long afterCharge;
+        private Long beforeWithdraw;
+        private Long afterWithdraw;
 
-        public static WalletDto from(Wallet wallet, Long beforeCharge) {
+        public static WalletDto from(Wallet wallet, Long beforeWithdraw) {
             return WalletDto.builder()
                     .walletId(wallet.getId())
-                    .beforeCharge(beforeCharge)
-                    .afterCharge(wallet.getBalance())
+                    .beforeWithdraw(beforeWithdraw)
+                    .afterWithdraw(wallet.getBalance())
                     .build();
         }
     }
@@ -41,14 +41,14 @@ public class ResChargeDto {
     @Builder
     public static class WalletTransactionDto {
         private UUID walletTransactionId;
-        private Long chargeAmount;
+        private Long withdrawAmount;
         private WalletTransaction.TransactionType transactionType;
 
         public static WalletTransactionDto from(WalletTransaction walletTransaction) {
             return WalletTransactionDto.builder()
                     .walletTransactionId(walletTransaction.getId())
                     .transactionType(walletTransaction.getType())
-                    .chargeAmount(walletTransaction.getAmount())
+                    .withdrawAmount(walletTransaction.getAmount())
                     .build();
         }
     }
