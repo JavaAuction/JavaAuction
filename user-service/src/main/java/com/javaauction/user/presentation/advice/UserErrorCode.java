@@ -15,7 +15,9 @@ public enum UserErrorCode implements ResponseCode {
     CANNOT_DELETE_DELETED_USER("USER-005", "이미 삭제된 유저입니다.", HttpStatus.CONFLICT),
     UNAUTHORIZED_USER_ACCESS("USER-006", "해당 유저에 접근할 권한이 없습니다.", HttpStatus.FORBIDDEN),
 
-    ADDRESS_ALREADY_EXISTS("ADDRESS-001","이미 해당 주소가 존재합니다.", HttpStatus.CONFLICT);
+    ADDRESS_NOT_FOUND("ADDRESS-000","해당 주소를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    ADDRESS_ALREADY_EXISTS("ADDRESS-001","이미 해당 주소가 존재합니다.", HttpStatus.CONFLICT),
+    ADDRESS_DEFAULT_DISAPPEAR("ADDRESS-002", "기본 주소가 사라지게 됩니다.", HttpStatus.CONFLICT);
 
     private final String code;
     private final String message;

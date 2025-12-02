@@ -151,9 +151,7 @@ public class UserServiceV1 {
     public void updateUser(ReqUpdateDto updateRequestDto, String username) {
         UserEntity me = userRepository.findByUsername(username).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
 
-        me.update(ReqUpdateDto.builder().name(updateRequestDto.getName())
-                .email(updateRequestDto.getEmail())
-                .build());
+        me.update(updateRequestDto);
 
         me.setUpdated(Instant.now(), username);
     }
