@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+import static com.javaauction.payment_service.domain.model.WalletTransaction.ExternalType.AUCTION;
 import static com.javaauction.payment_service.domain.model.WalletTransaction.TransactionType.*;
 import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.*;
 
@@ -80,6 +81,14 @@ public class WalletServiceV1 {
         if (request.getTransactionType() != WITHDRAW && request.getTransactionType() != PAYMENT)
             throw new PaymentException(PAYMENT_INVALID_TRANSACTION_TYPE);
 
+        if (request.getTransactionType() == PAYMENT) {
+            if (request.getExternalType() != AUCTION)
+                throw new PaymentException(PAYMENT_INVALID_EXTERNAL_TYPE);
+
+            if (request.getExternalId() == null)
+                throw new PaymentException(PAYMENT_MISSING_EXTERNAL_ID);
+        }
+
         Wallet withdrew = wallet.withBalance(beforeBalance - withdrawalAmount);
         walletRepository.save(withdrew);
 
@@ -88,6 +97,8 @@ public class WalletServiceV1 {
                         .walletId(withdrew.getId())
                         .type(request.getTransactionType())
                         .amount(withdrawalAmount)
+                        .externalType(request.getExternalType())
+                        .externalId(request.getExternalId())
                         .build()
         );
 

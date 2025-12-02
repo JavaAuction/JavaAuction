@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,4 +22,7 @@ public class ReqWithdrawDto {
     @NotNull
     @Min(1)
     private Long amount;
+
+    private WalletTransaction.ExternalType externalType;
+    private UUID externalId;
 }
