@@ -28,6 +28,10 @@ spring:
           uri: lb://alert-service
           predicates:
             - Path=/v1/alerts/**, /internal/v1/alerts/**
+        - id: review-service
+          uri: lb://review-service
+          predicates:
+            - Path=/v1/reviews/**, /internal/v1/reviews/**
 
 server:
   port: 19091
