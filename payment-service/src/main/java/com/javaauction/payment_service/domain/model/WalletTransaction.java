@@ -16,8 +16,8 @@ public class WalletTransaction {
     private final TransactionType type;
     private final Long amount;
     private final HoldStatus holdStatus;
-    private final UUID auctionId;
-    private final UUID bidId;
+    private final ExternalType externalType;
+    private final UUID externalId;
 
     public enum TransactionType {
         CHARGE, WITHDRAW, PAYMENT, HOLD
@@ -25,5 +25,9 @@ public class WalletTransaction {
 
     public enum HoldStatus {
         HOLD_ACTIVE, HOLD_RELEASED, HOLD_CAPTURED
+    }
+
+    public enum ExternalType {
+        AUCTION, BID
     }
 }

@@ -5,13 +5,13 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class ResHoldDto {
+public class ResDeductDto {
 
     private WalletDto wallet;
     private WalletTransactionDto walletTransaction;
 
-    public static ResHoldDto from(WalletDto wallet, WalletTransactionDto walletTransaction) {
-        return ResHoldDto.builder()
+    public static ResDeductDto from(WalletDto wallet, WalletTransactionDto walletTransaction) {
+        return ResDeductDto.builder()
                 .wallet(wallet)
                 .walletTransaction(walletTransaction)
                 .build();

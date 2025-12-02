@@ -14,15 +14,18 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ReqPaymentDto {
+public class ReqDeductDto {
 
     @NotNull
     private String userId;
 
     @NotNull
-    @Min(1)
-    private Long amount;
+    private WalletTransaction.TransactionType transactionType;
 
     @NotNull
-    private UUID auctionId;
+    @Min(1)
+    private Long deductAmount;
+
+    @NotNull
+    private UUID externalId;
 }

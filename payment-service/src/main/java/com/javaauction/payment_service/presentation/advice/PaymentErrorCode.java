@@ -11,6 +11,7 @@ public enum PaymentErrorCode implements ResponseCode {
 
     WALLET_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT001", "일치하는 지갑을 찾을 수 없습니다."),
     WALLET_INSUFFICIENT_BALANCE(HttpStatus.BAD_REQUEST, "PAYMENT002", "잔액이 부족합니다."),
+    WALLET_INVALID_TRANSACTION_TYPE(HttpStatus.BAD_REQUEST, "PAYMENT003", "거래 유형이 유효하지 않습니다."),
     ;
 
     private final HttpStatus status;
