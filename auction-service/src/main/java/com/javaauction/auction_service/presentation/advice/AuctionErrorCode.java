@@ -12,7 +12,8 @@ public enum AuctionErrorCode implements ResponseCode {
     AUCTION_IN_PROGRESS("AUCTION004", "현재 진행중인 경매입니다.", HttpStatus.BAD_REQUEST),
     AUCTION_SUCCESSFUL_BID("AUCTION005", "이미 낙찰된 경매입니다.", HttpStatus.BAD_REQUEST),
     AUCTION_PENDING("AUCTION006", "대기중인 경매입니다.", HttpStatus.BAD_REQUEST),
-    AUCTION_NOT_PENDING("AUCTION007", "경매 대기중일때만 수정 가능합니다.", HttpStatus.BAD_REQUEST);
+    AUCTION_NOT_PENDING("AUCTION007", "경매 대기중일때만 수정 가능합니다.", HttpStatus.BAD_REQUEST),
+    AUCTION_BUY_NOW_NOT_AVAILABLE("AUCTION008", "즉시 구매가 제공되지 않는 경매입니다.", HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String message;

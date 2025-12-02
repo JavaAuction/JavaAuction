@@ -14,7 +14,8 @@ public enum AuctionSuccessCode implements ResponseCode {
     AUCTION_RE_REGISTER_SUCCESS(HttpStatus.ACCEPTED, "AUCTION202", "경매 재등록 성공"),
     AUCTION_DELETED(HttpStatus.NO_CONTENT, "AUCTION204", "경매 삭제 성공"),
     AUCTION_UPDATED(HttpStatus.OK, "AUCTION200", "경매 재등록 성공"),
-    AUCTION_STATUS_UPDATED(HttpStatus.OK, "AUCTION200", "경매 상태 변경");
+    AUCTION_STATUS_UPDATED(HttpStatus.OK, "AUCTION200", "경매 상태 변경"),
+    AUCTION_BUY_NOW_SUCCESS(HttpStatus.CREATED, "AUCTION201", "즉시 구매 성공");
 
     private final HttpStatus status;
     private final String code;

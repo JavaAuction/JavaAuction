@@ -4,9 +4,7 @@ import com.javaauction.global.infrastructure.code.BaseSuccessCode;
 import com.javaauction.global.presentation.response.ApiResponse;
 import com.springcloud.eureka.client.productservice.application.service.ProductService;
 import com.springcloud.eureka.client.productservice.domain.enums.ProductStatus;
-import com.springcloud.eureka.client.productservice.presentation.dto.RepProductDto;
-import com.springcloud.eureka.client.productservice.presentation.dto.RepProductPageDto;
-import com.springcloud.eureka.client.productservice.presentation.dto.ReqProductCreateDto;
+import com.springcloud.eureka.client.productservice.presentation.dto.*;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -68,4 +66,38 @@ public class ProductController {
         Map<String, String> response = Map.of("productName", name);
         return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, response));
     }
+
+    // 상품 정보 수정
+    @PutMapping("/{productId}")
+    public ResponseEntity<ApiResponse<RepProductDto>> updateProduct(
+            @PathVariable UUID productId,
+            @RequestBody ReqProductUpdateDto request
+    ) {
+        String mockUserId = "TEMP-USER";
+        RepProductDto response = productService.updateProduct(productId, request, mockUserId);
+        return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, response));
+    }
+
+    // 상품 상태변경 (판매완료)
+    @PutMapping("/{productId}/status")
+    public ResponseEntity<ApiResponse<RepProductDto>> updateProductStatus(
+            @PathVariable UUID productId,
+            @RequestBody ReqProductStatusUpdateDto request
+    ) {
+        String mockUserId = "TEMP-USER";
+        RepProductDto response = productService.updateProductStatus(productId, request, mockUserId);
+        return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, response));
+    }
+
+    // 상품 논리 삭제
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<ApiResponse<Map<String, String>>> deleteProduct(
+            @PathVariable UUID productId
+    ) {
+        String mockUserId = "TEMP-USER";
+        productService.deleteProduct(productId, mockUserId);
+        Map<String, String> body = Map.of("result", "success");
+        return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, body));
+    }
+
 }
