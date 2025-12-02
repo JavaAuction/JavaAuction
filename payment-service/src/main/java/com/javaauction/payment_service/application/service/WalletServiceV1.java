@@ -5,10 +5,7 @@ import com.javaauction.payment_service.domain.model.WalletTransaction;
 import com.javaauction.payment_service.domain.repository.WalletRepository;
 import com.javaauction.payment_service.domain.repository.WalletTransactionRepository;
 import com.javaauction.payment_service.presentation.advice.PaymentException;
-import com.javaauction.payment_service.presentation.dto.request.ReqChargeDto;
-import com.javaauction.payment_service.presentation.dto.request.ReqCreateWalletDto;
-import com.javaauction.payment_service.presentation.dto.request.ReqDeductDto;
-import com.javaauction.payment_service.presentation.dto.request.ReqWithdrawDto;
+import com.javaauction.payment_service.presentation.dto.request.*;
 import com.javaauction.payment_service.presentation.dto.response.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -140,6 +137,24 @@ public class WalletServiceV1 {
         WalletTransactionDto walletTransactionDto = WalletTransactionDto.from(walletTransaction);
 
         return ResDeductDto.from(walletDto, walletTransactionDto);
+    }
+
+    public ResValidateDto validate(ReqValidateDto request) {
+
+        Wallet wallet = findWalletByUserId(request.getUserId());
+
+        long balance = wallet.getBalance();
+        long bidPrice = request.getBidPrice();
+
+        boolean isValid = balance >= bidPrice;
+
+        return ResValidateDto.builder()
+                .valid(isValid)
+                .reasonCode(!isValid ? "INSUFFICIENT_BALANCE" : null)
+                .reasonMessage(!isValid ? "잔액 부족" : null)
+                .requiredAmount(!isValid ? bidPrice : null)
+                .currentBalance(!isValid ? balance : null)
+                .build();
     }
 
     private Wallet findWalletById(UUID walletId) {
