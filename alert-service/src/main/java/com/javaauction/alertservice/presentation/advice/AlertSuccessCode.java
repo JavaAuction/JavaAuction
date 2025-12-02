@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum AlertSuccessCode implements ResponseCode {
-    ALERT_FIND_SUCCESS(HttpStatus.OK, "ALERT200", "알림 조회 성공"),
+    ALERT_FIND_SUCCESS(HttpStatus.OK, "ALERT200", "알림 요청 성공"),
     ALERT_CREATE_SUCCESS(HttpStatus.CREATED, "ALERT201", "알림 생성 성공");
 
     private final HttpStatus status;

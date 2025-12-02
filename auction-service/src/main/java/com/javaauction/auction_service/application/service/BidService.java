@@ -9,6 +9,8 @@ import com.javaauction.auction_service.infrastructure.repository.AuctionReposito
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
 import com.javaauction.auction_service.presentation.dto.response.ResGetBidsDto;
+import com.javaauction.auction_service.presentation.dto.response.internal.InternalBidDto;
+import com.javaauction.auction_service.presentation.dto.response.internal.ResInternalBidsDto;
 import com.javaauction.global.presentation.exception.BussinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -69,6 +71,16 @@ public class BidService {
                 .auctionId(auctionId)
                 .productId(auction.getProductId())
                 .bids(bidDtos)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public ResInternalBidsDto internalGetBids(String userId) {
+        List<InternalBidDto> bids = bidRepository.findInternalBidsByUserId(userId);
+
+        return ResInternalBidsDto.builder()
+                .userId(userId)
+                .bids(bids)
                 .build();
     }
 }
