@@ -139,22 +139,11 @@ public class WalletServiceV1 {
         return ResDeductDto.from(walletDto, walletTransactionDto);
     }
 
-    public ResValidateDto validate(ReqValidateDto request) {
+    public Boolean validate(ReqValidateDto request) {
 
         Wallet wallet = findWalletByUserId(request.getUserId());
 
-        long balance = wallet.getBalance();
-        long bidPrice = request.getBidPrice();
-
-        boolean isValid = balance >= bidPrice;
-
-        return ResValidateDto.builder()
-                .valid(isValid)
-                .reasonCode(!isValid ? "INSUFFICIENT_BALANCE" : null)
-                .reasonMessage(!isValid ? "잔액 부족" : null)
-                .requiredAmount(!isValid ? bidPrice : null)
-                .currentBalance(!isValid ? balance : null)
-                .build();
+        return wallet.getBalance() >= request.getBidPrice();
     }
 
     private Wallet findWalletById(UUID walletId) {
