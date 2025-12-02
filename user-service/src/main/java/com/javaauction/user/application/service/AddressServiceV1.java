@@ -139,5 +139,21 @@ public class AddressServiceV1 {
         address.update(req);
         address.setUpdated(Instant.now(), username);
     }
+
+    @Transactional
+    public void deleteAddress(UUID addressId, String usernameFromHeader) {
+        AddressEntity address = addressRepository.findByAddressId(addressId).orElseThrow(() -> new BussinessException(UserErrorCode.ADDRESS_NOT_FOUND));
+        UserEntity user = userRepository.findByUsername(usernameFromHeader).orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+
+        if(!address.getUser().equals(user)) {
+            throw new BussinessException(BaseErrorCode.ACCESS_DENIED);
+        }
+
+        if (address.isDefault()){
+            throw new BussinessException(UserErrorCode.ADDRESS_DEFAULT_DISAPPEAR);
+        }
+
+        address.softDelete(Instant.now(), usernameFromHeader);
+    }
 }
 

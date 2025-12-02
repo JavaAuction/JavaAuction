@@ -49,5 +49,11 @@ public class AddressControllerV1 {
         addressService.updateAddress(addressId, req, JwtUserContext.getUsernameFromHeader());
         return ResponseEntity.ok(ApiResponse.success(UserSuccessCode.ADDRESS_UPDATED));
     }
+
+    @DeleteMapping("/{addressId}")
+    public ResponseEntity<ApiResponse<Void>> deleteAddress(@PathVariable UUID addressId) {
+        addressService.deleteAddress(addressId, JwtUserContext.getUsernameFromHeader());
+        return ResponseEntity.ok(ApiResponse.success(UserSuccessCode.ADDRESS_DELETED));
+    }
 }
 
