@@ -20,36 +20,4 @@ public class ResWithdrawDto {
                 .walletTransaction(walletTransaction)
                 .build();
     }
-
-    @Getter
-    @Builder
-    public static class WalletDto {
-        private UUID walletId;
-        private Long beforeWithdraw;
-        private Long afterWithdraw;
-
-        public static WalletDto from(Wallet wallet, Long beforeWithdraw) {
-            return WalletDto.builder()
-                    .walletId(wallet.getId())
-                    .beforeWithdraw(beforeWithdraw)
-                    .afterWithdraw(wallet.getBalance())
-                    .build();
-        }
-    }
-
-    @Getter
-    @Builder
-    public static class WalletTransactionDto {
-        private UUID walletTransactionId;
-        private Long withdrawAmount;
-        private WalletTransaction.TransactionType transactionType;
-
-        public static WalletTransactionDto from(WalletTransaction walletTransaction) {
-            return WalletTransactionDto.builder()
-                    .walletTransactionId(walletTransaction.getId())
-                    .transactionType(walletTransaction.getType())
-                    .withdrawAmount(walletTransaction.getAmount())
-                    .build();
-        }
-    }
 }
