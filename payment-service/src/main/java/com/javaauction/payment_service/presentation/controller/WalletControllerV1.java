@@ -4,7 +4,9 @@ import com.javaauction.global.presentation.response.ApiResponse;
 import com.javaauction.payment_service.application.service.WalletServiceV1;
 import com.javaauction.payment_service.presentation.advice.PaymentSuccessCode;
 import com.javaauction.payment_service.presentation.dto.request.ReqChargeDto;
+import com.javaauction.payment_service.presentation.dto.request.ReqWithdrawDto;
 import com.javaauction.payment_service.presentation.dto.response.ResChargeDto;
+import com.javaauction.payment_service.presentation.dto.response.ResWithdrawDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,6 +30,18 @@ public class WalletControllerV1 {
                 ApiResponse.success(
                         PaymentSuccessCode.PAYMENT_CHARGE_SUCCESS,
                         walletService.charge(walletId, request)
+                )
+        );
+    }
+
+    @PostMapping("/withdrawal")
+    public ResponseEntity<ApiResponse<ResWithdrawDto>> withdrawal(
+            @PathVariable UUID walletId, @Valid @RequestBody ReqWithdrawDto request
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.success(
+                        PaymentSuccessCode.PAYMENT_WITHDRAW_SUCCESS,
+                        walletService.withdrawal(walletId, request)
                 )
         );
     }
