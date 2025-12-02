@@ -1,6 +1,5 @@
 package com.javaauction.auction_service.presentation.dto.response;
 
-import com.javaauction.auction_service.domain.entity.enums.BidStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
