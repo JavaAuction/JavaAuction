@@ -18,7 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 import static com.javaauction.payment_service.domain.model.WalletTransaction.ExternalType.AUCTION;
-import static com.javaauction.payment_service.domain.model.WalletTransaction.TransactionType.*;
+import static com.javaauction.payment_service.domain.model.WalletTransaction.ExternalType.BID;
+import static com.javaauction.payment_service.domain.model.WalletTransaction.HoldStatus.HOLD_ACTIVE;
+import static com.javaauction.payment_service.domain.model.WalletTransaction.TransactionType.CHARGE;
 import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.*;
 
 @Service
@@ -75,18 +77,32 @@ public class WalletServiceV1 {
         long beforeBalance = wallet.getBalance();
         long withdrawalAmount = request.getAmount();
 
+        WalletTransaction.TransactionType transactionType = request.getTransactionType();
+        WalletTransaction.HoldStatus holdStatus = null;
+
         if (withdrawalAmount > beforeBalance)
             throw new PaymentException(PAYMENT_INSUFFICIENT_BALANCE);
 
-        if (request.getTransactionType() != WITHDRAW && request.getTransactionType() != PAYMENT)
-            throw new PaymentException(PAYMENT_INVALID_TRANSACTION_TYPE);
+        switch (transactionType) {
+            case WITHDRAW -> {}
 
-        if (request.getTransactionType() == PAYMENT) {
-            if (request.getExternalType() != AUCTION)
-                throw new PaymentException(PAYMENT_INVALID_EXTERNAL_TYPE);
+            case PAYMENT -> {
+                if (request.getExternalType() != AUCTION)
+                    throw new PaymentException(PAYMENT_INVALID_EXTERNAL_TYPE);
+                if (request.getExternalId() == null)
+                    throw new PaymentException(PAYMENT_MISSING_EXTERNAL_ID);
+            }
 
-            if (request.getExternalId() == null)
-                throw new PaymentException(PAYMENT_MISSING_EXTERNAL_ID);
+            case HOLD -> {
+                if (request.getExternalType() != BID)
+                    throw new PaymentException(PAYMENT_INVALID_EXTERNAL_TYPE);
+                if (request.getExternalId() == null)
+                    throw new PaymentException(PAYMENT_MISSING_EXTERNAL_ID);
+
+                holdStatus = HOLD_ACTIVE;
+            }
+
+            default -> throw new PaymentException(PAYMENT_INVALID_TRANSACTION_TYPE);
         }
 
         Wallet withdrew = wallet.withBalance(beforeBalance - withdrawalAmount);
@@ -95,8 +111,9 @@ public class WalletServiceV1 {
         WalletTransaction walletTransaction = walletTransactionRepository.save(
                 WalletTransaction.builder()
                         .walletId(withdrew.getId())
-                        .type(request.getTransactionType())
+                        .type(transactionType)
                         .amount(withdrawalAmount)
+                        .holdStatus(holdStatus)
                         .externalType(request.getExternalType())
                         .externalId(request.getExternalId())
                         .build()
