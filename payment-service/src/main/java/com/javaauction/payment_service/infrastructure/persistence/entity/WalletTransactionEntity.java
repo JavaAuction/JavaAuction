@@ -34,10 +34,8 @@ public class WalletTransactionEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private HoldStatus holdStatus;
 
-    @Enumerated(EnumType.STRING)
-    private ExternalType externalType;
-
-    private UUID externalId;
+    private UUID auctionId;
+    private UUID bidId;
 
     public enum TransactionType {
         CHARGE, WITHDRAW, PAYMENT, HOLD
@@ -46,9 +44,4 @@ public class WalletTransactionEntity extends BaseEntity {
     public enum HoldStatus {
         HOLD_ACTIVE, HOLD_RELEASED, HOLD_CAPTURED
     }
-
-    public enum ExternalType {
-        AUCTION, BID
-    }
-
 }

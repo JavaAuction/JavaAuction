@@ -17,8 +17,8 @@ public class WalletTransactionMapper {
                 .type(toDomain(entity.getType()))
                 .amount(entity.getAmount())
                 .holdStatus(toDomain(entity.getHoldStatus()))
-                .externalType(toDomain(entity.getExternalType()))
-                .externalId(entity.getExternalId())
+                .auctionId(entity.getAuctionId())
+                .bidId(entity.getBidId())
                 .build();
     }
 
@@ -31,8 +31,8 @@ public class WalletTransactionMapper {
                 .type(toEntity(walletTransaction.getType()))
                 .amount(walletTransaction.getAmount())
                 .holdStatus(toEntity(walletTransaction.getHoldStatus()))
-                .externalType(toEntity(walletTransaction.getExternalType()))
-                .externalId(walletTransaction.getExternalId())
+                .auctionId(walletTransaction.getAuctionId())
+                .bidId(walletTransaction.getBidId())
                 .build();
     }
 
@@ -50,13 +50,5 @@ public class WalletTransactionMapper {
 
     private WalletTransactionEntity.HoldStatus toEntity(WalletTransaction.HoldStatus status) {
         return status == null ? null : WalletTransactionEntity.HoldStatus.valueOf(status.name());
-    }
-
-    private WalletTransaction.ExternalType toDomain(WalletTransactionEntity.ExternalType type) {
-        return type == null ? null : WalletTransaction.ExternalType.valueOf(type.name());
-    }
-
-    private WalletTransactionEntity.ExternalType toEntity(WalletTransaction.ExternalType type) {
-        return type == null ? null : WalletTransactionEntity.ExternalType.valueOf(type.name());
     }
 }
