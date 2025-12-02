@@ -11,6 +11,7 @@ public enum PaymentSuccessCode implements ResponseCode {
 
     PAYMENT_WALLET_CREATE_SUCCESS(HttpStatus.CREATED, "PAYMENT200", "지갑 생성 성공"),
     PAYMENT_CHARGE_SUCCESS(HttpStatus.OK, "PAYMENT201", "잔액 충전 성공"),
+    PAYMENT_WITHDRAW_SUCCESS(HttpStatus.OK, "PAYMENT202", "잔액 출금 성공"),
 
     ;
 

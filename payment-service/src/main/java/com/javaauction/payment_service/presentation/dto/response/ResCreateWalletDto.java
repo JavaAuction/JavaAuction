@@ -10,15 +10,28 @@ import java.util.UUID;
 @Builder
 public class ResCreateWalletDto {
 
-    private UUID walletId;
-    private String userId;
-    private Long balance;
+    private WalletDto wallet;
 
-    public static ResCreateWalletDto from(Wallet wallet) {
+    public static ResCreateWalletDto from(WalletDto walletDto) {
         return ResCreateWalletDto.builder()
-                .walletId(wallet.getId())
-                .userId(wallet.getUserId())
-                .balance(wallet.getBalance())
+                .wallet(walletDto)
                 .build();
+    }
+
+    @Getter
+    @Builder
+    public static class WalletDto {
+
+        private UUID walletId;
+        private String userId;
+        private Long balance;
+
+        public static WalletDto from(Wallet wallet) {
+            return WalletDto.builder()
+                    .walletId(wallet.getId())
+                    .userId(wallet.getUserId())
+                    .balance(wallet.getBalance())
+                    .build();
+        }
     }
 }
