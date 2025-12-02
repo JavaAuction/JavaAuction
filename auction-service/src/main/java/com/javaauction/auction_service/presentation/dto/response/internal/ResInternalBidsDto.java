@@ -10,6 +10,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ResInternalBidsDto {
 
-    private Long userId;
+    private String userId;
     private List<InternalBidDto> bids;
 }
