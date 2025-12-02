@@ -1,6 +1,7 @@
 package com.javaauction.payment_service.presentation.dto.response;
 
 import com.javaauction.payment_service.domain.model.Wallet;
+import com.javaauction.payment_service.domain.model.WalletTransaction;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,13 +15,15 @@ public class ResWithdrawDto {
     private Long withdrawAmount;
     private Long beforeWithdraw;
     private Long afterWithdraw;
+    private WalletTransaction.TransactionType transactionType;
 
-    public static ResWithdrawDto from(Wallet wallet, Long withdrawAmount, Long beforeWithdraw) {
+    public static ResWithdrawDto from(Wallet wallet, WalletTransaction walletTransaction, Long beforeWithdraw) {
         return ResWithdrawDto.builder()
                 .walletId(wallet.getId())
-                .withdrawAmount(withdrawAmount)
+                .withdrawAmount(walletTransaction.getAmount())
                 .beforeWithdraw(beforeWithdraw)
                 .afterWithdraw(wallet.getBalance())
+                .transactionType(walletTransaction.getType())
                 .build();
     }
 }

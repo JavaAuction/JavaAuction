@@ -50,7 +50,7 @@ public class WalletServiceV1 {
         Wallet charged = wallet.withBalance(beforeBalance + chargeAmount);
         walletRepository.save(charged);
 
-        walletTransactionRepository.save(
+        WalletTransaction walletTransaction = walletTransactionRepository.save(
                 WalletTransaction.builder()
                         .walletId(charged.getId())
                         .type(CHARGE)
@@ -58,7 +58,7 @@ public class WalletServiceV1 {
                         .build()
         );
 
-        return ResChargeDto.from(charged, chargeAmount, beforeBalance);
+        return ResChargeDto.from(charged, walletTransaction, beforeBalance);
     }
 
     @Transactional
@@ -78,7 +78,7 @@ public class WalletServiceV1 {
         Wallet withdrew = wallet.withBalance(beforeBalance - withdrawalAmount);
         walletRepository.save(withdrew);
 
-        walletTransactionRepository.save(
+        WalletTransaction walletTransaction = walletTransactionRepository.save(
                 WalletTransaction.builder()
                         .walletId(withdrew.getId())
                         .type(request.getTransactionType())
@@ -86,7 +86,7 @@ public class WalletServiceV1 {
                         .build()
         );
 
-        return ResWithdrawDto.from(withdrew, request.getAmount(), beforeBalance);
+        return ResWithdrawDto.from(withdrew, walletTransaction, beforeBalance);
     }
 
     private Wallet findWalletById(UUID walletId) {
