@@ -1,5 +1,6 @@
 package com.javaauction.chatservice.domain.entity;
 
+import com.javaauction.global.infrastructure.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,13 +10,13 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "p_chatting")
-public class Chatting {
+public class Chatting extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "chatting_id", nullable = false)
     private UUID chattingId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "chatroom_id", referencedColumnName = "chatroom_id", nullable = false)
     private Chatroom chatroom;
 
@@ -26,7 +27,7 @@ public class Chatting {
     private String receiverId;
 
     @Column(name = "is_read", nullable = false)
-    private boolean isRead;
+    private Boolean isRead;
 
     @Column(name = "content", nullable = false)
     private String content;

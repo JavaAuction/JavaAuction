@@ -12,7 +12,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReqPostChatsDtoV1 {
-    private String senderId;
     private String receiverId;
     private String content;
 }

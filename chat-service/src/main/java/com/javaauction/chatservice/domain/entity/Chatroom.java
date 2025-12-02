@@ -1,5 +1,6 @@
 package com.javaauction.chatservice.domain.entity;
 
+import com.javaauction.global.infrastructure.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -11,7 +12,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "p_chatroom")
-public class Chatroom {
+public class Chatroom extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "chatroom_id", nullable = false)
@@ -32,7 +33,7 @@ public class Chatroom {
         this.chatroomGuest = chatroomGuest;
     }
 
-    private static Chatroom ofNewChatroom(UUID productId, String chatroomHost, String chatroomGuest) {
+    public static Chatroom ofNewChatroom(UUID productId, String chatroomHost, String chatroomGuest) {
         return new Chatroom(productId, chatroomHost, chatroomGuest);
     }
 

@@ -14,5 +14,4 @@ import java.util.UUID;
 public class ReqPostChatroomsDtoV1 {
     private UUID productId;
     private String chatroomHost;
-    private String chatroomGuest;
 }
