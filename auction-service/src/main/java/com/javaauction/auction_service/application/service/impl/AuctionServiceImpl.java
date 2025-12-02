@@ -2,12 +2,15 @@ package com.javaauction.auction_service.application.service.impl;
 
 import com.javaauction.auction_service.application.service.AuctionService;
 import com.javaauction.auction_service.domain.entity.Auction;
+import com.javaauction.auction_service.domain.entity.Bid;
 import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
+import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
 import com.javaauction.auction_service.presentation.dto.request.ReqCreateAuctionDto;
 import com.javaauction.auction_service.presentation.dto.request.ReqUpdateAuctionDto;
 import com.javaauction.auction_service.presentation.dto.request.ReqUpdateStatusAuctionDto;
+import com.javaauction.auction_service.presentation.dto.response.ResBuyNowDto;
 import com.javaauction.auction_service.presentation.dto.response.ResCreatedAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionsDto;
@@ -16,16 +19,19 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuctionServiceImpl implements AuctionService {
 
     private final AuctionRepository auctionRepository;
+    private final BidRepository bidRepository;
 
     @Override
     @Transactional
@@ -139,5 +145,53 @@ public class AuctionServiceImpl implements AuctionService {
         auction.updateStatus(req.status());
     }
 
+    public ResBuyNowDto buyNow(UUID auctionId, String user) {
+        Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
+            .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
 
+        if ((auction.getStatus() == AuctionStatus.SUCCESSFUL_BID)) {
+            throw new BussinessException(AuctionErrorCode.AUCTION_SUCCESSFUL_BID);
+        }
+
+        if (!auction.getBuyNowEnable()) {
+            throw new BussinessException(AuctionErrorCode.AUCTION_BUY_NOW_NOT_AVAILABLE);
+        }
+
+        long price = auction.getBuyNowPrice();
+
+        // TODO: 결제 기능 추후 연결
+        // 로그 - 추후 삭제 예정
+        log.info("[BuyNow] precheck(userId={}, auctionId={}, price={})", user, auctionId, price);
+        log.info("[BuyNow] hold(userId={}, auctionId={}, price={})", user, auctionId, price);
+
+        // TODO: 경매 종료, 낙찰 기능 추후 연결
+        // 로그 - 추후 삭제 예정
+        log.info("[BuyNow] closeAuction(auctionId={}, winnerId={}, finalPrice={})",
+                auctionId, user, price);
+
+        return ResBuyNowDto.builder()
+                .auctionId(auctionId)
+                .productId(auction.getProductId())
+                .buyerId(user)
+                .finalPrice(price)
+                .purchasedAt(Instant.now())
+                .build();
+    }
+
+    @Transactional
+    public void auctionEnds(UUID auctionId) {
+
+        Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
+            .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
+
+        Bid winningBid = bidRepository.findTopByAuctionIdOrderByBidPriceDesc(auctionId)
+            .orElse(null);
+
+        if (winningBid == null) {
+            auction.fileBid();
+            return;
+        }
+
+        auction.successBid(winningBid.getUserId(), winningBid.getBidPrice());
+    }
 }

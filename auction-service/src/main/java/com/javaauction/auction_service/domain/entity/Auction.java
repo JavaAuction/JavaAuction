@@ -89,6 +89,18 @@ public class Auction extends BaseEntity {
         this.status = AuctionStatus.IN_PROGRESS;
     }
 
+    public void successBid(String user, Long bidPrice) {
+        this.successfulBidder = user;
+        this.currentPrice = bidPrice;
+        this.status = AuctionStatus.SUCCESSFUL_BID;
+    }
+
+    public void fileBid() {
+        this.successfulBidder = null;
+        this.currentPrice = null;
+        this.status = AuctionStatus.FAIL_BID;
+    }
+
     // 따로 쓸지 같이 쓸지 나중에 정해서 함수 지울 예정
     public void updateSuccessfulBidder(String user) {
         this.successfulBidder = user;
