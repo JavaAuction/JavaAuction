@@ -104,4 +104,12 @@ public class ProductService {
         return RepProductDto.from(product);
     }
 
+    // 상품 논리 삭제
+    public void deleteProduct(UUID productId, String userId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+
+        product.softDelete(Instant.now(), userId);
+    }
+
 }

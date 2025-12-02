@@ -89,4 +89,15 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, response));
     }
 
+    // 상품 논리 삭제
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<ApiResponse<Map<String, String>>> deleteProduct(
+            @PathVariable UUID productId
+    ) {
+        String mockUserId = "TEMP-USER";
+        productService.deleteProduct(productId, mockUserId);
+        Map<String, String> body = Map.of("result", "success");
+        return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, body));
+    }
+
 }
