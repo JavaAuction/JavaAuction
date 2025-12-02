@@ -13,7 +13,6 @@ public class WalletMapper {
         return Wallet.builder()
                 .id(entity.getId())
                 .userId(entity.getUserId())
-                .type(toDomain(entity.getType()))
                 .balance(entity.getBalance())
                 .build();
     }
@@ -24,16 +23,7 @@ public class WalletMapper {
         return WalletEntity.builder()
                 .id(wallet.getId())
                 .userId(wallet.getUserId())
-                .type(toEntity(wallet.getType()))
                 .balance(wallet.getBalance())
                 .build();
-    }
-
-    private Wallet.Type toDomain(WalletEntity.Type type) {
-        return type == null ? null : Wallet.Type.valueOf(type.name());
-    }
-
-    private WalletEntity.Type toEntity(Wallet.Type type) {
-        return type == null ? null : WalletEntity.Type.valueOf(type.name());
     }
 }

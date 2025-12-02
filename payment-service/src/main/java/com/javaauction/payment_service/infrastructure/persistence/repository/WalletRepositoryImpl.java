@@ -22,16 +22,9 @@ public class WalletRepositoryImpl implements WalletRepository {
     @Override
     @Transactional
     public Wallet save(Wallet wallet) {
-        WalletEntity entity;
-
-        if (wallet.getId() != null) {
-            entity = walletJpaRepository.findById(wallet.getId())
-                    .orElseGet(() -> walletMapper.toEntity(wallet));
-        } else {
-            entity = walletMapper.toEntity(wallet);
-        }
-
+        WalletEntity entity = walletMapper.toEntity(wallet);
         WalletEntity saved = walletJpaRepository.save(entity);
+
         return walletMapper.toDomain(saved);
     }
 
