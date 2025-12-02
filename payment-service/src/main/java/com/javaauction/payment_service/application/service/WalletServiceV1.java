@@ -36,7 +36,9 @@ public class WalletServiceV1 {
                         .build()
         );
 
-        return ResCreateWalletDto.from(wallet);
+        return ResCreateWalletDto.from(
+                ResCreateWalletDto.WalletDto.from(wallet)
+        );
     }
 
     @Transactional
