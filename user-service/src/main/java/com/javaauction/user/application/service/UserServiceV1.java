@@ -7,14 +7,13 @@ import com.javaauction.global.presentation.response.ApiResponse;
 import com.javaauction.user.application.dto.ReqLoginDto;
 import com.javaauction.user.application.dto.ReqSignupDto;
 import com.javaauction.user.application.dto.ReqUpdateDto;
+import com.javaauction.user.domain.entity.AddressEntity;
 import com.javaauction.user.domain.entity.UserEntity;
+import com.javaauction.user.domain.repository.AddressRepository;
 import com.javaauction.user.domain.repository.UserRepository;
 import com.javaauction.user.infrastructure.JWT.JwtUtil;
 import com.javaauction.user.presentation.advice.UserErrorCode;
-import com.javaauction.user.presentation.dto.ResGetMyInfoDto;
-import com.javaauction.user.presentation.dto.ResGetUserAdminDto;
-import com.javaauction.user.presentation.dto.ResGetUserDto;
-import com.javaauction.user.presentation.dto.ResLoginDto;
+import com.javaauction.user.presentation.dto.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +38,7 @@ public class UserServiceV1 {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
+    private final AddressRepository addressRepository;
 
     public void signup(ReqSignupDto signupRequestDto) {
         //이미 존재하는 정보인지 확인
@@ -151,9 +151,7 @@ public class UserServiceV1 {
     public void updateUser(ReqUpdateDto updateRequestDto, String username) {
         UserEntity me = userRepository.findByUsername(username).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
 
-        me.update(ReqUpdateDto.builder().name(updateRequestDto.getName())
-                .email(updateRequestDto.getEmail())
-                .build());
+        me.update(updateRequestDto);
 
         me.setUpdated(Instant.now(), username);
     }
@@ -172,5 +170,24 @@ public class UserServiceV1 {
         }
 
         user.softDelete(Instant.now(), username);
+    }
+
+    //내부 api
+
+    public ResGetUserIntDto getUserInternal(String userId) {
+        UserEntity user = userRepository.findByUsername(userId).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
+        AddressEntity address = addressRepository.findByAddressId(user.getAddress()).orElseThrow(() -> new BussinessException(UserErrorCode.ADDRESS_NOT_FOUND));
+        String addressString = address.getAddress() +" "+ address.getDetail();
+        return ResGetUserIntDto.builder()
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .address(addressString)
+                .slackId(user.getSlackId())
+                .role(user.getRole().name())
+                .build();
+    }
+
+    public boolean existsUser(String userId) {
+        return userRepository.findByUsername(userId).isPresent();
     }
 }

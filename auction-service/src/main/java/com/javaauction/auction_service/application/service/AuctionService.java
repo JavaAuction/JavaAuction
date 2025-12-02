@@ -4,6 +4,7 @@ import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
 import com.javaauction.auction_service.presentation.dto.request.ReqCreateAuctionDto;
 import com.javaauction.auction_service.presentation.dto.request.ReqUpdateAuctionDto;
 import com.javaauction.auction_service.presentation.dto.request.ReqUpdateStatusAuctionDto;
+import com.javaauction.auction_service.presentation.dto.response.ResBuyNowDto;
 import com.javaauction.auction_service.presentation.dto.response.ResCreatedAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionsDto;
@@ -32,4 +33,7 @@ public interface AuctionService {
 
     @Transactional
     void UpdateAuctionStatus(UUID auctionId, ReqUpdateStatusAuctionDto req);
+
+    @Transactional
+    ResBuyNowDto buyNow(UUID auctionId, String user);
 }

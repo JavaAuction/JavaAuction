@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.UUID;
 
@@ -48,4 +49,20 @@ public class Product extends BaseEntity {
         return product;
     }
 
+    public void changeName(String name) {
+        this.name = name;
+    }
+
+    public void changeDescription(String description) {
+        this.description = description;
+    }
+
+    public void changeImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public void changeStatus(ProductStatus productStatus, Long finalPrice) {
+        this.status =productStatus;
+        this.finalPrice = finalPrice;
+    }
 }
