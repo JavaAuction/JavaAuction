@@ -7,6 +7,7 @@ import com.springcloud.eureka.client.productservice.domain.enums.ProductStatus;
 import com.springcloud.eureka.client.productservice.presentation.dto.RepProductDto;
 import com.springcloud.eureka.client.productservice.presentation.dto.RepProductPageDto;
 import com.springcloud.eureka.client.productservice.presentation.dto.ReqProductCreateDto;
+import com.springcloud.eureka.client.productservice.presentation.dto.ReqProductUpdateDto;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -66,6 +67,17 @@ public class ProductController {
     ) {
         String name = productService.getProductName(productId);
         Map<String, String> response = Map.of("productName", name);
+        return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, response));
+    }
+
+    // 상품 정보 수정
+    @PutMapping("/{productId}")
+    public ResponseEntity<ApiResponse<RepProductDto>> updateProduct(
+            @PathVariable UUID productId,
+            @RequestBody ReqProductUpdateDto request
+    ) {
+        String mockUserId = "TEMP-USER";
+        RepProductDto response = productService.updateProduct(productId, request, mockUserId);
         return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, response));
     }
 }

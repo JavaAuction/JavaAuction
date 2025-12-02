@@ -8,6 +8,7 @@ import com.springcloud.eureka.client.productservice.infrastructure.repository.Pr
 import com.springcloud.eureka.client.productservice.presentation.dto.RepProductDto;
 import com.springcloud.eureka.client.productservice.presentation.dto.RepProductPageDto;
 import com.springcloud.eureka.client.productservice.presentation.dto.ReqProductCreateDto;
+import com.springcloud.eureka.client.productservice.presentation.dto.ReqProductUpdateDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -72,6 +73,26 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
         return product.getName();
+    }
+
+    // 상품 정보 수정
+    public RepProductDto updateProduct(UUID productId, ReqProductUpdateDto request, String userId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+
+        if (request.getName() != null) {
+            product.changeName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            product.changeDescription(request.getDescription());
+        }
+        if (request.getImageUrl() != null) {
+            product.changeImageUrl(request.getImageUrl());
+        }
+
+        product.setUpdated(Instant.now(), userId);
+
+        return RepProductDto.from(product);
     }
 
 }
