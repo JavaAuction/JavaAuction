@@ -27,15 +27,7 @@ public class WalletEntity extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String userId;
 
-    @Enumerated(EnumType.STRING)
-    private Type type;
-
     @Builder.Default
     @Column(nullable = false)
     private Long balance = 0L;
-
-    public enum Type {
-        CHARGE,
-        WITHDRAW
-    }
 }
