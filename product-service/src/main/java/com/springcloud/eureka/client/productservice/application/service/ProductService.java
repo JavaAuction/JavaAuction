@@ -5,9 +5,7 @@ import com.springcloud.eureka.client.productservice.domain.entity.Product;
 import com.springcloud.eureka.client.productservice.domain.enums.ProductStatus;
 import com.springcloud.eureka.client.productservice.domain.error.ProductErrorCode;
 import com.springcloud.eureka.client.productservice.infrastructure.repository.ProductRepository;
-import com.springcloud.eureka.client.productservice.presentation.dto.RepProductDto;
-import com.springcloud.eureka.client.productservice.presentation.dto.RepProductPageDto;
-import com.springcloud.eureka.client.productservice.presentation.dto.ReqProductCreateDto;
+import com.springcloud.eureka.client.productservice.presentation.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -72,6 +70,46 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
         return product.getName();
+    }
+
+    // 상품 정보 수정
+    public RepProductDto updateProduct(UUID productId, ReqProductUpdateDto request, String userId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+
+        if (request.getName() != null) {
+            product.changeName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            product.changeDescription(request.getDescription());
+        }
+        if (request.getImageUrl() != null) {
+            product.changeImageUrl(request.getImageUrl());
+        }
+
+        product.setUpdated(Instant.now(), userId);
+
+        return RepProductDto.from(product);
+    }
+
+    // 상품 상태 변경 (판매 완료)
+    public RepProductDto updateProductStatus(UUID productId, ReqProductStatusUpdateDto request, String userId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+
+        // SOLD 등으로 상태 변경
+        product.changeStatus(request.getProductStatus(), request.getFinalPrice());
+        product.setUpdated(Instant.now(), userId);
+
+        return RepProductDto.from(product);
+    }
+
+    // 상품 논리 삭제
+    public void deleteProduct(UUID productId, String userId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+
+        product.softDelete(Instant.now(), userId);
     }
 
 }
