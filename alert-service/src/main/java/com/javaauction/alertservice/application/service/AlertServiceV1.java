@@ -2,15 +2,21 @@ package com.javaauction.alertservice.application.service;
 
 import com.javaauction.alertservice.domain.entity.Alert;
 import com.javaauction.alertservice.infrastructure.repository.AlertJpaRepository;
+import com.javaauction.alertservice.presentation.advice.AlertErrorCode;
 import com.javaauction.alertservice.presentation.dto.common.SearchParam;
 import com.javaauction.alertservice.presentation.dto.request.ReqPostInternalAlertsDtoV1;
 import com.javaauction.alertservice.presentation.dto.response.RepGetAlertsDtoV1;
+import com.javaauction.alertservice.presentation.dto.response.RepPostAlertsReadDtoV1;
 import com.javaauction.alertservice.presentation.dto.response.RepPostInternalAlertsDtoV1;
+import com.javaauction.global.presentation.exception.BussinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -69,6 +75,43 @@ public class AlertServiceV1 {
 
         return page;
     }
+
+    // 알림 읽음 처리
+    @Transactional
+    public RepPostAlertsReadDtoV1 postAlertsRead(UUID alertId, String userId, String role) {
+
+        // 알림 존재 여부 확인
+        Alert alert = alertRepository.findByAlertIdAndDeletedAtIsNull(alertId)
+                .orElseThrow(() -> new BussinessException(AlertErrorCode.ALERT_NOT_FOUND));
+
+
+        // 권한 체크
+        if (!hasPermission(userId, role, alert)) {
+            throw new BussinessException(AlertErrorCode.ALERT_UNAUTH);
+        }
+
+        alert.alertRead();
+
+        return new RepPostAlertsReadDtoV1(
+                alertId,
+                alert.getIsRead(),
+                alert.getUpdatedAt()
+        );
+
+    }
+
+
+    // 알림 삭제
+
+
+    // 권한 체크
+    private boolean hasPermission(String userId, String role, Alert alert) {
+        boolean isAdmin = "ADMIN".equals(role);
+        boolean isOwner = Objects.equals(userId, alert.getUserId());
+
+        return isAdmin || isOwner;
+    }
+
 }
 
 
