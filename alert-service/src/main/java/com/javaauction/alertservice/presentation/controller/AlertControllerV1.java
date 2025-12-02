@@ -63,14 +63,15 @@ public class AlertControllerV1 {
 
     // 알림 삭제
     @DeleteMapping
-    public ResponseEntity<RepDeleteAlertsDtoV1> deleteVendor(@RequestBody ReqDeleteAlertsDtoV1 request) {
+    public ResponseEntity<ApiResponse<RepDeleteAlertsDtoV1>> deleteAlerts(
+            @RequestBody ReqDeleteAlertsDtoV1 request
+    ) {
 
-        RepDeleteAlertsDtoV1 response = RepDeleteAlertsDtoV1.builder()
-                .alertIds(request.getAlertIds())
-                .message(request.getAlertIds().size() + "건 알림 삭제에 성공했습니다.")
-                .build();
+        RepDeleteAlertsDtoV1 response = alertServiceV1.deleteAlerts(request, "tmpuser2", "USER"); // 임시로 userid, role 설정
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                ApiResponse.success(AlertSuccessCode.ALERT_FIND_SUCCESS, response)
+        );
     }
 
 }
