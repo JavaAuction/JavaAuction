@@ -33,4 +33,10 @@ public class WalletRepositoryImpl implements WalletRepository {
         return walletJpaRepository.findById(walletId)
                 .map(walletMapper::toDomain);
     }
+
+    @Override
+    public Optional<Wallet> findWalletByUserId(String userId) {
+        return walletJpaRepository.findByUserId(userId)
+                .map(walletMapper::toDomain);
+    }
 }

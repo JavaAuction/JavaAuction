@@ -5,12 +5,8 @@ import com.javaauction.payment_service.domain.model.WalletTransaction;
 import com.javaauction.payment_service.domain.repository.WalletRepository;
 import com.javaauction.payment_service.domain.repository.WalletTransactionRepository;
 import com.javaauction.payment_service.presentation.advice.PaymentException;
-import com.javaauction.payment_service.presentation.dto.request.ReqChargeDto;
-import com.javaauction.payment_service.presentation.dto.request.ReqCreateWalletDto;
-import com.javaauction.payment_service.presentation.dto.request.ReqWithdrawDto;
-import com.javaauction.payment_service.presentation.dto.response.ResChargeDto;
-import com.javaauction.payment_service.presentation.dto.response.ResCreateWalletDto;
-import com.javaauction.payment_service.presentation.dto.response.ResWithdrawDto;
+import com.javaauction.payment_service.presentation.dto.request.*;
+import com.javaauction.payment_service.presentation.dto.response.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 import static com.javaauction.payment_service.domain.model.WalletTransaction.ExternalType.AUCTION;
-import static com.javaauction.payment_service.domain.model.WalletTransaction.TransactionType.*;
+import static com.javaauction.payment_service.domain.model.WalletTransaction.ExternalType.BID;
+import static com.javaauction.payment_service.domain.model.WalletTransaction.HoldStatus.HOLD_ACTIVE;
+import static com.javaauction.payment_service.domain.model.WalletTransaction.TransactionType.CHARGE;
+import static com.javaauction.payment_service.domain.model.WalletTransaction.TransactionType.WITHDRAW;
 import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.*;
 
 @Service
@@ -48,7 +47,7 @@ public class WalletServiceV1 {
         Wallet wallet = findWalletById(walletId);
 
         long beforeBalance = wallet.getBalance();
-        long chargeAmount = request.getAmount();
+        long chargeAmount = request.getChargeAmount();
 
         Wallet charged = wallet.withBalance(beforeBalance + chargeAmount);
         walletRepository.save(charged);
@@ -68,26 +67,15 @@ public class WalletServiceV1 {
     }
 
     @Transactional
-    public ResWithdrawDto withdrawal(UUID walletId, ReqWithdrawDto request) {
+    public ResWithdrawDto withdraw(UUID walletId, ReqWithdrawDto request) {
 
         Wallet wallet = findWalletById(walletId);
 
         long beforeBalance = wallet.getBalance();
-        long withdrawalAmount = request.getAmount();
+        long withdrawalAmount = request.getWithdrawAmount();
 
         if (withdrawalAmount > beforeBalance)
-            throw new PaymentException(PAYMENT_INSUFFICIENT_BALANCE);
-
-        if (request.getTransactionType() != WITHDRAW && request.getTransactionType() != PAYMENT)
-            throw new PaymentException(PAYMENT_INVALID_TRANSACTION_TYPE);
-
-        if (request.getTransactionType() == PAYMENT) {
-            if (request.getExternalType() != AUCTION)
-                throw new PaymentException(PAYMENT_INVALID_EXTERNAL_TYPE);
-
-            if (request.getExternalId() == null)
-                throw new PaymentException(PAYMENT_MISSING_EXTERNAL_ID);
-        }
+            throw new PaymentException(WALLET_INSUFFICIENT_BALANCE);
 
         Wallet withdrew = wallet.withBalance(beforeBalance - withdrawalAmount);
         walletRepository.save(withdrew);
@@ -95,21 +83,76 @@ public class WalletServiceV1 {
         WalletTransaction walletTransaction = walletTransactionRepository.save(
                 WalletTransaction.builder()
                         .walletId(withdrew.getId())
-                        .type(request.getTransactionType())
+                        .type(WITHDRAW)
                         .amount(withdrawalAmount)
-                        .externalType(request.getExternalType())
-                        .externalId(request.getExternalId())
                         .build()
         );
 
-        ResWithdrawDto.WalletDto walletDto = ResWithdrawDto.WalletDto.from(withdrew, beforeBalance);
-        ResWithdrawDto.WalletTransactionDto walletTransactionDto = ResWithdrawDto.WalletTransactionDto.from(walletTransaction);
+        WalletDto walletDto = WalletDto.from(withdrew, beforeBalance);
+        WalletTransactionDto walletTransactionDto = WalletTransactionDto.from(walletTransaction);
 
         return ResWithdrawDto.from(walletDto, walletTransactionDto);
     }
 
+    @Transactional
+    public ResDeductDto deduct(ReqDeductDto request) {
+
+        Wallet wallet = findWalletByUserId(request.getUserId());
+
+        long beforeBalance = wallet.getBalance();
+        long deductAmount = request.getDeductAmount();
+
+        if (deductAmount > beforeBalance)
+            throw new PaymentException(WALLET_INSUFFICIENT_BALANCE);
+
+        WalletTransaction.TransactionType transactionType = request.getTransactionType();
+        WalletTransaction.ExternalType externalType = null;
+        WalletTransaction.HoldStatus holdStatus = null;
+
+        switch (transactionType) {
+            case PAYMENT -> externalType = AUCTION;
+            case HOLD -> {
+                externalType = BID;
+                holdStatus = HOLD_ACTIVE;
+            }
+
+            default -> throw new PaymentException(WALLET_INVALID_TRANSACTION_TYPE);
+        }
+
+        Wallet payment = wallet.withBalance(beforeBalance - deductAmount);
+        walletRepository.save(payment);
+
+        WalletTransaction walletTransaction = walletTransactionRepository.save(
+                WalletTransaction.builder()
+                        .walletId(payment.getId())
+                        .type(transactionType)
+                        .amount(deductAmount)
+                        .holdStatus(holdStatus)
+                        .externalType(externalType)
+                        .externalId(request.getExternalId())
+                        .build()
+        );
+
+        WalletDto walletDto = WalletDto.from(payment, beforeBalance);
+        WalletTransactionDto walletTransactionDto = WalletTransactionDto.from(walletTransaction);
+
+        return ResDeductDto.from(walletDto, walletTransactionDto);
+    }
+
+    public Boolean validate(ReqValidateDto request) {
+
+        Wallet wallet = findWalletByUserId(request.getUserId());
+
+        return wallet.getBalance() >= request.getBidPrice();
+    }
+
     private Wallet findWalletById(UUID walletId) {
         return walletRepository.findById(walletId)
-                .orElseThrow(() -> new PaymentException(PAYMENT_WALLET_NOT_FOUND));
+                .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
+    }
+
+    private Wallet findWalletByUserId(String userId) {
+        return walletRepository.findWalletByUserId(userId)
+                .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
     }
 }
