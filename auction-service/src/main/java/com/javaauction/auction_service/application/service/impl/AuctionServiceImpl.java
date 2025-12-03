@@ -2,8 +2,10 @@ package com.javaauction.auction_service.application.service.impl;
 
 import com.javaauction.auction_service.application.service.AuctionService;
 import com.javaauction.auction_service.domain.entity.Auction;
+import com.javaauction.auction_service.domain.entity.Bid;
 import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
+import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
 import com.javaauction.auction_service.presentation.dto.request.ReqCreateAuctionDto;
 import com.javaauction.auction_service.presentation.dto.request.ReqUpdateAuctionDto;
@@ -29,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuctionServiceImpl implements AuctionService {
 
     private final AuctionRepository auctionRepository;
+    private final BidRepository bidRepository;
 
     @Override
     @Transactional
@@ -173,5 +176,22 @@ public class AuctionServiceImpl implements AuctionService {
                 .finalPrice(price)
                 .purchasedAt(Instant.now())
                 .build();
+    }
+
+    @Transactional
+    public void auctionEnds(UUID auctionId) {
+
+        Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
+            .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
+
+        Bid winningBid = bidRepository.findTopByAuctionIdOrderByBidPriceDesc(auctionId)
+            .orElse(null);
+
+        if (winningBid == null) {
+            auction.fileBid();
+            return;
+        }
+
+        auction.successBid(winningBid.getUserId(), winningBid.getBidPrice());
     }
 }
