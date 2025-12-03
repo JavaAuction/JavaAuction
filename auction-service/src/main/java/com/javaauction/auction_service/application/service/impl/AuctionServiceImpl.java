@@ -167,18 +167,19 @@ public class AuctionServiceImpl implements AuctionService {
         // TODO: 경매 종료, 낙찰 기능 추후 연결
         // 로그 - 추후 삭제 예정
         log.info("[BuyNow] closeAuction(auctionId={}, winnerId={}, finalPrice={})",
-                auctionId, user, price);
+            auctionId, user, price);
 
         return ResBuyNowDto.builder()
-                .auctionId(auctionId)
-                .productId(auction.getProductId())
-                .buyerId(user)
-                .finalPrice(price)
-                .purchasedAt(Instant.now())
-                .build();
+            .auctionId(auctionId)
+            .productId(auction.getProductId())
+            .buyerId(user)
+            .finalPrice(price)
+            .purchasedAt(Instant.now())
+            .build();
     }
 
     @Transactional
+    @Override
     public void auctionEnds(UUID auctionId) {
 
         Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
