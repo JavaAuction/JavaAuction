@@ -2,9 +2,10 @@ package com.javaauction.payment_service.presentation.controller;
 
 import com.javaauction.global.presentation.response.ApiResponse;
 import com.javaauction.payment_service.application.service.WalletServiceV1;
-import com.javaauction.payment_service.presentation.advice.PaymentSuccessCode;
 import com.javaauction.payment_service.presentation.dto.request.ReqCreateWalletDto;
+import com.javaauction.payment_service.presentation.dto.request.ReqDeductDto;
 import com.javaauction.payment_service.presentation.dto.response.ResCreateWalletDto;
+import com.javaauction.payment_service.presentation.dto.response.ResDeductDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import static com.javaauction.payment_service.presentation.advice.PaymentSuccessCode.WALLET_CREATE_SUCCESS;
+import static com.javaauction.payment_service.presentation.advice.PaymentSuccessCode.WALLET_DEDUCT_SUCCESS;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,8 +29,18 @@ public class InternalWalletControllerV1 {
     public ResponseEntity<ApiResponse<ResCreateWalletDto>> createWallet(@Valid @RequestBody ReqCreateWalletDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.success(
-                        PaymentSuccessCode.PAYMENT_WALLET_CREATE_SUCCESS,
+                        WALLET_CREATE_SUCCESS,
                         walletService.createWallet(request)
+                )
+        );
+    }
+
+    @PostMapping("/deductions")
+    public ResponseEntity<ApiResponse<ResDeductDto>> deduct(@Valid @RequestBody ReqDeductDto request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.success(
+                        WALLET_DEDUCT_SUCCESS,
+                        walletService.deduct(request)
                 )
         );
     }
