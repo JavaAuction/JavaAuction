@@ -9,10 +9,7 @@ import com.javaauction.payment_service.domain.repository.WalletRepository;
 import com.javaauction.payment_service.domain.repository.WalletTransactionRepository;
 import com.javaauction.payment_service.presentation.advice.PaymentException;
 import com.javaauction.payment_service.presentation.dto.request.*;
-import com.javaauction.payment_service.presentation.dto.response.ResChargeDto;
-import com.javaauction.payment_service.presentation.dto.response.ResCreateWalletDto;
-import com.javaauction.payment_service.presentation.dto.response.ResDeductDto;
-import com.javaauction.payment_service.presentation.dto.response.ResWithdrawDto;
+import com.javaauction.payment_service.presentation.dto.response.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +40,10 @@ public class WalletServiceV1 {
         );
 
         return ResCreateWalletDto.from(wallet);
+    }
+
+    public ResGetWallet getWallet(UUID walletId) {
+        return ResGetWallet.from(findWalletById(walletId));
     }
 
     @Transactional
