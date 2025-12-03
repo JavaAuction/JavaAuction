@@ -5,13 +5,18 @@ import com.javaauction.auction_service.domain.entity.Bid;
 import com.javaauction.auction_service.domain.event.BidResult;
 import com.javaauction.auction_service.domain.event.OldBidReleaseEvent;
 import com.javaauction.auction_service.domain.service.BidDomainService;
+import com.javaauction.auction_service.infrastructure.client.PaymentClient;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqValidateDto;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
+import com.javaauction.auction_service.presentation.advice.BidErrorCode;
 import com.javaauction.auction_service.presentation.dto.response.ResGetBidsDto;
 import com.javaauction.auction_service.presentation.dto.response.internal.InternalBidDto;
 import com.javaauction.auction_service.presentation.dto.response.internal.ResInternalBidsDto;
 import com.javaauction.global.presentation.exception.BussinessException;
+import com.javaauction.global.presentation.response.ApiResponse;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -28,6 +33,7 @@ public class BidService {
     private final ApplicationEventPublisher eventPublisher;
     private final BidRepository bidRepository;
     private final AuctionRepository auctionRepository;
+    private final PaymentClient paymentClient;
 
     /**
      * 입찰 처리 서비스
@@ -35,8 +41,7 @@ public class BidService {
     @Transactional
     public BidResult placeBid(UUID auctionId, String userId, String role, Long bidPrice) {
 
-        // TODO: 결제 precheck (결제 서비스 완성 후 진행)
-        // precheckFeignClient
+        paymentPrecheck(userId, bidPrice);
 
         BidResult result = bidDomainService.placeBidWithLock(
                 auctionId,
@@ -83,5 +88,20 @@ public class BidService {
                 .userId(userId)
                 .bids(bids)
                 .build();
+    }
+
+    private void paymentPrecheck(String userId, Long bidPrice) {
+
+        ReqValidateDto req = new ReqValidateDto(
+                userId,
+                bidPrice
+        );
+
+        try {
+            paymentClient.validateBalance(req);
+        } catch (FeignException.BadRequest e) {
+            // 잔액 부족
+            throw new BussinessException(BidErrorCode.BID_INSUFFICIENT_BALANCE);
+        }
     }
 }
