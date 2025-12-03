@@ -6,6 +6,7 @@ import com.javaauction.user.application.dto.ReqSignupDto;
 import com.javaauction.user.application.dto.ReqUpdateDto;
 import com.javaauction.user.application.service.UserServiceV1;
 import com.javaauction.user.infrastructure.JWT.JwtUserContext;
+import com.javaauction.user.infrastructure.external.dto.GetReviewIntDto;
 import com.javaauction.user.presentation.advice.UserSuccessCode;
 import com.javaauction.user.presentation.dto.ResGetMyInfoDto;
 import com.javaauction.user.presentation.dto.ResGetUserAdminDto;
@@ -77,6 +78,18 @@ public class UserControllerV1 {
         userService.deleteUser(userId, JwtUserContext.getUsernameFromHeader(), JwtUserContext.getRoleFromHeader());
 
         return ResponseEntity.ok(ApiResponse.success(UserSuccessCode.USER_DELETED));
+    }
+
+    @GetMapping("/users/{userId}/reviews")
+    public ResponseEntity<ApiResponse<java.util.List<GetReviewIntDto>>> getUserReviews(@PathVariable String userId) {
+        java.util.List<GetReviewIntDto> reviews = userService.getUserReviews(userId);
+        return ResponseEntity.ok(ApiResponse.success(UserSuccessCode.USER_FOUND, reviews));
+    }
+
+    @GetMapping("/users/{userId}/rating")
+    public ResponseEntity<ApiResponse<Double>> getUserRating(@PathVariable String userId) {
+        double rating = userService.getUserAverageRating(userId);
+        return ResponseEntity.ok(ApiResponse.success(UserSuccessCode.USER_FOUND, rating));
     }
 }
 

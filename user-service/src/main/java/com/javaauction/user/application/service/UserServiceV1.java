@@ -12,6 +12,8 @@ import com.javaauction.user.domain.entity.UserEntity;
 import com.javaauction.user.domain.repository.AddressRepository;
 import com.javaauction.user.domain.repository.UserRepository;
 import com.javaauction.user.infrastructure.JWT.JwtUtil;
+import com.javaauction.user.infrastructure.external.client.ReviewServiceClient;
+import com.javaauction.user.infrastructure.external.dto.GetReviewIntDto;
 import com.javaauction.user.presentation.advice.UserErrorCode;
 import com.javaauction.user.presentation.dto.*;
 import jakarta.transaction.Transactional;
@@ -39,6 +41,7 @@ public class UserServiceV1 {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final AddressRepository addressRepository;
+    private final ReviewServiceClient reviewServiceClient;
 
     public void signup(ReqSignupDto signupRequestDto) {
         //이미 존재하는 정보인지 확인
@@ -128,23 +131,31 @@ public class UserServiceV1 {
             throw new BussinessException(UserErrorCode.CANNOT_DELETE_DELETED_USER);
         }
 
+        // 리뷰 정보 조회
+        java.util.List<GetReviewIntDto> reviews = getUserReviews(userId);
+        double rating = getUserAverageRating(userId);
+
         // 자기 자신을 검색할 경우
         if(user.getUsername().equals(username)){
-            return ApiResponse.success(BaseSuccessCode.OK, ResGetMyInfoDto.of(user));
+            return ApiResponse.success(BaseSuccessCode.OK, ResGetMyInfoDto.of(user, rating, reviews));
         }
 
         //권한에 따라 보이는 정보가 다름
         if(role != null && role.equals("ADMIN")){
-            return ApiResponse.success(BaseSuccessCode.OK, ResGetUserAdminDto.of(user));
+            return ApiResponse.success(BaseSuccessCode.OK, ResGetUserAdminDto.of(user, rating, reviews));
         }else{
-            return ApiResponse.success(BaseSuccessCode.OK, ResGetUserDto.of(user));
+            return ApiResponse.success(BaseSuccessCode.OK, ResGetUserDto.of(user, rating, reviews));
         }
     }
 
     public ResGetMyInfoDto getMyInfo(String username) {
         UserEntity my = userRepository.findByUsername(username).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
 
-        return ResGetMyInfoDto.of(my);
+        // 리뷰 정보 조회
+        java.util.List<GetReviewIntDto> reviews = getUserReviews(username);
+        double rating = getUserAverageRating(username);
+
+        return ResGetMyInfoDto.of(my, rating, reviews);
     }
 
     @Transactional
@@ -189,5 +200,13 @@ public class UserServiceV1 {
 
     public boolean existsUser(String userId) {
         return userRepository.findByUsername(userId).isPresent();
+    }
+
+    public java.util.List<GetReviewIntDto> getUserReviews(String userId) {
+        return reviewServiceClient.getReviewByUser(userId);
+    }
+
+    public double getUserAverageRating(String userId) {
+        return reviewServiceClient.getUserRating(userId);
     }
 }

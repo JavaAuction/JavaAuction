@@ -2,7 +2,7 @@ package com.example.review.presentation.controller;
 
 import com.example.review.application.dto.ReqCreateReviewDto;
 import com.example.review.application.dto.ReqUpdateReviewDto;
-import com.example.review.application.dto.ResGetReviewDto;
+import com.example.review.presentation.dto.ResGetReviewDto;
 import com.example.review.application.service.ReviewServiceV1;
 import com.example.review.infrastructure.JWT.JwtUserContext;
 import com.example.review.presentation.advice.ReviewSuccessCode;

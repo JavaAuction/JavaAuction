@@ -2,7 +2,7 @@ package com.example.review.application.service;
 
 import com.example.review.application.dto.ReqCreateReviewDto;
 import com.example.review.application.dto.ReqUpdateReviewDto;
-import com.example.review.application.dto.ResGetReviewDto;
+import com.example.review.presentation.dto.ResGetReviewDto;
 import com.example.review.domain.entity.ReviewEntity;
 import com.example.review.domain.repository.ReviewRepository;
 import com.example.review.infrastructure.feign.client.UserServiceClient;
@@ -98,4 +98,17 @@ public class ReviewServiceV1 {
     }
 
 
+    @Transactional(readOnly = true)
+    public java.util.List<ResGetReviewDto> getUserReviewList(String userId) {
+        java.util.List<ReviewEntity> reviews = reviewRepository.findByTarget(userId);
+        return reviews.stream()
+                .map(ResGetReviewDto::of)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public double getAverageRatingByTarget(String userId) {
+        Double averageRating = reviewRepository.calculateAverageRatingByTarget(userId);
+        return averageRating != null ? averageRating : 0.0;
+    }
 }

@@ -15,4 +15,6 @@ public interface ReviewRepository {
     Page<ReviewEntity> findByTarget(String target, Pageable pageable);
     Page<ReviewEntity> findByWriter(String writer, Pageable pageable);
     Page<ReviewEntity> findAll(Pageable pageable);
+    java.util.List<ReviewEntity> findByTarget(String target);
+    Double calculateAverageRatingByTarget(String target);
 }

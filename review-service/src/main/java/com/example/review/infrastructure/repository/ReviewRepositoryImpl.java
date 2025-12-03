@@ -40,4 +40,14 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     public Page<ReviewEntity> findAll(Pageable pageable) {
         return reviewjpaRepository.findAll(pageable);
     }
+
+    @Override
+    public java.util.List<ReviewEntity> findByTarget(String target) {
+        return reviewjpaRepository.findByTarget(target);
+    }
+
+    @Override
+    public Double calculateAverageRatingByTarget(String target) {
+        return reviewjpaRepository.calculateAverageRatingByTarget(target);
+    }
 }
