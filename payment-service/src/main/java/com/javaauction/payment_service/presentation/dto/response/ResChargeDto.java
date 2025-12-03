@@ -1,5 +1,6 @@
 package com.javaauction.payment_service.presentation.dto.response;
 
+import com.javaauction.payment_service.domain.enums.TransactionType;
 import com.javaauction.payment_service.domain.model.Wallet;
 import com.javaauction.payment_service.domain.model.WalletTransaction;
 import lombok.Builder;
@@ -42,7 +43,7 @@ public class ResChargeDto {
     public static class WalletTransactionDto {
         private UUID walletTransactionId;
         private Long chargeAmount;
-        private WalletTransaction.TransactionType transactionType;
+        private TransactionType transactionType;
 
         public static WalletTransactionDto from(WalletTransaction walletTransaction) {
             return WalletTransactionDto.builder()
