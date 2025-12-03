@@ -14,5 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ReqPostInternalAlertsDtoV1 {
     private UUID auctionId;
+    private String userId;
     private AlertType alertType;
+    private String content;
 }
