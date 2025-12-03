@@ -20,8 +20,8 @@ public class InternalAlertControllerV1 {
 
     // 알림 생성
     @PostMapping
-    public ResponseEntity<ApiResponse<RepPostInternalAlertsDtoV1>> createAlert(@RequestBody ReqPostInternalAlertsDtoV1 request) {
-        RepPostInternalAlertsDtoV1 postInternalAlertsDto = alertService.postInternalAlertsDtoV1(request);
+    public ResponseEntity<ApiResponse<RepPostInternalAlertsDtoV1>> createAlert(@RequestBody ReqPostInternalAlertsDtoV1 reqDto) {
+        RepPostInternalAlertsDtoV1 postInternalAlertsDto = alertService.postInternalAlerts(reqDto);
         return ResponseEntity.ok(ApiResponse.success(AlertSuccessCode.ALERT_CREATE_SUCCESS, postInternalAlertsDto));
     }
 }
