@@ -1,14 +1,21 @@
 package com.example.review.application.service;
 
 import com.example.review.application.dto.ReqCreateReviewDto;
+import com.example.review.application.dto.ResGetReviewDto;
 import com.example.review.domain.entity.ReviewEntity;
 import com.example.review.domain.repository.ReviewRepository;
 import com.example.review.infrastructure.feign.client.UserServiceClient;
 import com.example.review.infrastructure.feign.dto.ResGetUserIntDto;
 import com.example.review.presentation.advice.ReviewErrorCode;
+import com.javaauction.global.infrastructure.code.BaseErrorCode;
 import com.javaauction.global.presentation.exception.BussinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -41,4 +48,39 @@ public class ReviewServiceV1 {
 
         reviewRepository.save(review);
     }
+
+    @Transactional(readOnly = true)
+    public Page<ResGetReviewDto> getReviews(int page, int size, String sortBy, boolean isAsc, String roleFromHeader) {
+        if (!"ADMIN".equals(roleFromHeader)) {
+            throw new BussinessException(BaseErrorCode.ACCESS_DENIED);
+        }
+
+        Pageable pageable = buildPageable(page, size, sortBy, isAsc);
+
+        return reviewRepository.findAll(pageable)
+                .map(ResGetReviewDto::of);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ResGetReviewDto> getUserReviews(String userId, int page, int size, String sortBy, boolean isAsc) {
+        Pageable pageable = buildPageable(page, size, sortBy, isAsc);
+
+        return reviewRepository.findByTarget(userId, pageable)
+                .map(ResGetReviewDto::of);
+    }
+
+
+
+    private Pageable buildPageable(int page, int size, String sortBy, boolean isAsc) {
+        int fixedSize = (size == 10 || size == 30 || size == 50) ? size : 10;
+        String fixedSort = (sortBy != null && !sortBy.isBlank() && sortBy.equals("modifiedAt")) ? "modifiedAt" : "createdAt";
+
+        return PageRequest.of(
+                page > 0 ? page - 1 : 0,
+                fixedSize,
+                isAsc ? Sort.Direction.ASC : Sort.Direction.DESC,
+                fixedSort
+        );
+    }
+
 }

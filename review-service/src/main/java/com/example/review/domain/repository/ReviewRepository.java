@@ -14,4 +14,5 @@ public interface ReviewRepository {
     Optional<ReviewEntity> findById(UUID id);
     Page<ReviewEntity> findByTarget(String target, Pageable pageable);
     Page<ReviewEntity> findByWriter(String writer, Pageable pageable);
+    Page<ReviewEntity> findAll(Pageable pageable);
 }
