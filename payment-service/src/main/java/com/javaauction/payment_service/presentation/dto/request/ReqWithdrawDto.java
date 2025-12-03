@@ -17,12 +17,6 @@ import java.util.UUID;
 public class ReqWithdrawDto {
 
     @NotNull
-    private WalletTransaction.TransactionType transactionType;
-
-    @NotNull
     @Min(1)
-    private Long amount;
-
-    private WalletTransaction.ExternalType externalType;
-    private UUID externalId;
+    private Long withdrawAmount;
 }

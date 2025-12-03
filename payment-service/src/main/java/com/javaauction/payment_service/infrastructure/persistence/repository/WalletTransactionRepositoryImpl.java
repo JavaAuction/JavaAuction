@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
-import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.PAYMENT_WALLET_NOT_FOUND;
+import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.WALLET_NOT_FOUND;
 
 @Repository
 @RequiredArgsConstructor
@@ -29,7 +29,7 @@ public class WalletTransactionRepositoryImpl implements WalletTransactionReposit
     public WalletTransaction save(WalletTransaction walletTransaction) {
 
         WalletEntity walletEntity = walletJpaRepository.findById(walletTransaction.getWalletId())
-                .orElseThrow(() -> new PaymentException(PAYMENT_WALLET_NOT_FOUND));
+                .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
 
         WalletTransactionEntity entity = walletTransactionMapper.toEntity(walletTransaction, walletEntity);
         WalletTransactionEntity saved = walletTransactionJpaRepository.save(entity);

@@ -10,4 +10,6 @@ public interface WalletRepository {
     Wallet save(Wallet wallet);
 
     Optional<Wallet> findById(UUID walletId);
+
+    Optional<Wallet> findWalletByUserId(String userId);
 }
