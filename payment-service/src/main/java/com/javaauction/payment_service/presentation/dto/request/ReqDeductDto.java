@@ -1,6 +1,6 @@
 package com.javaauction.payment_service.presentation.dto.request;
 
-import com.javaauction.payment_service.domain.model.WalletTransaction;
+import com.javaauction.payment_service.domain.enums.TransactionType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -20,7 +20,7 @@ public class ReqDeductDto {
     private String userId;
 
     @NotNull
-    private WalletTransaction.TransactionType transactionType;
+    private TransactionType transactionType;
 
     @NotNull
     @Min(1)
