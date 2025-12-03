@@ -29,14 +29,28 @@ public class BidDomainService {
      * - 성공 시 Auction 상태 변경 + Bid insert
      */
         @Transactional
-        public BidResult placeBidWithLock(UUID auctionId, String userId, Long bidPrice) {
+        public BidResult placeBidWithLock(UUID auctionId, String userId, String role, Long bidPrice) {
+            if (role.equals("ADMIN")) {
+                throw new BussinessException(BidErrorCode.BID_ADMIN_NOT_ALLOWED);
+            }
 
             // Auction 비관적 락
             Auction auction = auctionRepository.findByIdForUpdate(auctionId)
                     .orElseThrow(() -> new BussinessException(BidErrorCode.BID_AUCTION_NOT_FOUND));
 
-            if (auction.getStatus() != AuctionStatus.IN_PROGRESS)
+            AuctionStatus status = auction.getStatus();
+
+            if (status == AuctionStatus.PENDING) {
+                throw new BussinessException(BidErrorCode.BID_AUCTION_PENDING);
+            }
+
+            if (status == AuctionStatus.SUCCESSFUL_BID || status == AuctionStatus.FAIL_BID) {
                 throw new BussinessException(BidErrorCode.BID_FINISHED_AUCTION);
+            }
+
+            if (status != AuctionStatus.IN_PROGRESS) {
+                throw new BussinessException(BidErrorCode.BID_AUCTION_INVALID_STATUS);
+            }
 
             long currentPrice = auction.getCurrentPrice() != null
                     ? auction.getCurrentPrice()

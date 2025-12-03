@@ -15,5 +15,5 @@ public enum AlertSuccessCode implements ResponseCode {
     private final HttpStatus status;
     private final String code;
     private final String message;
-;
+
 }

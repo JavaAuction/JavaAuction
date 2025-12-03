@@ -35,4 +35,9 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     public Page<ReviewEntity> findByWriter(String writer, Pageable pageable) {
         return reviewjpaRepository.findByWriter(writer, pageable);
     }
+
+    @Override
+    public Page<ReviewEntity> findAll(Pageable pageable) {
+        return reviewjpaRepository.findAll(pageable);
+    }
 }

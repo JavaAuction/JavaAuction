@@ -1,17 +1,18 @@
 package com.javaauction.alertservice.application.service;
 
+import com.javaauction.alertservice.application.client.SlackClientV1;
+import com.javaauction.alertservice.application.client.UserClientV1;
 import com.javaauction.alertservice.domain.entity.Alert;
 import com.javaauction.alertservice.infrastructure.repository.AlertJpaRepository;
 import com.javaauction.alertservice.presentation.advice.AlertErrorCode;
 import com.javaauction.alertservice.presentation.dto.common.SearchParam;
 import com.javaauction.alertservice.presentation.dto.request.ReqDeleteAlertsDtoV1;
 import com.javaauction.alertservice.presentation.dto.request.ReqPostInternalAlertsDtoV1;
-import com.javaauction.alertservice.presentation.dto.response.RepDeleteAlertsDtoV1;
-import com.javaauction.alertservice.presentation.dto.response.RepGetAlertsDtoV1;
-import com.javaauction.alertservice.presentation.dto.response.RepPostAlertsReadDtoV1;
-import com.javaauction.alertservice.presentation.dto.response.RepPostInternalAlertsDtoV1;
+import com.javaauction.alertservice.presentation.dto.response.*;
 import com.javaauction.global.presentation.exception.BussinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,55 +20,82 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AlertServiceV1 {
     private final AlertJpaRepository alertRepository;
+    private final UserClientV1 userClient;
+    private final SlackClientV1 slackClient;
 
-    // todo : 유저 정보 받아오기
-    String userId = "tmpuser1";
+    @Value("${slack.bot.token}")
+    private String botToken;
 
-    // 알림 생성
+    // (내부 API) 알림 생성
     @Transactional
-    public RepPostInternalAlertsDtoV1 postInternalAlertsDtoV1(ReqPostInternalAlertsDtoV1 reqDto) {
-        // todo : 경매 존재 여부 확인
+    public RepPostInternalAlertsDtoV1 postInternalAlerts(ReqPostInternalAlertsDtoV1 reqDto) {
 
-        String message = "";
-
-        // todo : 메시지에 상품명, 입찰가 등 정보 표기
-        switch (reqDto.getAlertType()) {
-            case BID:
-                message = "상품에 새로운 입찰이 발생했습니다.";
-                break;
-            case SUCCESS:
-                message = "상품이 낙찰되었습니다.";
-                break;
-            case FAIL:
-                message = "상품이 유찰되었습니다.";
-                break;
-        }
-
+        // 1. 알림 DB 저장
         Alert alert = Alert.ofNewAlert(
-                userId,
+                reqDto.getUserId(),
                 reqDto.getAuctionId(),
                 reqDto.getAlertType(),
-                message
-                );
-
+                reqDto.getContent()
+        );
         alertRepository.save(alert);
 
+        // 2. Slack 발송
+        try {
+            RepGetInternalUsersDtoV1 repUserDto = userClient.getUser(reqDto.getUserId());
+
+            if (repUserDto.getSlackId() != null && !repUserDto.getSlackId().isBlank()) {
+
+                // DM 채널 열기
+                Map<String, Object> openResp = slackClient.openConversation(
+                        "Bearer " + botToken,
+                        Map.of("users", repUserDto.getSlackId())
+                );
+
+                if (openResp != null && Boolean.TRUE.equals(openResp.get("ok"))) {
+                    Map<String, Object> channelMap = (Map<String, Object>) openResp.get("channel");
+                    String channelId = (String) channelMap.get("id");
+
+                    if (channelId != null && !channelId.isBlank()) {
+                        // 메시지 전송
+                        Map<String, Object> msgResp = slackClient.postMessage(
+                                "Bearer " + botToken,
+                                Map.of("channel", channelId, "text", reqDto.getContent())
+                        );
+
+                        if (msgResp == null || !Boolean.TRUE.equals(msgResp.get("ok"))) {
+                            log.warn("Slack 메시지 전송 실패: {}", msgResp != null ? msgResp.get("error") : "response null");
+                        }
+                    } else {
+                        log.warn("Slack DM 채널 ID 획득 실패");
+                    }
+                } else {
+                    log.warn("Slack DM 열기 실패: {}", openResp != null ? openResp.get("error") : "response null");
+                }
+            }
+        } catch (Exception e) {
+            log.error("Slack 메시지 발송 중 예외 발생", e);
+        }
+
+        // 3. 응답 반환
         return new RepPostInternalAlertsDtoV1(
                 alert.getAlertId(),
-                userId,
+                alert.getUserId(),
                 alert.getAuctionId(),
                 alert.getAlertType(),
                 alert.getContent(),
                 alert.getIsRead(),
-                alert.getCreatedAt());
+                alert.getCreatedAt()
+        );
     }
 
 

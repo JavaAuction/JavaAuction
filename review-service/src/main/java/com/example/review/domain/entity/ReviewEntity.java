@@ -1,6 +1,7 @@
 package com.example.review.domain.entity;
 
 import com.example.review.application.dto.ReqCreateReviewDto;
+import com.example.review.application.dto.ReqUpdateReviewDto;
 import com.javaauction.global.infrastructure.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -35,4 +36,9 @@ public class ReviewEntity extends BaseEntity {
 
     @Column(nullable = false)
     private String content;
+
+    public void update(ReqUpdateReviewDto reqUpdateReviewDto) {
+        this.rating = reqUpdateReviewDto.getRating();
+        this.content = reqUpdateReviewDto.getContent();
+    }
 }
