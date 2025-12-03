@@ -29,7 +29,10 @@ public class BidDomainService {
      * - 성공 시 Auction 상태 변경 + Bid insert
      */
         @Transactional
-        public BidResult placeBidWithLock(UUID auctionId, String userId, Long bidPrice) {
+        public BidResult placeBidWithLock(UUID auctionId, String userId, String role, Long bidPrice) {
+            if (role.equals("ADMIN")) {
+                throw new BussinessException(BidErrorCode.BID_ADMIN_NOT_ALLOWED);
+            }
 
             // Auction 비관적 락
             Auction auction = auctionRepository.findByIdForUpdate(auctionId)

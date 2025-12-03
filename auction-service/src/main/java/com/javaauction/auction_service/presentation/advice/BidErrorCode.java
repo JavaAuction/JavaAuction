@@ -11,7 +11,8 @@ public enum BidErrorCode implements ResponseCode {
     BID_FINISHED_AUCTION("BID001", "이미 종료된 경매입니다.", HttpStatus.BAD_REQUEST),
     BID_PRICE_TOO_LOW("BID002", "입찰 금액이 최소 요구 금액보다 적습니다.", HttpStatus.BAD_REQUEST),
     BID_AUCTION_PENDING("BID003", "대기중인 경매입니다.", HttpStatus.BAD_REQUEST),
-    BID_AUCTION_INVALID_STATUS("BID004", "입찰이 불가능한 경매 상태입니다.", HttpStatus.BAD_REQUEST);
+    BID_AUCTION_INVALID_STATUS("BID004", "입찰이 불가능한 경매 상태입니다.", HttpStatus.BAD_REQUEST),
+    BID_ADMIN_NOT_ALLOWED("BID005","관리자는 입찰 불가능합니다.", HttpStatus.FORBIDDEN);
 
     private final String code;
     private final String message;

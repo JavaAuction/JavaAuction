@@ -32,11 +32,13 @@ public class BidController {
     public ResponseEntity<ApiResponse<ResPostBidDto>> createBid(
             @PathVariable("auctionId") UUID auctionId,
             @RequestHeader("X-User-Username") String userId,
+            @RequestHeader("X-User-Role") String role,
             @RequestBody ReqPostBidDto req
     ) {
         var result = bidService.placeBid(
                 auctionId,
                 userId,
+                role,
                 req.getBidPrice()
         );
 
