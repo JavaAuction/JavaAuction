@@ -1,6 +1,7 @@
 package com.example.review.application.service;
 
 import com.example.review.application.dto.ReqCreateReviewDto;
+import com.example.review.application.dto.ReqUpdateReviewDto;
 import com.example.review.application.dto.ResGetReviewDto;
 import com.example.review.domain.entity.ReviewEntity;
 import com.example.review.domain.repository.ReviewRepository;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -71,7 +73,17 @@ public class ReviewServiceV1 {
         return  reviewRepository.findByTarget(userId,pageable).map(ResGetReviewDto::of);
     }
 
+    @Transactional
+    public void updateReview(UUID reviewId, ReqUpdateReviewDto reqUpdateReviewDto, String usernameFromHeader) {
+        ReviewEntity review = reviewRepository.findById(reviewId).orElseThrow(() -> new BussinessException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
+        if (!review.getWriter().equals(usernameFromHeader)) {
+            throw new BussinessException(BaseErrorCode.ACCESS_DENIED);
+        }
+
+        review.update(reqUpdateReviewDto);
+        review.setUpdated(Instant.now(),usernameFromHeader);
+    }
 
     private Pageable buildPageable(int page, int size, String sortBy, boolean isAsc) {
         int fixedSize = (size == 10 || size == 30 || size == 50) ? size : 10;
@@ -84,5 +96,6 @@ public class ReviewServiceV1 {
                 fixedSort
         );
     }
+
 
 }
