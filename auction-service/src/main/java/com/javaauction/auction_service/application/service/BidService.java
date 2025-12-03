@@ -33,7 +33,7 @@ public class BidService {
      * 입찰 처리 서비스
      */
     @Transactional
-    public BidResult placeBid(UUID auctionId, String userId, Long bidPrice) {
+    public BidResult placeBid(UUID auctionId, String userId, String role, Long bidPrice) {
 
         // TODO: 결제 precheck (결제 서비스 완성 후 진행)
         // precheckFeignClient
@@ -41,6 +41,7 @@ public class BidService {
         BidResult result = bidDomainService.placeBidWithLock(
                 auctionId,
                 userId,
+                role,
                 bidPrice
         );
 
