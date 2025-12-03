@@ -3,6 +3,7 @@ package com.javaauction.payment_service.presentation.controller;
 import com.javaauction.global.presentation.response.ApiResponse;
 import com.javaauction.payment_service.application.service.WalletTransactionServiceV1;
 import com.javaauction.payment_service.domain.enums.TransactionType;
+import com.javaauction.payment_service.presentation.dto.response.ResGetTransactionDto;
 import com.javaauction.payment_service.presentation.dto.response.ResGetTransactionsDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,6 +39,18 @@ public class WalletTransactionControllerV1 {
                 ApiResponse.success(
                         WALLET_TRANSACTION_READ_SUCCESS,
                         walletTransactionService.getTransactions(walletId, pageable, transactionTypes, minAmount, maxAmount)
+                )
+        );
+    }
+
+    @GetMapping("/{transactionId}")
+    public ResponseEntity<ApiResponse<ResGetTransactionDto>> getTransaction(
+            @PathVariable UUID walletId, @PathVariable UUID transactionId
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.success(
+                        WALLET_TRANSACTION_READ_SUCCESS,
+                        walletTransactionService.getTransaction(walletId, transactionId)
                 )
         );
     }

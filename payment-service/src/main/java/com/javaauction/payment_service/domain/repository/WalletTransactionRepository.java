@@ -15,4 +15,6 @@ public interface WalletTransactionRepository {
     Page<WalletTransaction> findByWalletId(
             UUID walletId, Pageable pageable, List<TransactionType> transactionTypes, Long minAmount, Long maxAmount
     );
+
+    WalletTransaction findById(UUID transactionId);
 }

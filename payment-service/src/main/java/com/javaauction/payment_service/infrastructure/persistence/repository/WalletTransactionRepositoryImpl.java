@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.WALLET_NOT_FOUND;
+import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.WALLET_TRANSACTION_NOT_FOUND;
 
 @Repository
 @RequiredArgsConstructor
@@ -92,5 +93,13 @@ public class WalletTransactionRepositoryImpl implements WalletTransactionReposit
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, count != null ? count : 0L);
+    }
+
+    @Override
+    public WalletTransaction findById(UUID transactionId) {
+        WalletTransactionEntity walletTransactionEntity = walletTransactionJpaRepository.findById(transactionId)
+                .orElseThrow(() -> new PaymentException(WALLET_TRANSACTION_NOT_FOUND));
+
+        return walletTransactionMapper.toDomain(walletTransactionEntity);
     }
 }
