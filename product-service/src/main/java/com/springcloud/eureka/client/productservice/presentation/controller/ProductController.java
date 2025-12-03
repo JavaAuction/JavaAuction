@@ -6,6 +6,7 @@ import com.springcloud.eureka.client.productservice.application.service.ProductS
 import com.springcloud.eureka.client.productservice.domain.enums.ProductStatus;
 import com.springcloud.eureka.client.productservice.presentation.dto.*;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,20 +15,16 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/v1/products")
+@RequiredArgsConstructor
 public class ProductController {
-    private final ProductService productService;
 
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
+    private final ProductService productService;
 
     // 상품 등록
     @PostMapping
-    public ResponseEntity<ApiResponse<RepProductDto>> createProduct(@Valid @RequestBody ReqProductCreateDto request) {
-        // Security 적용 후, 실제 유저 ID를 인증 컨텍스트에서 꺼내오기
-        String mockUserId = "TEMP-USER";  // 현재는 임시 하드코딩
+    public ResponseEntity<ApiResponse<RepProductDto>> createProduct(@Valid @RequestBody ReqProductCreateDto request, @RequestHeader("X-User-Username") String username) {
 
-        RepProductDto response = productService.createProduct(mockUserId, request);
+        RepProductDto response = productService.createProduct(username, request);
 
         return ResponseEntity
                 .status(BaseSuccessCode.CREATED.getStatus())
@@ -71,10 +68,10 @@ public class ProductController {
     @PutMapping("/{productId}")
     public ResponseEntity<ApiResponse<RepProductDto>> updateProduct(
             @PathVariable UUID productId,
-            @RequestBody ReqProductUpdateDto request
+            @RequestBody ReqProductUpdateDto request,
+            @RequestHeader("X-User-Username") String username
     ) {
-        String mockUserId = "TEMP-USER";
-        RepProductDto response = productService.updateProduct(productId, request, mockUserId);
+        RepProductDto response = productService.updateProduct(productId, request, username);
         return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, response));
     }
 
@@ -82,20 +79,20 @@ public class ProductController {
     @PutMapping("/{productId}/status")
     public ResponseEntity<ApiResponse<RepProductDto>> updateProductStatus(
             @PathVariable UUID productId,
-            @RequestBody ReqProductStatusUpdateDto request
+            @RequestBody ReqProductStatusUpdateDto request,
+            @RequestHeader("X-User-Username") String username
     ) {
-        String mockUserId = "TEMP-USER";
-        RepProductDto response = productService.updateProductStatus(productId, request, mockUserId);
+        RepProductDto response = productService.updateProductStatus(productId, request, username);
         return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, response));
     }
 
     // 상품 논리 삭제
     @DeleteMapping("/{productId}")
     public ResponseEntity<ApiResponse<Map<String, String>>> deleteProduct(
-            @PathVariable UUID productId
+            @PathVariable UUID productId,
+            @RequestHeader("X-User-Username") String username
     ) {
-        String mockUserId = "TEMP-USER";
-        productService.deleteProduct(productId, mockUserId);
+        productService.deleteProduct(productId, username);
         Map<String, String> body = Map.of("result", "success");
         return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, body));
     }
