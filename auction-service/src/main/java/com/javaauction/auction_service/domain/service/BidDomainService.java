@@ -35,8 +35,19 @@ public class BidDomainService {
             Auction auction = auctionRepository.findByIdForUpdate(auctionId)
                     .orElseThrow(() -> new BussinessException(BidErrorCode.BID_AUCTION_NOT_FOUND));
 
-            if (auction.getStatus() != AuctionStatus.IN_PROGRESS)
+            AuctionStatus status = auction.getStatus();
+
+            if (status == AuctionStatus.PENDING) {
+                throw new BussinessException(BidErrorCode.BID_AUCTION_PENDING);
+            }
+
+            if (status == AuctionStatus.SUCCESSFUL_BID || status == AuctionStatus.FAIL_BID) {
                 throw new BussinessException(BidErrorCode.BID_FINISHED_AUCTION);
+            }
+
+            if (status != AuctionStatus.IN_PROGRESS) {
+                throw new BussinessException(BidErrorCode.BID_AUCTION_INVALID_STATUS);
+            }
 
             long currentPrice = auction.getCurrentPrice() != null
                     ? auction.getCurrentPrice()
