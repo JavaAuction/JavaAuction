@@ -5,7 +5,6 @@ import com.example.review.application.dto.ResGetReviewDto;
 import com.example.review.domain.entity.ReviewEntity;
 import com.example.review.domain.repository.ReviewRepository;
 import com.example.review.infrastructure.feign.client.UserServiceClient;
-import com.example.review.infrastructure.feign.dto.ResGetUserIntDto;
 import com.example.review.presentation.advice.ReviewErrorCode;
 import com.javaauction.global.infrastructure.code.BaseErrorCode;
 import com.javaauction.global.presentation.exception.BussinessException;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -62,11 +60,12 @@ public class ReviewServiceV1 {
     }
 
     @Transactional(readOnly = true)
-    public Page<ResGetReviewDto> getUserReviews(String userId, int page, int size, String sortBy, boolean isAsc) {
+    public Page<ResGetReviewDto> getUserReviews(String userId, int page, int size, String sortBy, boolean isAsc, boolean isWriter) {
         Pageable pageable = buildPageable(page, size, sortBy, isAsc);
-
-        return reviewRepository.findByTarget(userId, pageable)
-                .map(ResGetReviewDto::of);
+        if (isWriter) {
+            return reviewRepository.findByWriter(userId, pageable).map(ResGetReviewDto::of);
+        }
+        return  reviewRepository.findByTarget(userId,pageable).map(ResGetReviewDto::of);
     }
 
 

@@ -11,8 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
-
 @RestController
 @RequestMapping("v1/reviews")
 @RequiredArgsConstructor
@@ -38,7 +36,8 @@ public class ReviewControllerV1 {
                                                                              @RequestParam(value = "page", defaultValue = "1") int page,
                                                                              @RequestParam(value = "size", defaultValue = "10") int size,
                                                                              @RequestParam(value = "sortBy", defaultValue = "createdAt") String sortBy,
-                                                                             @RequestParam(value = "isAsc", defaultValue = "false") boolean isAsc) {
-        return ResponseEntity.ok(ApiResponse.success(ReviewSuccessCode.REVIEW_LIST_FOUND, reviewService.getUserReviews(userId,page - 1, size, sortBy, isAsc)));
+                                                                             @RequestParam(value = "isAsc", defaultValue = "false") boolean isAsc,
+                                                                             @RequestParam(value = "isWriter", defaultValue = "false")  boolean isWriter) {
+        return ResponseEntity.ok(ApiResponse.success(ReviewSuccessCode.REVIEW_LIST_FOUND, reviewService.getUserReviews(userId,page - 1, size, sortBy, isAsc, isWriter)));
     }
 }
