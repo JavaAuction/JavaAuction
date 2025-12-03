@@ -61,6 +61,9 @@ public class ReviewServiceV1 {
 
     @Transactional(readOnly = true)
     public Page<ResGetReviewDto> getUserReviews(String userId, int page, int size, String sortBy, boolean isAsc, boolean isWriter) {
+        if (!userServiceClient.existsUser(userId)) {
+            throw new BussinessException(ReviewErrorCode.TARGET_NOT_FOUND);
+        }
         Pageable pageable = buildPageable(page, size, sortBy, isAsc);
         if (isWriter) {
             return reviewRepository.findByWriter(userId, pageable).map(ResGetReviewDto::of);
