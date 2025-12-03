@@ -48,7 +48,7 @@ public class ResChargeDto {
         public static WalletTransactionDto from(WalletTransaction walletTransaction) {
             return WalletTransactionDto.builder()
                     .walletTransactionId(walletTransaction.getId())
-                    .transactionType(walletTransaction.getType())
+                    .transactionType(walletTransaction.getTransactionType())
                     .chargeAmount(walletTransaction.getAmount())
                     .build();
         }

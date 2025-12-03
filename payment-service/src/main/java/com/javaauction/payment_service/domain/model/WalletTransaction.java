@@ -16,7 +16,7 @@ public class WalletTransaction {
 
     private final UUID id;
     private final UUID walletId;
-    private final TransactionType type;
+    private final TransactionType transactionType;
     private final Long amount;
     private final HoldStatus holdStatus;
     private final ExternalType externalType;

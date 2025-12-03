@@ -17,7 +17,7 @@ public class WalletTransactionDto {
     public static WalletTransactionDto from(WalletTransaction walletTransaction) {
         return WalletTransactionDto.builder()
                 .walletTransactionId(walletTransaction.getId())
-                .transactionType(walletTransaction.getType())
+                .transactionType(walletTransaction.getTransactionType())
                 .amount(walletTransaction.getAmount())
                 .build();
     }

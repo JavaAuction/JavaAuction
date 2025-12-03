@@ -58,7 +58,7 @@ public class WalletServiceV1 {
         WalletTransaction walletTransaction = walletTransactionRepository.save(
                 WalletTransaction.builder()
                         .walletId(charged.getId())
-                        .type(CHARGE)
+                        .transactionType(CHARGE)
                         .amount(chargeAmount)
                         .build()
         );
@@ -86,7 +86,7 @@ public class WalletServiceV1 {
         WalletTransaction walletTransaction = walletTransactionRepository.save(
                 WalletTransaction.builder()
                         .walletId(withdrew.getId())
-                        .type(WITHDRAW)
+                        .transactionType(WITHDRAW)
                         .amount(withdrawalAmount)
                         .build()
         );
@@ -128,7 +128,7 @@ public class WalletServiceV1 {
         WalletTransaction walletTransaction = walletTransactionRepository.save(
                 WalletTransaction.builder()
                         .walletId(payment.getId())
-                        .type(transactionType)
+                        .transactionType(transactionType)
                         .amount(deductAmount)
                         .holdStatus(holdStatus)
                         .externalType(externalType)

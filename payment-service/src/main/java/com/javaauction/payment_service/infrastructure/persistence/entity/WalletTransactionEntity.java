@@ -29,7 +29,7 @@ public class WalletTransactionEntity extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TransactionType type;
+    private TransactionType transactionType;
 
     @Column(nullable = false)
     private Long amount;
