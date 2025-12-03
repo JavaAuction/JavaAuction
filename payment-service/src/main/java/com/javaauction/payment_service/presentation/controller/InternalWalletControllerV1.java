@@ -4,6 +4,7 @@ import com.javaauction.global.presentation.response.ApiResponse;
 import com.javaauction.payment_service.application.service.WalletServiceV1;
 import com.javaauction.payment_service.presentation.dto.request.ReqCreateWalletDto;
 import com.javaauction.payment_service.presentation.dto.request.ReqDeductDto;
+import com.javaauction.payment_service.presentation.dto.request.ReqValidateDto;
 import com.javaauction.payment_service.presentation.dto.response.ResCreateWalletDto;
 import com.javaauction.payment_service.presentation.dto.response.ResDeductDto;
 import jakarta.validation.Valid;
@@ -15,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.javaauction.payment_service.presentation.advice.PaymentSuccessCode.WALLET_CREATE_SUCCESS;
-import static com.javaauction.payment_service.presentation.advice.PaymentSuccessCode.WALLET_DEDUCT_SUCCESS;
+import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.WALLET_INSUFFICIENT_BALANCE;
+import static com.javaauction.payment_service.presentation.advice.PaymentSuccessCode.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,11 +38,19 @@ public class InternalWalletControllerV1 {
 
     @PostMapping("/deductions")
     public ResponseEntity<ApiResponse<ResDeductDto>> deduct(@Valid @RequestBody ReqDeductDto request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(
+        return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.success(
                         WALLET_DEDUCT_SUCCESS,
                         walletService.deduct(request)
                 )
         );
+    }
+
+    @PostMapping("/validations")
+    public ResponseEntity<ApiResponse<?>> validate(@Valid @RequestBody ReqValidateDto request) {
+
+        return walletService.validate(request)
+                ? ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(WALLET_VALIDATE_SUCCESS))
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(WALLET_INSUFFICIENT_BALANCE));
     }
 }

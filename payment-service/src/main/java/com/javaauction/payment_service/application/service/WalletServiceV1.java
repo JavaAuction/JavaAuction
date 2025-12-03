@@ -5,10 +5,7 @@ import com.javaauction.payment_service.domain.model.WalletTransaction;
 import com.javaauction.payment_service.domain.repository.WalletRepository;
 import com.javaauction.payment_service.domain.repository.WalletTransactionRepository;
 import com.javaauction.payment_service.presentation.advice.PaymentException;
-import com.javaauction.payment_service.presentation.dto.request.ReqChargeDto;
-import com.javaauction.payment_service.presentation.dto.request.ReqCreateWalletDto;
-import com.javaauction.payment_service.presentation.dto.request.ReqDeductDto;
-import com.javaauction.payment_service.presentation.dto.request.ReqWithdrawDto;
+import com.javaauction.payment_service.presentation.dto.request.*;
 import com.javaauction.payment_service.presentation.dto.response.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -140,6 +137,13 @@ public class WalletServiceV1 {
         WalletTransactionDto walletTransactionDto = WalletTransactionDto.from(walletTransaction);
 
         return ResDeductDto.from(walletDto, walletTransactionDto);
+    }
+
+    public Boolean validate(ReqValidateDto request) {
+
+        Wallet wallet = findWalletByUserId(request.getUserId());
+
+        return wallet.getBalance() >= request.getBidPrice();
     }
 
     private Wallet findWalletById(UUID walletId) {
