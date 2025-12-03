@@ -3,7 +3,6 @@ package com.javaauction.auction_service.presentation.controller;
 import com.javaauction.auction_service.application.service.BidService;
 import com.javaauction.auction_service.domain.entity.Bid;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
-import com.javaauction.auction_service.presentation.advice.AuctionSuccessCode;
 import com.javaauction.auction_service.presentation.advice.BidSuccessCode;
 import com.javaauction.auction_service.presentation.dto.request.ReqPostBidDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetBidsDto;
