@@ -13,6 +13,7 @@ public enum ProductErrorCode implements ResponseCode {
     INVALID_PRODUCT_STATUS(HttpStatus.BAD_REQUEST, "PROD-002", "유효하지 않은 상품 상태입니다."),
     PRODUCT_ALREADY_DELETED(HttpStatus.CONFLICT, "PROD-003", "이미 삭제된 상품입니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN, "PROD-021", "해당 기능을 사용할 권한이 없습니다."),
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "PROD-019", "존재하지 않는 카테고리입니다."),
     CATEGORY_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "PROD-020", "이미 존재하는 카테고리입니다.");
 
 

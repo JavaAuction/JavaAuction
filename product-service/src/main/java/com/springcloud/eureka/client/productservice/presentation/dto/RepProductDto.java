@@ -18,6 +18,8 @@ public class RepProductDto {
     private String imageUrl;
     private Long finalPrice;
     private ProductStatus productStatus;
+    private UUID categoryId;
+    private String categoryName;
     private Instant createdAt;
     private Instant updatedAt;
     private Instant deletedAt;
@@ -31,6 +33,8 @@ public class RepProductDto {
                 .imageUrl(product.getImageUrl())
                 .finalPrice(product.getFinalPrice())
                 .productStatus(product.getStatus())
+                .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
+                .categoryName(product.getCategoryName())
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .deletedAt(product.getDeletedAt())

@@ -39,13 +39,22 @@ public class Product extends BaseEntity {
     @Column(name = "product_status", nullable = false, length = 30)
     private ProductStatus status;
 
-    public static Product create(String userId, String name, String description, String imageUrl) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private ProductCategory category;
+
+    @Column(name = "category_name", length = 50)
+    private String categoryName;
+
+    public static Product create(String userId, String name, String description, String imageUrl, ProductCategory category) {
         Product product = new Product();
         product.userId = userId;
         product.name = name;
         product.description = description;
         product.imageUrl = imageUrl;
         product.status = ProductStatus.AUCTION_WAITING;
+        product.category = category;
+        product.categoryName = category != null ? category.getName() : null;
         return product;
     }
 
@@ -64,5 +73,10 @@ public class Product extends BaseEntity {
     public void changeStatus(ProductStatus productStatus, Long finalPrice) {
         this.status =productStatus;
         this.finalPrice = finalPrice;
+    }
+
+    public void changeCategory(ProductCategory category) {
+        this.category = category;
+        this.categoryName = category != null ? category.getName() : null;
     }
 }
