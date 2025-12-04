@@ -67,4 +67,20 @@ public class CategoryController {
         return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, response));
     }
 
+    // 삭제 (ADMIN 전용, 논리 삭제 후 result: success)
+    @DeleteMapping("/{categoryId}")
+    public ResponseEntity<ApiResponse<Map<String, String>>> deleteCategory(
+            @PathVariable UUID categoryId,
+            @RequestHeader("X-User-Username") String username,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        if (!"ADMIN".equalsIgnoreCase(role)) {
+            throw new BussinessException(ProductErrorCode.FORBIDDEN);
+        }
+
+        categoryService.deleteCategory(categoryId, username);
+        Map<String, String> body = Map.of("result", "success");
+        return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, body));
+    }
+
 }

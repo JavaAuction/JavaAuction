@@ -59,4 +59,12 @@ public class CategoryService {
         return RepCategoryDto.from(category);
     }
 
+    // 카테고리 삭제
+    public void deleteCategory(UUID categoryId, String adminUsername) {
+        ProductCategory category = productCategoryRepository.findById(categoryId)
+                .orElseThrow(() -> new BussinessException(ProductErrorCode.CATEGORY_NOT_FOUND));
+
+        category.softDelete(Instant.now(), adminUsername);
+    }
+
 }
