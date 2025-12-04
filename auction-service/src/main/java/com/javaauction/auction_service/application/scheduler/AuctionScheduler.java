@@ -1,4 +1,4 @@
-package com.javaauction.auction_service.application.schediler;
+package com.javaauction.auction_service.application.scheduler;
 
 import com.javaauction.auction_service.application.service.AuctionService;
 import com.javaauction.auction_service.domain.entity.Auction;

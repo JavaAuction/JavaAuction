@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/v1/auctions")
+@RequestMapping("/v1/auctions")
 public class AuctionAdminController {
 
     private final AuctionService auctionService;
