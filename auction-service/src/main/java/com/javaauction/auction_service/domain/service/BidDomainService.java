@@ -29,60 +29,84 @@ public class BidDomainService {
      * - 입찰 가능 여부 검증
      * - 성공 시 Auction 상태 변경 + Bid insert
      */
-        @Transactional
-        public BidResult placeBidWithLock(UUID auctionId, String userId, String role, Long bidPrice) {
-            if (role.equals("ADMIN")) {
-                throw new BussinessException(BidErrorCode.BID_ADMIN_NOT_ALLOWED);
-            }
+    @Transactional
+    public BidResult placeBidWithLock(UUID auctionId, String userId, String role, Long bidPrice) {
 
-            // Auction 비관적 락
-            Auction auction = auctionRepository.findByIdForUpdate(auctionId)
-                    .orElseThrow(() -> new BussinessException(BidErrorCode.BID_AUCTION_NOT_FOUND));
+        validateRole(role);
 
-            AuctionStatus status = auction.getStatus();
+        // Auction 비관적 락
+        Auction auction = auctionRepository.findByIdForUpdate(auctionId)
+                .orElseThrow(() -> new BussinessException(BidErrorCode.BID_AUCTION_NOT_FOUND));
 
-            if (status == AuctionStatus.PENDING) {
-                throw new BussinessException(BidErrorCode.BID_AUCTION_PENDING);
-            }
+        validateAuctionStatus(auction);
+        validateAuctionTime(auction);
+        validateBidPrice(auction, bidPrice);
 
-            if (status == AuctionStatus.SUCCESSFUL_BID || status == AuctionStatus.FAIL_BID) {
-                throw new BussinessException(BidErrorCode.BID_FINISHED_AUCTION);
-            }
+        Bid previousBid = findPreviousHighestBid(auctionId);
 
-            if (auction.getEndedAt().isBefore(LocalDateTime.now())) {
-                throw new BussinessException(BidErrorCode.BID_FINISHED_AUCTION);
-            }
+        Bid newBid = saveNewBid(auctionId, userId, bidPrice);
 
-            if (status != AuctionStatus.IN_PROGRESS) {
-                throw new BussinessException(BidErrorCode.BID_AUCTION_INVALID_STATUS);
-            }
+        auction.updateCurrentBid(userId, bidPrice);
 
-            long currentPrice = auction.getCurrentPrice() != null
-                    ? auction.getCurrentPrice()
-                    : auction.getStartPrice();
+        return new BidResult(
+                auction,
+                previousBid != null ? previousBid.getUserId() : null,
+                previousBid != null ? previousBid.getBidPrice() : null,
+                newBid
+        );
+    }
 
-            long minRequired = currentPrice + auction.getUnit();
-            if (bidPrice < minRequired)
-                throw new BussinessException(BidErrorCode.BID_PRICE_TOO_LOW);
-
-            // 새로운 bid를 저장하기 전에 이전 최고 입찰자 조회
-            List<Bid> heldBids = bidRepository.findHeldBidsOrderByPriceDesc(auctionId);
-            Bid previousBid = heldBids.isEmpty() ? null : heldBids.get(0);
-
-            String oldUserId = previousBid != null ? previousBid.getUserId() : null;
-            Long oldPrice    = previousBid != null ? previousBid.getBidPrice() : null;
-
-            // 새로운 입찰 생성 및 저장
-            Bid newBid = Bid.create(auctionId, userId, bidPrice);
-            newBid.setCreate(Instant.now(), userId); // 임시
-            bidRepository.save(newBid);
-
-            // Auction 최고가 + 최고 입찰자 업데이트
-            auction.updateCurrentBid(userId, bidPrice);
-
-            return new BidResult(auction, oldUserId, oldPrice, newBid);
+    private void validateRole(String role) {
+        if ("ADMIN".equals(role)) {
+            throw new BussinessException(BidErrorCode.BID_ADMIN_NOT_ALLOWED);
         }
     }
+
+    private void validateAuctionStatus(Auction auction) {
+        AuctionStatus status = auction.getStatus();
+
+        if (status == AuctionStatus.PENDING) {
+            throw new BussinessException(BidErrorCode.BID_AUCTION_PENDING);
+        }
+
+        if (status == AuctionStatus.SUCCESSFUL_BID || status == AuctionStatus.FAIL_BID) {
+            throw new BussinessException(BidErrorCode.BID_FINISHED_AUCTION);
+        }
+
+        if (status != AuctionStatus.IN_PROGRESS) {
+            throw new BussinessException(BidErrorCode.BID_AUCTION_INVALID_STATUS);
+        }
+    }
+
+    private void validateAuctionTime(Auction auction) {
+        if (auction.getEndedAt().isBefore(LocalDateTime.now())) {
+            throw new BussinessException(BidErrorCode.BID_FINISHED_AUCTION);
+        }
+    }
+
+    private void validateBidPrice(Auction auction, Long bidPrice) {
+        long current = auction.getCurrentPrice() != null
+                ? auction.getCurrentPrice()
+                : auction.getStartPrice();
+
+        long requiredMin = current + auction.getUnit();
+
+        if (bidPrice < requiredMin) {
+            throw new BussinessException(BidErrorCode.BID_PRICE_TOO_LOW);
+        }
+    }
+
+    private Bid findPreviousHighestBid(UUID auctionId) {
+        List<Bid> heldBids = bidRepository.findHeldBidsOrderByPriceDesc(auctionId);
+        return heldBids.isEmpty() ? null : heldBids.get(0);
+    }
+
+    private Bid saveNewBid(UUID auctionId, String userId, Long bidPrice) {
+        Bid newBid = Bid.create(auctionId, userId, bidPrice);
+        newBid.setCreate(Instant.now(), userId);
+        return bidRepository.save(newBid);
+    }
+}
 
 
 
