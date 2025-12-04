@@ -11,6 +11,7 @@ import com.javaauction.user.domain.entity.AddressEntity;
 import com.javaauction.user.domain.entity.UserEntity;
 import com.javaauction.user.domain.repository.AddressRepository;
 import com.javaauction.user.domain.repository.UserRepository;
+import com.javaauction.user.infrastructure.JWT.JwtUserContext;
 import com.javaauction.user.infrastructure.JWT.JwtUtil;
 import com.javaauction.user.infrastructure.external.client.ReviewServiceClient;
 import com.javaauction.user.infrastructure.external.dto.GetReviewIntDto;
@@ -19,8 +20,12 @@ import com.javaauction.user.presentation.dto.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.*;
-import org.springframework.security.authentication.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -62,7 +67,7 @@ public class UserServiceV1 {
                 .role(dto.getRole())
                 .build();
 
-        user.setCreate(Instant.now(), "System");
+        user.setCreate(Instant.now(), JwtUserContext.getUsernameFromHeader());
         userRepository.save(user);
     }
 
@@ -166,6 +171,7 @@ public class UserServiceV1 {
 
         UserEntity user = getUserWithValidation(userId);
         reviewServiceClient.deleteAllByUserId(userId);
+        addressRepository.findByUser(user).forEach(addressEntity -> {addressEntity.softDelete(Instant.now(), JwtUserContext.getUsernameFromHeader());});
         user.softDelete(Instant.now(), requester);
     }
 
