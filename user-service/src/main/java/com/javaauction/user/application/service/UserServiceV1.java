@@ -230,7 +230,7 @@ public class UserServiceV1 {
     private ReviewInfo getReviewInfo(String userId) {
 
         List<GetReviewIntDto> reviews = reviewServiceClient.getReviewByUser(userId);
-        double rating = reviewServiceClient.getUserRating(userId);
+        double rating = Math.round(reviewServiceClient.getUserRating(userId) * 10)/10.0;
 
         return new ReviewInfo(reviews, rating);
     }
