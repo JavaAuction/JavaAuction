@@ -5,6 +5,7 @@ import com.javaauction.global.presentation.response.ApiResponse;
 import com.springcloud.eureka.client.productservice.application.service.CategoryService;
 import com.springcloud.eureka.client.productservice.domain.error.ProductErrorCode;
 import com.springcloud.eureka.client.productservice.presentation.dto.RepCategoryDto;
+import com.springcloud.eureka.client.productservice.presentation.dto.RepCategoryListDto;
 import com.springcloud.eureka.client.productservice.presentation.dto.ReqCategoryCreateDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,5 +37,12 @@ public class CategoryController {
         return ResponseEntity
                 .status(BaseSuccessCode.CREATED.getStatus())
                 .body(ApiResponse.success(BaseSuccessCode.CREATED, response));
+    }
+
+    // 목록 조회 (누구나)
+    @GetMapping
+    public ResponseEntity<ApiResponse<RepCategoryListDto>> getCategories() {
+        RepCategoryListDto response = categoryService.getCategories();
+        return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, response));
     }
 }

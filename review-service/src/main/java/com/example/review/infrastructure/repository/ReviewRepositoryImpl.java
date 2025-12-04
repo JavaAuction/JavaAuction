@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,5 +40,20 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     @Override
     public Page<ReviewEntity> findAll(Pageable pageable) {
         return reviewjpaRepository.findAll(pageable);
+    }
+
+    @Override
+    public List<ReviewEntity> findByTarget(String target) {
+        return reviewjpaRepository.findByTarget(target);
+    }
+
+    @Override
+    public List<ReviewEntity> findByWriter(String writer) {
+        return reviewjpaRepository.findByWriter(writer);
+    }
+
+    @Override
+    public Double calculateAverageRatingByTarget(String target) {
+        return reviewjpaRepository.calculateAverageRatingByTarget(target);
     }
 }

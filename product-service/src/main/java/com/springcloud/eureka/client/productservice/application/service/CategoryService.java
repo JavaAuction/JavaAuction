@@ -5,12 +5,14 @@ import com.springcloud.eureka.client.productservice.domain.entity.ProductCategor
 import com.springcloud.eureka.client.productservice.domain.error.ProductErrorCode;
 import com.springcloud.eureka.client.productservice.infrastructure.repository.ProductCategoryRepository;
 import com.springcloud.eureka.client.productservice.presentation.dto.RepCategoryDto;
+import com.springcloud.eureka.client.productservice.presentation.dto.RepCategoryListDto;
 import com.springcloud.eureka.client.productservice.presentation.dto.ReqCategoryCreateDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @Transactional
@@ -19,6 +21,7 @@ public class CategoryService {
 
     private final ProductCategoryRepository productCategoryRepository;
 
+    // 카테고리 생성
     public RepCategoryDto createCategory(ReqCategoryCreateDto request, String adminUsername) {
 
         if (productCategoryRepository.existsByName(request.getName())) {
@@ -30,5 +33,12 @@ public class CategoryService {
 
         ProductCategory saved = productCategoryRepository.save(category);
         return RepCategoryDto.from(saved);
+    }
+
+    // 카테고리 조회
+    @Transactional(readOnly = true)
+    public RepCategoryListDto getCategories() {
+        List<ProductCategory> categories = productCategoryRepository.findAll();
+        return RepCategoryListDto.from(categories);
     }
 }

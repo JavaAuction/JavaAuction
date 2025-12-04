@@ -2,9 +2,11 @@ package com.springcloud.eureka.client.productservice.application.service;
 
 import com.javaauction.global.presentation.exception.BussinessException;
 import com.springcloud.eureka.client.productservice.domain.entity.Product;
+import com.springcloud.eureka.client.productservice.domain.entity.ProductCategory;
 import com.springcloud.eureka.client.productservice.domain.enums.ProductStatus;
 import com.springcloud.eureka.client.productservice.domain.error.ProductErrorCode;
 import com.springcloud.eureka.client.productservice.infrastructure.client.UserServiceClient;
+import com.springcloud.eureka.client.productservice.infrastructure.repository.ProductCategoryRepository;
 import com.springcloud.eureka.client.productservice.infrastructure.repository.ProductRepository;
 import com.springcloud.eureka.client.productservice.presentation.dto.*;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +25,17 @@ import java.util.UUID;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductCategoryRepository categoryRepository;
     private final UserServiceClient userServiceClient;
 
     // 상품 생성
     public RepProductDto createProduct(String username, ReqProductCreateDto request){
+        // 카테고리 조회
+        ProductCategory category = categoryRepository.findByName(request.getCategoryName())
+                .orElseThrow(() -> new BussinessException(ProductErrorCode.CATEGORY_NOT_FOUND));
+
         Product product = request.toEntity(username);
+        product.changeCategory(category);
         product.setCreate(Instant.now(), username);
         Product saved = productRepository.save(product);
         return RepProductDto.from(saved);

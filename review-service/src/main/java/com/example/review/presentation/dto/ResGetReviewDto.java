@@ -1,4 +1,4 @@
-package com.example.review.application.dto;
+package com.example.review.presentation.dto;
 
 import com.example.review.domain.entity.ReviewEntity;
 import lombok.AllArgsConstructor;
