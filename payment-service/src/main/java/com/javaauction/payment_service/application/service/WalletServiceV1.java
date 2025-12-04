@@ -1,6 +1,5 @@
 package com.javaauction.payment_service.application.service;
 
-import com.javaauction.payment_service.domain.enums.ExternalType;
 import com.javaauction.payment_service.domain.enums.HoldStatus;
 import com.javaauction.payment_service.domain.enums.TransactionType;
 import com.javaauction.payment_service.domain.model.Wallet;
@@ -16,8 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-import static com.javaauction.payment_service.domain.enums.ExternalType.AUCTION;
-import static com.javaauction.payment_service.domain.enums.ExternalType.BID;
 import static com.javaauction.payment_service.domain.enums.HoldStatus.HOLD_ACTIVE;
 import static com.javaauction.payment_service.domain.enums.TransactionType.CHARGE;
 import static com.javaauction.payment_service.domain.enums.TransactionType.WITHDRAW;
@@ -109,34 +106,36 @@ public class WalletServiceV1 {
             throw new PaymentException(WALLET_INSUFFICIENT_BALANCE);
 
         TransactionType transactionType = request.getTransactionType();
-        ExternalType externalType = null;
         HoldStatus holdStatus = null;
 
         switch (transactionType) {
-            case PAYMENT -> externalType = AUCTION;
+            case PAYMENT -> {}
+
             case HOLD -> {
-                externalType = BID;
+                if (request.getBidId() == null)
+                    throw new PaymentException(WALLET_MISSING_BID_ID);
+
                 holdStatus = HOLD_ACTIVE;
             }
 
             default -> throw new PaymentException(WALLET_INVALID_TRANSACTION_TYPE);
         }
 
-        Wallet payment = wallet.withBalance(beforeBalance - deductAmount);
-        walletRepository.save(payment);
+        Wallet deduct = wallet.withBalance(beforeBalance - deductAmount);
+        walletRepository.save(deduct);
 
         WalletTransaction walletTransaction = walletTransactionRepository.save(
                 WalletTransaction.builder()
-                        .walletId(payment.getId())
+                        .walletId(deduct.getId())
                         .transactionType(transactionType)
                         .amount(deductAmount)
                         .holdStatus(holdStatus)
-                        .externalType(externalType)
-                        .externalId(request.getExternalId())
+                        .auctionId(request.getAuctionId())
+                        .bidId(request.getBidId())
                         .build()
         );
 
-        WalletDto walletDto = WalletDto.from(payment, beforeBalance);
+        WalletDto walletDto = WalletDto.from(deduct, beforeBalance);
         WalletTransactionDto walletTransactionDto = WalletTransactionDto.from(walletTransaction);
 
         return ResDeductDto.from(walletDto, walletTransactionDto);

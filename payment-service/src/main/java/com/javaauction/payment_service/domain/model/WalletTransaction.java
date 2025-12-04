@@ -1,6 +1,5 @@
 package com.javaauction.payment_service.domain.model;
 
-import com.javaauction.payment_service.domain.enums.ExternalType;
 import com.javaauction.payment_service.domain.enums.HoldStatus;
 import com.javaauction.payment_service.domain.enums.TransactionType;
 import lombok.Builder;
@@ -19,6 +18,6 @@ public class WalletTransaction {
     private final TransactionType transactionType;
     private final Long amount;
     private final HoldStatus holdStatus;
-    private final ExternalType externalType;
-    private final UUID externalId;
+    private final UUID auctionId;
+    private final UUID bidId;
 }

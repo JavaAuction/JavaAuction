@@ -1,7 +1,6 @@
 package com.javaauction.payment_service.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.javaauction.payment_service.domain.enums.ExternalType;
 import com.javaauction.payment_service.domain.enums.HoldStatus;
 import com.javaauction.payment_service.domain.enums.TransactionType;
 import com.javaauction.payment_service.domain.model.WalletTransaction;
@@ -19,8 +18,8 @@ public class ResGetTransactionDto {
     private Long amount;
     private TransactionType transactionType;
     private HoldStatus holdStatus;
-    private ExternalType externalType;
-    private UUID externalId;
+    private UUID auctionId;
+    private UUID bidId;
 
     public static ResGetTransactionDto fromDomain(WalletTransaction walletTransaction) {
         return ResGetTransactionDto.builder()
@@ -28,8 +27,8 @@ public class ResGetTransactionDto {
                 .amount(walletTransaction.getAmount())
                 .transactionType(walletTransaction.getTransactionType())
                 .holdStatus(walletTransaction.getHoldStatus())
-                .externalType(walletTransaction.getExternalType())
-                .externalId(walletTransaction.getExternalId())
+                .auctionId(walletTransaction.getAuctionId())
+                .bidId(walletTransaction.getBidId())
                 .build();
     }
 }
