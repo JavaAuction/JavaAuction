@@ -21,7 +21,7 @@ import static com.javaauction.payment_service.presentation.advice.PaymentSuccess
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/internal/v1/wallets")
+@RequestMapping("/internal/wallets")
 public class InternalWalletControllerV1 {
 
     private final WalletServiceV1 walletService;
