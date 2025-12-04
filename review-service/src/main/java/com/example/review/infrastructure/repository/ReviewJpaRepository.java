@@ -16,7 +16,9 @@ public interface ReviewJpaRepository extends JpaRepository<ReviewEntity, UUID> {
     Page<ReviewEntity> findByWriter(String writer, Pageable pageable);
     
     List<ReviewEntity> findByTarget(String target);
-    
+
+    List<ReviewEntity> findByWriter(String writer);
+
     @org.springframework.data.jpa.repository.Query("SELECT AVG(r.rating) FROM ReviewEntity r WHERE r.target = :target")
     Double calculateAverageRatingByTarget(String target);
 }

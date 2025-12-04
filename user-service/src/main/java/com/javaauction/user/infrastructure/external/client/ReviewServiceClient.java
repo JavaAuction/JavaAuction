@@ -2,6 +2,7 @@ package com.javaauction.user.infrastructure.external.client;
 
 import com.javaauction.user.infrastructure.external.dto.GetReviewIntDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -14,4 +15,7 @@ public interface ReviewServiceClient {
 
     @GetMapping("/internal/reviews/user/{userId}/rating")
     double getUserRating(@PathVariable String userId);
+
+    @DeleteMapping("/internal/reviews/user/{userId}")
+    public void deleteAllByUserId(@PathVariable String userId);
 }

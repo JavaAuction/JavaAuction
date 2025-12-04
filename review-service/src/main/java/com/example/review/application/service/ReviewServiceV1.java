@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -98,9 +99,10 @@ public class ReviewServiceV1 {
     }
 
 
+    //internal api
     @Transactional(readOnly = true)
-    public java.util.List<ResGetReviewDto> getUserReviewList(String userId) {
-        java.util.List<ReviewEntity> reviews = reviewRepository.findByTarget(userId);
+    public List<ResGetReviewDto> getUserReviewList(String userId) {
+        List<ReviewEntity> reviews = reviewRepository.findByTarget(userId);
         return reviews.stream()
                 .map(ResGetReviewDto::of)
                 .toList();
@@ -110,5 +112,14 @@ public class ReviewServiceV1 {
     public double getAverageRatingByTarget(String userId) {
         Double averageRating = reviewRepository.calculateAverageRatingByTarget(userId);
         return averageRating != null ? averageRating : 0.0;
+    }
+
+    @Transactional
+    public void deleteAllByUserId(String userId, String usernameFromHeader) {
+        List<ReviewEntity> getReviews = reviewRepository.findByTarget(userId);
+        List<ReviewEntity> writeReviews = reviewRepository.findByWriter(userId);
+
+        getReviews.forEach(review -> {review.softDelete(Instant.now(),usernameFromHeader);});
+        writeReviews.forEach(review -> {review.softDelete(Instant.now(),usernameFromHeader);});
     }
 }

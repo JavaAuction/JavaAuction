@@ -165,6 +165,7 @@ public class UserServiceV1 {
         }
 
         UserEntity user = getUserWithValidation(userId);
+        reviewServiceClient.deleteAllByUserId(userId);
         user.softDelete(Instant.now(), requester);
     }
 
