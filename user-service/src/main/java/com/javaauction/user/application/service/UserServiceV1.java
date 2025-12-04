@@ -11,7 +11,10 @@ import com.javaauction.user.domain.entity.AddressEntity;
 import com.javaauction.user.domain.entity.UserEntity;
 import com.javaauction.user.domain.repository.AddressRepository;
 import com.javaauction.user.domain.repository.UserRepository;
+import com.javaauction.user.infrastructure.JWT.JwtUserContext;
 import com.javaauction.user.infrastructure.JWT.JwtUtil;
+import com.javaauction.user.infrastructure.external.client.ReviewServiceClient;
+import com.javaauction.user.infrastructure.external.dto.GetReviewIntDto;
 import com.javaauction.user.presentation.advice.UserErrorCode;
 import com.javaauction.user.presentation.dto.*;
 import jakarta.transaction.Transactional;
@@ -23,171 +26,215 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceV1 {
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final AddressRepository addressRepository;
+    private final ReviewServiceClient reviewServiceClient;
 
-    public void signup(ReqSignupDto signupRequestDto) {
-        //이미 존재하는 정보인지 확인
-        if (userRepository.findByUsername(signupRequestDto.getUsername()).isPresent()) {
+    public void signup(ReqSignupDto dto) {
+
+        if (userRepository.findByUsername(dto.getUsername()).isPresent()) {
             throw new BussinessException(UserErrorCode.USER_ALREADY_EXISTS);
         }
-        if (userRepository.findByEmail(signupRequestDto.getEmail()).isPresent()) {
+        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new BussinessException(UserErrorCode.EMAIL_ALREADY_EXISTS);
         }
-        if (userRepository.findBySlackId(signupRequestDto.getSlackId()).isPresent()) {
+        if (userRepository.findBySlackId(dto.getSlackId()).isPresent()) {
             throw new BussinessException(UserErrorCode.SLACK_ID_ALREADY_EXISTS);
         }
 
-        UserEntity user =  UserEntity.builder()
-                .username(signupRequestDto.getUsername())
-                .password(passwordEncoder.encode(signupRequestDto.getPassword()))
-                .email(signupRequestDto.getEmail())
-                .name(signupRequestDto.getName())
-                .slackId(signupRequestDto.getSlackId())
-                .role(signupRequestDto.getRole())
+        UserEntity user = UserEntity.builder()
+                .username(dto.getUsername())
+                .password(passwordEncoder.encode(dto.getPassword()))
+                .email(dto.getEmail())
+                .name(dto.getName())
+                .slackId(dto.getSlackId())
+                .role(dto.getRole())
                 .build();
 
-        user.setCreate(Instant.now(),"System");
+        user.setCreate(Instant.now(), JwtUserContext.getUsernameFromHeader());
         userRepository.save(user);
     }
 
-    public ResLoginDto login(ReqLoginDto loginRequestDto) {
-            // 인증 시도
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequestDto.getUsername(),
-                            loginRequestDto.getPassword()
-                    )
-            );
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+    public ResLoginDto login(ReqLoginDto dto) {
 
-            // 사용자 정보 조회
-            UserEntity user = userRepository.findByUsername(loginRequestDto.getUsername())
-                    .orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(dto.getUsername(), dto.getPassword())
+        );
 
-            // JWT 토큰 생성
-            String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(dto.getUsername(), null)
+        );
 
-            // 응답 DTO 생성
-            return ResLoginDto.builder()
-                    .token(token)
-                    .username(user.getUsername())
-                    .role(user.getRole().name())
-                    .build();
+        UserEntity user = userRepository.findByUsername(dto.getUsername())
+                .orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
+
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
+
+        return ResLoginDto.builder()
+                .token(token)
+                .username(user.getUsername())
+                .role(user.getRole().name())
+                .build();
     }
 
-    public Page<ResGetUserAdminDto> getAllUsers(int page, int size, String sortBy, boolean isAsc, String role) {
-        // 권한 체크를 먼저 수행 (쿼리 실행 전)
-        if(role == null || !role.equals("ADMIN")){
+    public Page<ResGetAllDto> getAllUsers(int page, int size, String sortBy, boolean isAsc, String role) {
+
+        if (!"ADMIN".equals(role)) {
             throw new BussinessException(BaseErrorCode.ACCESS_DENIED);
         }
 
-        if(size != 10 && size != 30 && size != 50) {
-            size = 10;
-        }
-
-        //sortBy가 null이거나, 비어있거나, 공백이거나, "modifiedAt"이 아닌 경우 "createdAt"으로 설정
-        if(sortBy == null || sortBy.isEmpty() || sortBy.isBlank() || !sortBy.equals("modifiedAt")) {
-            sortBy = "createdAt";
-        }
+        if (size != 10 && size != 30 && size != 50) size = 10;
+        if (!"modifiedAt".equals(sortBy)) sortBy = "createdAt";
 
         Pageable pageable = PageRequest.of(
-                page > 0 ? page - 1 : page,
+                Math.max(page - 1, 0),
                 size,
                 isAsc ? Sort.Direction.ASC : Sort.Direction.DESC,
                 sortBy
         );
 
-        Page<UserEntity> userList = userRepository.getUsers(pageable);
-        log.info("유저 목록 조회 완료 - 총 {}건, 현재 페이지: {}", userList.getTotalElements(), page);
+        Page<UserEntity> users = userRepository.getUsers(pageable);
 
-        return userList.map(ResGetUserAdminDto::of);
+        return users.map(user -> {
+            ReviewInfo review = getReviewInfo(user.getUsername());
+            String address = getAddressStringSafe(user.getAddress());
+            return ResGetAllDto.of(user, address, review.rating());
+        });
     }
 
-    public Object getUser(String userId, String username, String role) {
-        // 권한 체크는 하지 않지만, role이 null인 경우 기본값 처리
-        UserEntity user = userRepository.findByUsername(userId).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
+    public Object getUser(String userId, String requester, String role) {
 
-        //삭제된 사용자일 경우
-        if(user.getDeletedAt() != null){
-            throw new BussinessException(UserErrorCode.CANNOT_DELETE_DELETED_USER);
+        UserEntity user = getUserWithValidation(userId);
+        ReviewInfo reviewInfo = getReviewInfo(userId);
+        String address = getAddressStringSafe(user.getAddress());
+
+        // 자기 자신 조회
+        if (user.getUsername().equals(requester)) {
+            return ApiResponse.success(BaseSuccessCode.OK,
+                    ResGetMyInfoDto.of(user, address, reviewInfo.rating(), reviewInfo.reviews()));
         }
 
-        // 자기 자신을 검색할 경우
-        if(user.getUsername().equals(username)){
-            return ApiResponse.success(BaseSuccessCode.OK, ResGetMyInfoDto.of(user));
+        // 관리자 조회
+        if ("ADMIN".equals(role)) {
+            return ApiResponse.success(BaseSuccessCode.OK,
+                    ResGetUserAdminDto.of(user, address, reviewInfo.rating(), reviewInfo.reviews()));
         }
 
-        //권한에 따라 보이는 정보가 다름
-        if(role != null && role.equals("ADMIN")){
-            return ApiResponse.success(BaseSuccessCode.OK, ResGetUserAdminDto.of(user));
-        }else{
-            return ApiResponse.success(BaseSuccessCode.OK, ResGetUserDto.of(user));
-        }
+        // 일반유저 조회
+        return ApiResponse.success(BaseSuccessCode.OK,
+                ResGetUserDto.of(user, reviewInfo.rating(), reviewInfo.reviews()));
     }
+
 
     public ResGetMyInfoDto getMyInfo(String username) {
-        UserEntity my = userRepository.findByUsername(username).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
 
-        return ResGetMyInfoDto.of(my);
+        UserEntity me = getUserWithValidation(username);
+        ReviewInfo review = getReviewInfo(username);
+        String address = getAddressStringSafe(me.getAddress());
+
+        return ResGetMyInfoDto.of(me, address, review.rating(), review.reviews());
     }
 
     @Transactional
-    public void updateUser(ReqUpdateDto updateRequestDto, String username) {
-        UserEntity me = userRepository.findByUsername(username).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
+    public void updateUser(ReqUpdateDto dto, String username) {
 
-        me.update(updateRequestDto);
+        UserEntity me = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
 
+        me.update(dto);
         me.setUpdated(Instant.now(), username);
     }
 
     @Transactional
-    public void deleteUser(String userId, String username, String role) {
-        //본인 또는 관리자가 아닐 경우
-        if(!userId.equals(username) && !role.equals("ADMIN")){
+    public void deleteUser(String userId, String requester, String role) {
+
+        if (!userId.equals(requester) && !"ADMIN".equals(role)) {
             throw new BussinessException(BaseErrorCode.ACCESS_DENIED);
         }
 
-        UserEntity user = userRepository.findByUsername(userId).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
-
-        if(user.getDeletedAt() != null){
-            throw new BussinessException(UserErrorCode.CANNOT_DELETE_DELETED_USER);
-        }
-
-        user.softDelete(Instant.now(), username);
+        UserEntity user = getUserWithValidation(userId);
+        reviewServiceClient.deleteAllByUserId(userId);
+        addressRepository.findByUser(user).forEach(addressEntity -> {addressEntity.softDelete(Instant.now(), JwtUserContext.getUsernameFromHeader());});
+        user.softDelete(Instant.now(), requester);
     }
 
-    //내부 api
-
+    //internal api
     public ResGetUserIntDto getUserInternal(String userId) {
-        UserEntity user = userRepository.findByUsername(userId).orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
-        AddressEntity address = addressRepository.findByAddressId(user.getAddress()).orElseThrow(() -> new BussinessException(UserErrorCode.ADDRESS_NOT_FOUND));
-        String addressString = address.getAddress() +" "+ address.getDetail();
+        UserEntity user = userRepository.findByUsername(userId)
+                .orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
+
+        String address = getAddressStringSafe(user.getAddress());
+
         return ResGetUserIntDto.builder()
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .address(addressString)
+                .address(address)
                 .slackId(user.getSlackId())
                 .role(user.getRole().name())
                 .build();
     }
 
+
     public boolean existsUser(String userId) {
         return userRepository.findByUsername(userId).isPresent();
+    }
+
+    //helper
+    // 유저 유효성 검사
+    private UserEntity getUserWithValidation(String username) {
+
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
+
+        if (user.getDeletedAt() != null) {
+            throw new BussinessException(UserErrorCode.CANNOT_DELETE_DELETED_USER);
+        }
+
+        return user;
+    }
+
+
+    // 주소 처리
+    private String getAddressStringSafe(UUID addressId) {
+
+        if (addressId == null) return null;
+
+        return addressRepository.findByAddressId(addressId)
+                .map(this::formatAddressString)
+                .orElse(null);
+    }
+
+    private String formatAddressString(AddressEntity address) {
+        return address.getAddress() + " " + address.getDetail();
+    }
+
+
+    //리뷰 정보 조회
+    private ReviewInfo getReviewInfo(String userId) {
+
+        List<GetReviewIntDto> reviews = reviewServiceClient.getReviewByUser(userId);
+        double rating = Math.round(reviewServiceClient.getUserRating(userId) * 10)/10.0;
+
+        return new ReviewInfo(reviews, rating);
+    }
+
+    private record ReviewInfo(List<GetReviewIntDto> reviews, double rating) {
     }
 }

@@ -6,7 +6,9 @@ import com.javaauction.user.application.dto.ReqSignupDto;
 import com.javaauction.user.application.dto.ReqUpdateDto;
 import com.javaauction.user.application.service.UserServiceV1;
 import com.javaauction.user.infrastructure.JWT.JwtUserContext;
+import com.javaauction.user.infrastructure.external.dto.GetReviewIntDto;
 import com.javaauction.user.presentation.advice.UserSuccessCode;
+import com.javaauction.user.presentation.dto.ResGetAllDto;
 import com.javaauction.user.presentation.dto.ResGetMyInfoDto;
 import com.javaauction.user.presentation.dto.ResGetUserAdminDto;
 import com.javaauction.user.presentation.dto.ResLoginDto;
@@ -41,12 +43,12 @@ public class UserControllerV1 {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<ApiResponse<Page<ResGetUserAdminDto>>> getAllUsers(
+    public ResponseEntity<ApiResponse<Page<ResGetAllDto>>> getAllUsers(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "sortBy", defaultValue = "createdAt") String sortBy,
             @RequestParam(value = "isAsc", defaultValue = "false") boolean isAsc) {
-        Page<ResGetUserAdminDto> result = userService.getAllUsers(page - 1, size, sortBy, isAsc, JwtUserContext.getRoleFromHeader());
+        Page<ResGetAllDto> result = userService.getAllUsers(page - 1, size, sortBy, isAsc, JwtUserContext.getRoleFromHeader());
 
         return ResponseEntity.ok(ApiResponse.success(UserSuccessCode.USER_LIST_FOUND, result));
     }
@@ -78,5 +80,6 @@ public class UserControllerV1 {
 
         return ResponseEntity.ok(ApiResponse.success(UserSuccessCode.USER_DELETED));
     }
+
 }
 
