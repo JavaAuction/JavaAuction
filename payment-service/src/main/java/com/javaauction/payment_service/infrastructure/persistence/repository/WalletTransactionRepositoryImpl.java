@@ -1,5 +1,6 @@
 package com.javaauction.payment_service.infrastructure.persistence.repository;
 
+import com.javaauction.payment_service.domain.enums.HoldStatus;
 import com.javaauction.payment_service.domain.enums.TransactionType;
 import com.javaauction.payment_service.domain.model.WalletTransaction;
 import com.javaauction.payment_service.domain.repository.WalletTransactionRepository;
@@ -101,5 +102,17 @@ public class WalletTransactionRepositoryImpl implements WalletTransactionReposit
                 .orElseThrow(() -> new PaymentException(WALLET_TRANSACTION_NOT_FOUND));
 
         return walletTransactionMapper.toDomain(walletTransactionEntity);
+    }
+
+    @Override
+    public List<WalletTransaction> findByAuctionIdAndTransactionTypeAndHoldStatus(
+            UUID auctionId, TransactionType transactionType, HoldStatus holdStatus
+    ) {
+        List<WalletTransactionEntity> walletTransactionEntity =
+                walletTransactionJpaRepository.findByAuctionIdAndTransactionTypeAndHoldStatus(
+                        auctionId, transactionType, holdStatus
+                );
+
+        return walletTransactionEntity.stream().map(walletTransactionMapper::toDomain).toList();
     }
 }

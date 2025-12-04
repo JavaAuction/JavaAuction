@@ -1,5 +1,6 @@
 package com.javaauction.payment_service.domain.repository;
 
+import com.javaauction.payment_service.domain.enums.HoldStatus;
 import com.javaauction.payment_service.domain.enums.TransactionType;
 import com.javaauction.payment_service.domain.model.WalletTransaction;
 import org.springframework.data.domain.Page;
@@ -17,4 +18,8 @@ public interface WalletTransactionRepository {
     );
 
     WalletTransaction findById(UUID transactionId);
+
+    List<WalletTransaction> findByAuctionIdAndTransactionTypeAndHoldStatus(
+            UUID auctionId, TransactionType transactionType, HoldStatus holdStatus
+    );
 }

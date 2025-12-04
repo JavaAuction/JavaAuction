@@ -15,6 +15,7 @@ public enum PaymentErrorCode implements ResponseCode {
     WALLET_MISSING_BID_ID(HttpStatus.BAD_REQUEST, "PAYMENT004", "입찰 식별자가 누락되었습니다."),
     WALLET_TRANSACTION_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT005", "일치하는 거래 내역을 찾을 수 없습니다."),
     WALLET_TRANSACTION_INVALID_RELATION(HttpStatus.BAD_REQUEST, "PAYMENT006", "요청 지갑에서 일치하는 거래 내역을 찾을 수 없습니다."),
+    WALLET_TRANSACTION_HOLD_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT007", "예치금 정보가 존재하지 않습니다."),
     ;
 
     private final HttpStatus status;
