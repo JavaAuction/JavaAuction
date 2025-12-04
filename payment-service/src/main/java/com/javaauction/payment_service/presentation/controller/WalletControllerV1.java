@@ -5,6 +5,7 @@ import com.javaauction.payment_service.application.service.WalletServiceV1;
 import com.javaauction.payment_service.presentation.dto.request.ReqChargeDto;
 import com.javaauction.payment_service.presentation.dto.request.ReqWithdrawDto;
 import com.javaauction.payment_service.presentation.dto.response.ResChargeDto;
+import com.javaauction.payment_service.presentation.dto.response.ResGetWallet;
 import com.javaauction.payment_service.presentation.dto.response.ResWithdrawDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-import static com.javaauction.payment_service.presentation.advice.PaymentSuccessCode.WALLET_CHARGE_SUCCESS;
-import static com.javaauction.payment_service.presentation.advice.PaymentSuccessCode.WALLET_WITHDRAW_SUCCESS;
+import static com.javaauction.payment_service.presentation.advice.PaymentSuccessCode.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,6 +23,16 @@ import static com.javaauction.payment_service.presentation.advice.PaymentSuccess
 public class WalletControllerV1 {
 
     private final WalletServiceV1 walletService;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<ResGetWallet>> getWallet(@PathVariable UUID walletId) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.success(
+                        WALLET_READ_SUCCESS,
+                        walletService.getWallet(walletId)
+                )
+        );
+    }
 
     @PostMapping("/charge")
     public ResponseEntity<ApiResponse<ResChargeDto>> charge(

@@ -39,9 +39,11 @@ public class WalletServiceV1 {
                         .build()
         );
 
-        return ResCreateWalletDto.from(
-                ResCreateWalletDto.WalletDto.from(wallet)
-        );
+        return ResCreateWalletDto.from(wallet);
+    }
+
+    public ResGetWallet getWallet(UUID walletId) {
+        return ResGetWallet.from(findWalletById(walletId));
     }
 
     @Transactional
@@ -63,10 +65,7 @@ public class WalletServiceV1 {
                         .build()
         );
 
-        ResChargeDto.WalletDto walletDto = ResChargeDto.WalletDto.from(charged, beforeBalance);
-        ResChargeDto.WalletTransactionDto walletTransactionDto = ResChargeDto.WalletTransactionDto.from(walletTransaction);
-
-        return ResChargeDto.from(walletDto, walletTransactionDto);
+        return ResChargeDto.from(charged, walletTransaction, beforeBalance);
     }
 
     @Transactional
@@ -91,10 +90,7 @@ public class WalletServiceV1 {
                         .build()
         );
 
-        WalletDto walletDto = WalletDto.from(withdrew, beforeBalance);
-        WalletTransactionDto walletTransactionDto = WalletTransactionDto.from(walletTransaction);
-
-        return ResWithdrawDto.from(walletDto, walletTransactionDto);
+        return ResWithdrawDto.from(withdrew, walletTransaction, beforeBalance);
     }
 
     @Transactional
@@ -122,12 +118,12 @@ public class WalletServiceV1 {
             default -> throw new PaymentException(WALLET_INVALID_TRANSACTION_TYPE);
         }
 
-        Wallet payment = wallet.withBalance(beforeBalance - deductAmount);
-        walletRepository.save(payment);
+        Wallet deduct = wallet.withBalance(beforeBalance - deductAmount);
+        walletRepository.save(deduct);
 
         WalletTransaction walletTransaction = walletTransactionRepository.save(
                 WalletTransaction.builder()
-                        .walletId(payment.getId())
+                        .walletId(deduct.getId())
                         .transactionType(transactionType)
                         .amount(deductAmount)
                         .holdStatus(holdStatus)
@@ -136,10 +132,7 @@ public class WalletServiceV1 {
                         .build()
         );
 
-        WalletDto walletDto = WalletDto.from(payment, beforeBalance);
-        WalletTransactionDto walletTransactionDto = WalletTransactionDto.from(walletTransaction);
-
-        return ResDeductDto.from(walletDto, walletTransactionDto);
+        return ResDeductDto.from(deduct, walletTransaction, beforeBalance);
     }
 
     public Boolean validate(ReqValidateDto request) {
