@@ -23,6 +23,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.WALLET_NOT_FOUND;
@@ -105,14 +106,12 @@ public class WalletTransactionRepositoryImpl implements WalletTransactionReposit
     }
 
     @Override
-    public List<WalletTransaction> findByAuctionIdAndTransactionTypeAndHoldStatus(
+    public Optional<WalletTransaction> findByAuctionIdAndTransactionTypeAndHoldStatus(
             UUID auctionId, TransactionType transactionType, HoldStatus holdStatus
     ) {
-        List<WalletTransactionEntity> walletTransactionEntity =
-                walletTransactionJpaRepository.findByAuctionIdAndTransactionTypeAndHoldStatus(
-                        auctionId, transactionType, holdStatus
-                );
+        Optional<WalletTransactionEntity> walletTransactionEntity = walletTransactionJpaRepository.findByAuctionIdAndTransactionTypeAndHoldStatus(
+                auctionId, transactionType, holdStatus);
 
-        return walletTransactionEntity.stream().map(walletTransactionMapper::toDomain).toList();
+        return walletTransactionEntity.map(walletTransactionMapper::toDomain);
     }
 }
