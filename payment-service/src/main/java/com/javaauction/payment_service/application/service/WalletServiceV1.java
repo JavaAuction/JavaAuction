@@ -148,7 +148,7 @@ public class WalletServiceV1 {
     }
 
     private Wallet findWalletByUserId(String userId) {
-        return walletRepository.findWalletByUserId(userId)
+        return walletRepository.findByUserId(userId)
                 .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
     }
 }
