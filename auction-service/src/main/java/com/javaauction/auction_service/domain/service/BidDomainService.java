@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,6 +46,10 @@ public class BidDomainService {
             }
 
             if (status == AuctionStatus.SUCCESSFUL_BID || status == AuctionStatus.FAIL_BID) {
+                throw new BussinessException(BidErrorCode.BID_FINISHED_AUCTION);
+            }
+
+            if (auction.getEndedAt().isBefore(LocalDateTime.now())) {
                 throw new BussinessException(BidErrorCode.BID_FINISHED_AUCTION);
             }
 
