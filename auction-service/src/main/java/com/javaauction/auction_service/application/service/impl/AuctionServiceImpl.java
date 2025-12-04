@@ -116,6 +116,13 @@ public class AuctionServiceImpl implements AuctionService {
                 auction.reRegister();
             }
         }
+
+        ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
+            .productStatus(ProductStatus.AUCTION_RUNNING)
+            .finalPrice(auction.getCurrentPrice())
+            .build();
+
+        productFeignClient.updateProductStatus(auction.getProductId(), productReq, user);
     }
 
     @Transactional
@@ -150,6 +157,23 @@ public class AuctionServiceImpl implements AuctionService {
             req.buyNowPrice() != null ? req.buyNowPrice() : auction.getBuyNowPrice(),
             req.endedAt() != null ? req.endedAt() : auction.getEndedAt()
         );
+
+        ProductStatus status = null;
+
+        switch (auction.getStatus()) {
+            case IN_PROGRESS -> status = ProductStatus.AUCTION_RUNNING;
+            case SUCCESSFUL_BID -> status = ProductStatus.SOLD;
+            default -> {
+                status = ProductStatus.AUCTION_WAITING;
+            }
+        }
+
+        ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
+            .productStatus(status)
+            .finalPrice(auction.getCurrentPrice())
+            .build();
+
+        productFeignClient.updateProductStatus(auction.getProductId(), productReq, user);
     }
 
     @Transactional
