@@ -41,11 +41,13 @@ public class AlertControllerV1 {
             @SortDefault.SortDefaults({
                     @SortDefault(sort = "isRead", direction = Sort.Direction.ASC),
                     @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
-            }) Pageable pageable
+            }) Pageable pageable,
+            @RequestHeader("X-User-Username") String username,
+            @RequestHeader("X-User-Role") String role
     ) {
 
         SearchParam searchParam = new SearchParam(search, alertType, isRead);
-        Page<RepGetAlertsDtoV1> getAlertsDto = alertServiceV1.getAlerts(searchParam, pageable, "tmpuser1", "USER"); // 임시로 userid, role 설정
+        Page<RepGetAlertsDtoV1> getAlertsDto = alertServiceV1.getAlerts(searchParam, pageable, username, role);
 
         return ResponseEntity.ok(
                 ApiResponse.success(AlertSuccessCode.ALERT_FIND_SUCCESS, getAlertsDto)
@@ -54,8 +56,10 @@ public class AlertControllerV1 {
 
     // 알림 읽음 처리
     @PostMapping("/{alertId}/read")
-    public ResponseEntity<ApiResponse<RepPostAlertsReadDtoV1>> readAlert(@PathVariable UUID alertId) {
-        RepPostAlertsReadDtoV1 postAlertsReadDto = alertServiceV1.postAlertsRead(alertId, "tmpuser1", "USER"); // 임시로 userid, role 설정
+    public ResponseEntity<ApiResponse<RepPostAlertsReadDtoV1>> readAlert(@PathVariable UUID alertId,
+                                                                         @RequestHeader("X-User-Username") String username,
+                                                                         @RequestHeader("X-User-Role") String role) {
+        RepPostAlertsReadDtoV1 postAlertsReadDto = alertServiceV1.postAlertsRead(alertId,  username, role);
         return ResponseEntity.ok(
                 ApiResponse.success(AlertSuccessCode.ALERT_FIND_SUCCESS, postAlertsReadDto)
         );
@@ -64,10 +68,12 @@ public class AlertControllerV1 {
     // 알림 삭제
     @DeleteMapping
     public ResponseEntity<ApiResponse<RepDeleteAlertsDtoV1>> deleteAlerts(
-            @RequestBody ReqDeleteAlertsDtoV1 request
+            @RequestBody ReqDeleteAlertsDtoV1 request,
+            @RequestHeader("X-User-Username") String username,
+            @RequestHeader("X-User-Role") String role
     ) {
 
-        RepDeleteAlertsDtoV1 response = alertServiceV1.deleteAlerts(request, "tmpuser2", "USER"); // 임시로 userid, role 설정
+        RepDeleteAlertsDtoV1 response = alertServiceV1.deleteAlerts(request, username, role);
 
         return ResponseEntity.ok(
                 ApiResponse.success(AlertSuccessCode.ALERT_FIND_SUCCESS, response)

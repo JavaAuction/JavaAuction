@@ -1,5 +1,8 @@
 package com.javaauction.payment_service.infrastructure.persistence.mapper;
 
+import com.javaauction.payment_service.domain.enums.ExternalType;
+import com.javaauction.payment_service.domain.enums.HoldStatus;
+import com.javaauction.payment_service.domain.enums.TransactionType;
 import com.javaauction.payment_service.domain.model.WalletTransaction;
 import com.javaauction.payment_service.infrastructure.persistence.entity.WalletEntity;
 import com.javaauction.payment_service.infrastructure.persistence.entity.WalletTransactionEntity;
@@ -14,7 +17,7 @@ public class WalletTransactionMapper {
         return WalletTransaction.builder()
                 .id(entity.getId())
                 .walletId(entity.getWallet().getId())
-                .type(toDomain(entity.getType()))
+                .transactionType(toDomain(entity.getTransactionType()))
                 .amount(entity.getAmount())
                 .holdStatus(toDomain(entity.getHoldStatus()))
                 .externalType(toDomain(entity.getExternalType()))
@@ -28,7 +31,7 @@ public class WalletTransactionMapper {
         return WalletTransactionEntity.builder()
                 .id(walletTransaction.getId())
                 .wallet(walletEntity)
-                .type(toEntity(walletTransaction.getType()))
+                .transactionType(toEntity(walletTransaction.getTransactionType()))
                 .amount(walletTransaction.getAmount())
                 .holdStatus(toEntity(walletTransaction.getHoldStatus()))
                 .externalType(toEntity(walletTransaction.getExternalType()))
@@ -36,27 +39,27 @@ public class WalletTransactionMapper {
                 .build();
     }
 
-    private WalletTransaction.TransactionType toDomain(WalletTransactionEntity.TransactionType type) {
-        return type == null ? null : WalletTransaction.TransactionType.valueOf(type.name());
+    private TransactionType toDomain(TransactionType type) {
+        return type == null ? null : TransactionType.valueOf(type.name());
     }
 
-    private WalletTransactionEntity.TransactionType toEntity(WalletTransaction.TransactionType type) {
-        return type == null ? null : WalletTransactionEntity.TransactionType.valueOf(type.name());
+    private TransactionType toEntity(TransactionType type) {
+        return type == null ? null : TransactionType.valueOf(type.name());
     }
 
-    private WalletTransaction.HoldStatus toDomain(WalletTransactionEntity.HoldStatus status) {
-        return status == null ? null : WalletTransaction.HoldStatus.valueOf(status.name());
+    private HoldStatus toDomain(HoldStatus status) {
+        return status == null ? null : HoldStatus.valueOf(status.name());
     }
 
-    private WalletTransactionEntity.HoldStatus toEntity(WalletTransaction.HoldStatus status) {
-        return status == null ? null : WalletTransactionEntity.HoldStatus.valueOf(status.name());
+    private HoldStatus toEntity(HoldStatus status) {
+        return status == null ? null : HoldStatus.valueOf(status.name());
     }
 
-    private WalletTransaction.ExternalType toDomain(WalletTransactionEntity.ExternalType type) {
-        return type == null ? null : WalletTransaction.ExternalType.valueOf(type.name());
+    private ExternalType toDomain(ExternalType type) {
+        return type == null ? null : ExternalType.valueOf(type.name());
     }
 
-    private WalletTransactionEntity.ExternalType toEntity(WalletTransaction.ExternalType type) {
-        return type == null ? null : WalletTransactionEntity.ExternalType.valueOf(type.name());
+    private ExternalType toEntity(ExternalType type) {
+        return type == null ? null : ExternalType.valueOf(type.name());
     }
 }

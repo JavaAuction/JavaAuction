@@ -86,6 +86,17 @@ public class ReviewServiceV1 {
         review.setUpdated(Instant.now(),usernameFromHeader);
     }
 
+    @Transactional
+    public void deleteReview(UUID reviewId, String usernameFromHeader, String roleFromHeader) {
+        ReviewEntity review = reviewRepository.findById(reviewId).orElseThrow(() -> new BussinessException(ReviewErrorCode.REVIEW_NOT_FOUND));
+
+        if (!review.getWriter().equals(usernameFromHeader) && !"ADMIN".equals(roleFromHeader)) {
+            throw new BussinessException(BaseErrorCode.ACCESS_DENIED);
+        }
+
+        review.softDelete(Instant.now(),usernameFromHeader);
+    }
+
     private Pageable buildPageable(int page, int size, String sortBy, boolean isAsc) {
         int fixedSize = (size == 10 || size == 30 || size == 50) ? size : 10;
         String fixedSort = (sortBy != null && !sortBy.isBlank() && sortBy.equals("modifiedAt")) ? "modifiedAt" : "createdAt";
