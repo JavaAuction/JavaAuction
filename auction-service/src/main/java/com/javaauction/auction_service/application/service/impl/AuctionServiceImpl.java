@@ -181,6 +181,7 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Transactional
+    @Override
     public void auctionEnds(UUID auctionId) {
 
         Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)

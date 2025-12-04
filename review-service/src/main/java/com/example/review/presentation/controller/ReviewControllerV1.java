@@ -49,4 +49,10 @@ public class ReviewControllerV1 {
         reviewService.updateReview(reviewId, reqUpdateReviewDto, JwtUserContext.getUsernameFromHeader());
         return ResponseEntity.ok(ApiResponse.success(ReviewSuccessCode.REVIEW_UPDATED));
     }
+
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<ApiResponse<Void>> deleteReview(@PathVariable UUID reviewId) {
+        reviewService.deleteReview(reviewId, JwtUserContext.getUsernameFromHeader(), JwtUserContext.getRoleFromHeader());
+        return ResponseEntity.ok(ApiResponse.success(ReviewSuccessCode.REVIEW_DELETED));
+    }
 }

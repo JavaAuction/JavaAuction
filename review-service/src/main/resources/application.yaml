@@ -3,7 +3,7 @@ spring:
     name: review-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5434/review_db
+    url: jdbc:postgresql://localhost:5432/review_db
     username: javaauction
     password: 1234
     driver-class-name: org.postgresql.Driver

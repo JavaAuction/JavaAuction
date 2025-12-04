@@ -36,4 +36,7 @@ public interface AuctionService {
 
     @Transactional
     ResBuyNowDto buyNow(UUID auctionId, String user);
+
+    @Transactional
+    void auctionEnds(UUID auctionId);
 }
