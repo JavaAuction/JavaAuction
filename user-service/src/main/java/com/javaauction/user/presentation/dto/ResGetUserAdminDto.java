@@ -22,13 +22,11 @@ public class ResGetUserAdminDto {
 
     private String name;
 
-    private String password;
-
     private String slackId;
 
     private String role;
 
-    private UUID address;
+    private String address;
 
     private Double rating;
 
@@ -49,7 +47,7 @@ public class ResGetUserAdminDto {
                 .build();
     }
 
-    public static ResGetUserAdminDto of(UserEntity user, Double rating, List<GetReviewIntDto> reviews) {
+    public static ResGetUserAdminDto of(UserEntity user, String address, Double rating, List<GetReviewIntDto> reviews) {
         return ResGetUserAdminDto.builder()
                 .username(user.getUsername())
                 .name(user.getName())
@@ -57,6 +55,7 @@ public class ResGetUserAdminDto {
                 .role(user.getRole().name())
                 .slackId(user.getSlackId())
                 .createdAt(user.getCreatedAt())
+                .address(address)
                 .rating(rating)
                 .reviews(reviews)
                 .build();
