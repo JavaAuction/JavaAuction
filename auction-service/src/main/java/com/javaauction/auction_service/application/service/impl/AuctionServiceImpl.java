@@ -4,6 +4,10 @@ import com.javaauction.auction_service.application.service.AuctionService;
 import com.javaauction.auction_service.domain.entity.Auction;
 import com.javaauction.auction_service.domain.entity.Bid;
 import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
+import com.javaauction.auction_service.infrastructure.client.ProductFeignClient;
+import com.javaauction.auction_service.infrastructure.client.RepProductDto;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqProductStatusUpdateDto;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqProductStatusUpdateDto.ProductStatus;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
@@ -32,11 +36,17 @@ public class AuctionServiceImpl implements AuctionService {
 
     private final AuctionRepository auctionRepository;
     private final BidRepository bidRepository;
+    private final ProductFeignClient productFeignClient;
 
     @Override
     @Transactional
-    public ResCreatedAuctionDto createAuction(ReqCreateAuctionDto req) {
-        // 통신 후에 상품 있는지 + 상품만든사람이랑 같은 사람인지 확인하기
+    public ResCreatedAuctionDto createAuction(ReqCreateAuctionDto req, String user) {
+
+        RepProductDto product = productFeignClient.getProduct(req.productId()).getBody().getData();
+
+        if (!product.userId().equals(user)) {
+            throw new BussinessException(AuctionErrorCode.AUCTION_PRODUCT_FORBIDDEN);
+        }
 
         if (auctionRepository.existsByProductIdAndDeletedAtIsNull(req.productId())) {
             throw new BussinessException(AuctionErrorCode.AUCTION_ALREADY_EXIST);
@@ -47,7 +57,7 @@ public class AuctionServiceImpl implements AuctionService {
 
         Auction auction = Auction.builder()
             .productId(req.productId())
-            .productName("상품")  // 나중에 통신 되면 변경예정
+            .productName(product.name())
             .startPrice(req.startPrice())
             .unit(req.unit())
             .buyNowEnable(req.buyNowEnable())
@@ -56,9 +66,15 @@ public class AuctionServiceImpl implements AuctionService {
             .status(AuctionStatus.IN_PROGRESS)
             .build();
 
-        // 나중에 지울 예정
-        auction.setCreate(Instant.now(), "system");
+        ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
+            .productStatus(ProductStatus.AUCTION_RUNNING)
+            .finalPrice(0L)
+            .build();
+
+        auction.setCreate(Instant.now(), user);
         Auction saveAuction = auctionRepository.save(auction);
+
+        productFeignClient.updateProductStatus(product.productId(), productReq, user);
 
         return ResCreatedAuctionDto.from(saveAuction);
 
@@ -86,7 +102,7 @@ public class AuctionServiceImpl implements AuctionService {
 
     @Transactional
     @Override
-    public void reRegisterAuction(UUID auctionId) {
+    public void reRegisterAuction(UUID auctionId, String user) {
 
         Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
             .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
@@ -138,9 +154,25 @@ public class AuctionServiceImpl implements AuctionService {
 
     @Transactional
     @Override
-    public void UpdateAuctionStatus(UUID auctionId, ReqUpdateStatusAuctionDto req) {
+    public void UpdateAuctionStatus(UUID auctionId, ReqUpdateStatusAuctionDto req, String user) {
         Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
             .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
+        ProductStatus status = null;
+
+        switch (auction.getStatus()) {
+            case IN_PROGRESS -> status = ProductStatus.AUCTION_RUNNING;
+            case SUCCESSFUL_BID -> status = ProductStatus.SOLD;
+            default -> {
+                status = ProductStatus.AUCTION_WAITING;
+            }
+        }
+
+        ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
+            .productStatus(status)
+            .finalPrice(0L)
+            .build();
+
+        productFeignClient.updateProductStatus(auction.getProductId(), productReq, user);
 
         auction.updateStatus(req.status());
     }
@@ -190,6 +222,21 @@ public class AuctionServiceImpl implements AuctionService {
         Bid winningBid = bidRepository.findTopByAuctionIdOrderByBidPriceDesc(auctionId)
             .orElse(null);
 
+        ProductStatus status = null;
+
+        switch (auction.getStatus()) {
+            case IN_PROGRESS -> status = ProductStatus.AUCTION_RUNNING;
+            case SUCCESSFUL_BID -> status = ProductStatus.SOLD;
+            default -> status = ProductStatus.AUCTION_WAITING;
+        }
+
+        ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
+            .productStatus(status)
+            .finalPrice(auction.getCurrentPrice())
+            .build();
+
+        productFeignClient.updateProductStatus(auction.getProductId(), productReq,
+            auction.getSuccessfulBidder());
         if (winningBid == null) {
             auction.fileBid();
             return;

@@ -37,12 +37,13 @@ public class AuctionController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<ResCreatedAuctionDto>> createAuction(
-        @Valid @RequestBody ReqCreateAuctionDto req
+        @Valid @RequestBody ReqCreateAuctionDto req,
+        @RequestHeader("X-User-Username") String username
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success(
                 AuctionSuccessCode.AUCTION_CREATE_SUCCESS,
-                auctionService.createAuction(req)
+                auctionService.createAuction(req, username)
             ));
     }
 
@@ -67,9 +68,10 @@ public class AuctionController {
 
     @PostMapping("/{auctionId}/re-register")
     public ResponseEntity<ApiResponse<Void>> reRegisterAuction(
-        @PathVariable("auctionId") UUID id
+        @PathVariable("auctionId") UUID id,
+        @RequestHeader("X-User-Username") String username
     ) {
-        auctionService.reRegisterAuction(id);
+        auctionService.reRegisterAuction(id, username);
         return ResponseEntity.ok(
             ApiResponse.success(AuctionSuccessCode.AUCTION_RE_REGISTER_SUCCESS));
     }
@@ -78,9 +80,10 @@ public class AuctionController {
     @PutMapping("/{auctionId}")
     public ResponseEntity<ApiResponse<Void>> updateAuction(
         @PathVariable("auctionId") UUID id,
-        @RequestBody ReqUpdateAuctionDto req
+        @RequestBody ReqUpdateAuctionDto req,
+        @RequestHeader("X-User-Username") String username
     ) {
-        auctionService.updateAuction(id, "temp", req);
+        auctionService.updateAuction(id, username, req);
         return ResponseEntity.ok(
             ApiResponse.success(AuctionSuccessCode.AUCTION_UPDATED));
     }

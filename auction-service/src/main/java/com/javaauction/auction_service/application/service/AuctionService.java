@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface AuctionService {
 
-    ResCreatedAuctionDto createAuction(ReqCreateAuctionDto req);
+    ResCreatedAuctionDto createAuction(ReqCreateAuctionDto req, String user);
 
     @Transactional(readOnly = true)
     ResGetAuctionDto getAuction(UUID auctionId);
@@ -23,7 +23,7 @@ public interface AuctionService {
     ResGetAuctionsDto getAuctions(Pageable pageable, AuctionStatus status, String keyword);
 
     @Transactional
-    void reRegisterAuction(UUID auctionId);
+    void reRegisterAuction(UUID auctionId, String user);
 
     @Transactional
     void deleteAuction(UUID auctionId, String user);
@@ -32,7 +32,7 @@ public interface AuctionService {
     void updateAuction(UUID auctionId, String user, ReqUpdateAuctionDto req);
 
     @Transactional
-    void UpdateAuctionStatus(UUID auctionId, ReqUpdateStatusAuctionDto req);
+    void UpdateAuctionStatus(UUID auctionId, ReqUpdateStatusAuctionDto req, String user);
 
     @Transactional
     ResBuyNowDto buyNow(UUID auctionId, String user);
