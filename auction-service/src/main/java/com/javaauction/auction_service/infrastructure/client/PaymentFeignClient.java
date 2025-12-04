@@ -20,5 +20,4 @@ public interface PaymentFeignClient {
 
     @PostMapping("/internal/v1/wallets/validations")
     void validate(@Valid @RequestBody ReqValidateDto request);
-
 }
