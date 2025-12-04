@@ -1,6 +1,9 @@
 package com.javaauction.payment_service.infrastructure.persistence.entity;
 
 import com.javaauction.global.infrastructure.entity.BaseEntity;
+import com.javaauction.payment_service.domain.enums.ExternalType;
+import com.javaauction.payment_service.domain.enums.HoldStatus;
+import com.javaauction.payment_service.domain.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,7 +29,7 @@ public class WalletTransactionEntity extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TransactionType type;
+    private TransactionType transactionType;
 
     @Column(nullable = false)
     private Long amount;
@@ -38,17 +41,4 @@ public class WalletTransactionEntity extends BaseEntity {
     private ExternalType externalType;
 
     private UUID externalId;
-
-    public enum TransactionType {
-        CHARGE, WITHDRAW, PAYMENT, HOLD
-    }
-
-    public enum HoldStatus {
-        HOLD_ACTIVE, HOLD_RELEASED, HOLD_CAPTURED
-    }
-
-    public enum ExternalType {
-        AUCTION, BID
-    }
-
 }

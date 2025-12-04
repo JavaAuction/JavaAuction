@@ -1,5 +1,8 @@
 package com.javaauction.payment_service.application.service;
 
+import com.javaauction.payment_service.domain.enums.ExternalType;
+import com.javaauction.payment_service.domain.enums.HoldStatus;
+import com.javaauction.payment_service.domain.enums.TransactionType;
 import com.javaauction.payment_service.domain.model.Wallet;
 import com.javaauction.payment_service.domain.model.WalletTransaction;
 import com.javaauction.payment_service.domain.repository.WalletRepository;
@@ -13,11 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-import static com.javaauction.payment_service.domain.model.WalletTransaction.ExternalType.AUCTION;
-import static com.javaauction.payment_service.domain.model.WalletTransaction.ExternalType.BID;
-import static com.javaauction.payment_service.domain.model.WalletTransaction.HoldStatus.HOLD_ACTIVE;
-import static com.javaauction.payment_service.domain.model.WalletTransaction.TransactionType.CHARGE;
-import static com.javaauction.payment_service.domain.model.WalletTransaction.TransactionType.WITHDRAW;
+import static com.javaauction.payment_service.domain.enums.ExternalType.AUCTION;
+import static com.javaauction.payment_service.domain.enums.ExternalType.BID;
+import static com.javaauction.payment_service.domain.enums.HoldStatus.HOLD_ACTIVE;
+import static com.javaauction.payment_service.domain.enums.TransactionType.CHARGE;
+import static com.javaauction.payment_service.domain.enums.TransactionType.WITHDRAW;
 import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.*;
 
 @Service
@@ -55,7 +58,7 @@ public class WalletServiceV1 {
         WalletTransaction walletTransaction = walletTransactionRepository.save(
                 WalletTransaction.builder()
                         .walletId(charged.getId())
-                        .type(CHARGE)
+                        .transactionType(CHARGE)
                         .amount(chargeAmount)
                         .build()
         );
@@ -83,7 +86,7 @@ public class WalletServiceV1 {
         WalletTransaction walletTransaction = walletTransactionRepository.save(
                 WalletTransaction.builder()
                         .walletId(withdrew.getId())
-                        .type(WITHDRAW)
+                        .transactionType(WITHDRAW)
                         .amount(withdrawalAmount)
                         .build()
         );
@@ -105,9 +108,9 @@ public class WalletServiceV1 {
         if (deductAmount > beforeBalance)
             throw new PaymentException(WALLET_INSUFFICIENT_BALANCE);
 
-        WalletTransaction.TransactionType transactionType = request.getTransactionType();
-        WalletTransaction.ExternalType externalType = null;
-        WalletTransaction.HoldStatus holdStatus = null;
+        TransactionType transactionType = request.getTransactionType();
+        ExternalType externalType = null;
+        HoldStatus holdStatus = null;
 
         switch (transactionType) {
             case PAYMENT -> externalType = AUCTION;
@@ -125,7 +128,7 @@ public class WalletServiceV1 {
         WalletTransaction walletTransaction = walletTransactionRepository.save(
                 WalletTransaction.builder()
                         .walletId(payment.getId())
-                        .type(transactionType)
+                        .transactionType(transactionType)
                         .amount(deductAmount)
                         .holdStatus(holdStatus)
                         .externalType(externalType)
