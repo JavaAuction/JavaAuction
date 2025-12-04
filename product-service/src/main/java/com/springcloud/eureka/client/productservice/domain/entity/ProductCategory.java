@@ -27,4 +27,8 @@ public class ProductCategory extends BaseEntity {
         category.name = name;
         return category;
     }
+
+    public void changeName(String name) {
+        this.name = name;
+    }
 }
