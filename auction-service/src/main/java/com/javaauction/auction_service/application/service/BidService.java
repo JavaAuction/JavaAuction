@@ -6,6 +6,8 @@ import com.javaauction.auction_service.domain.event.BidResult;
 import com.javaauction.auction_service.domain.event.OldBidReleaseEvent;
 import com.javaauction.auction_service.domain.service.BidDomainService;
 import com.javaauction.auction_service.infrastructure.client.PaymentClient;
+import com.javaauction.auction_service.infrastructure.client.dto.DeductType;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqDeductDto;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqValidateDto;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
@@ -15,7 +17,6 @@ import com.javaauction.auction_service.presentation.dto.response.ResGetBidsDto;
 import com.javaauction.auction_service.presentation.dto.response.internal.InternalBidDto;
 import com.javaauction.auction_service.presentation.dto.response.internal.ResInternalBidsDto;
 import com.javaauction.global.presentation.exception.BussinessException;
-import com.javaauction.global.presentation.response.ApiResponse;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -42,6 +43,8 @@ public class BidService {
     public BidResult placeBid(UUID auctionId, String userId, String role, Long bidPrice) {
 
         paymentPrecheck(userId, bidPrice);
+
+        paymentHold(userId, bidPrice, auctionId);
 
         BidResult result = bidDomainService.placeBidWithLock(
                 auctionId,
@@ -101,6 +104,21 @@ public class BidService {
             paymentClient.validateBalance(req);
         } catch (FeignException.BadRequest e) {
             // 잔액 부족
+            throw new BussinessException(BidErrorCode.BID_INSUFFICIENT_BALANCE);
+        }
+    }
+
+    private void paymentHold(String userId, Long bidPrice, UUID auctionId) {
+        ReqDeductDto req = ReqDeductDto.builder()
+                .userId(userId)
+                .transactionType(DeductType.HOLD)
+                .deductAmount(bidPrice)
+                .externalId(auctionId)
+                .build();
+
+        try {
+            paymentClient.deduct(req);
+        } catch (FeignException.BadRequest e) {
             throw new BussinessException(BidErrorCode.BID_INSUFFICIENT_BALANCE);
         }
     }
