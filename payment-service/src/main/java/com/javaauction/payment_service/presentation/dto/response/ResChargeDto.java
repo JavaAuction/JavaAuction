@@ -12,13 +12,21 @@ import java.util.UUID;
 @Builder
 public class ResChargeDto {
 
-    private WalletDto wallet;
-    private WalletTransactionDto walletTransaction;
+    private UUID walletId;
+    private UUID walletTransactionId;
+    private Long chargeAmount;
+    private Long beforeBalance;
+    private Long afterBalance;
+    private TransactionType transactionType;
 
-    public static ResChargeDto from(WalletDto walletDto, WalletTransactionDto walletTransactionDto) {
+    public static ResChargeDto from(Wallet wallet, WalletTransaction walletTransaction, Long beforeBalance) {
         return ResChargeDto.builder()
-                .wallet(walletDto)
-                .walletTransaction(walletTransactionDto)
+                .walletId(wallet.getId())
+                .walletTransactionId(walletTransaction.getId())
+                .chargeAmount(walletTransaction.getAmount())
+                .beforeBalance(beforeBalance)
+                .afterBalance(wallet.getBalance())
+                .transactionType(walletTransaction.getTransactionType())
                 .build();
     }
 

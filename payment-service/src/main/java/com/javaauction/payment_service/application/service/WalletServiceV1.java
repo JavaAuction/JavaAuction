@@ -36,9 +36,11 @@ public class WalletServiceV1 {
                         .build()
         );
 
-        return ResCreateWalletDto.from(
-                ResCreateWalletDto.WalletDto.from(wallet)
-        );
+        return ResCreateWalletDto.from(wallet);
+    }
+
+    public ResGetWallet getWallet(UUID walletId) {
+        return ResGetWallet.from(findWalletById(walletId));
     }
 
     @Transactional
@@ -60,10 +62,7 @@ public class WalletServiceV1 {
                         .build()
         );
 
-        ResChargeDto.WalletDto walletDto = ResChargeDto.WalletDto.from(charged, beforeBalance);
-        ResChargeDto.WalletTransactionDto walletTransactionDto = ResChargeDto.WalletTransactionDto.from(walletTransaction);
-
-        return ResChargeDto.from(walletDto, walletTransactionDto);
+        return ResChargeDto.from(charged, walletTransaction, beforeBalance);
     }
 
     @Transactional
@@ -88,10 +87,7 @@ public class WalletServiceV1 {
                         .build()
         );
 
-        WalletDto walletDto = WalletDto.from(withdrew, beforeBalance);
-        WalletTransactionDto walletTransactionDto = WalletTransactionDto.from(walletTransaction);
-
-        return ResWithdrawDto.from(walletDto, walletTransactionDto);
+        return ResWithdrawDto.from(withdrew, walletTransaction, beforeBalance);
     }
 
     @Transactional
@@ -109,7 +105,8 @@ public class WalletServiceV1 {
         HoldStatus holdStatus = null;
 
         switch (transactionType) {
-            case PAYMENT -> {}
+            case PAYMENT -> {
+            }
 
             case HOLD -> {
                 if (request.getBidId() == null)
@@ -135,10 +132,7 @@ public class WalletServiceV1 {
                         .build()
         );
 
-        WalletDto walletDto = WalletDto.from(deduct, beforeBalance);
-        WalletTransactionDto walletTransactionDto = WalletTransactionDto.from(walletTransaction);
-
-        return ResDeductDto.from(walletDto, walletTransactionDto);
+        return ResDeductDto.from(deduct, walletTransaction, beforeBalance);
     }
 
     public Boolean validate(ReqValidateDto request) {

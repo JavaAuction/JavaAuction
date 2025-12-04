@@ -10,11 +10,12 @@ import org.springframework.http.HttpStatus;
 public enum PaymentSuccessCode implements ResponseCode {
 
     WALLET_CREATE_SUCCESS(HttpStatus.CREATED, "PAYMENT200", "지갑 생성 성공"),
-    WALLET_CHARGE_SUCCESS(HttpStatus.OK, "PAYMENT201", "잔액 충전 성공"),
-    WALLET_WITHDRAW_SUCCESS(HttpStatus.OK, "PAYMENT202", "잔액 출금 성공"),
-    WALLET_DEDUCT_SUCCESS(HttpStatus.OK, "PAYMENT203", "잔액 차감 성공"),
-    WALLET_VALIDATE_SUCCESS(HttpStatus.OK, "PAYMENT204", "잔액 검증 성공"),
-    WALLET_TRANSACTION_READ_SUCCESS(HttpStatus.OK, "PAYMENT205", "거래 내역 조회 성공"),
+    WALLET_READ_SUCCESS(HttpStatus.OK, "PAYMENT201", "지갑 조회 성공"),
+    WALLET_CHARGE_SUCCESS(HttpStatus.OK, "PAYMENT202", "잔액 충전 성공"),
+    WALLET_WITHDRAW_SUCCESS(HttpStatus.OK, "PAYMENT203", "잔액 출금 성공"),
+    WALLET_DEDUCT_SUCCESS(HttpStatus.OK, "PAYMENT204", "잔액 차감 성공"),
+    WALLET_VALIDATE_SUCCESS(HttpStatus.OK, "PAYMENT205", "잔액 검증 성공"),
+    WALLET_TRANSACTION_READ_SUCCESS(HttpStatus.OK, "PAYMENT206", "거래 내역 조회 성공"),
     ;
 
     private final HttpStatus status;
