@@ -44,6 +44,8 @@ public class BidDomainService {
 
         Bid previousBid = findPreviousHighestBid(auctionId);
 
+        validateSameUserConsecutiveBid(previousBid, userId);
+
         Bid newBid = saveNewBid(auctionId, userId, bidPrice);
 
         auction.updateCurrentBid(userId, bidPrice);
@@ -105,6 +107,12 @@ public class BidDomainService {
         Bid newBid = Bid.create(auctionId, userId, bidPrice);
         newBid.setCreate(Instant.now(), userId);
         return bidRepository.save(newBid);
+    }
+
+    private void validateSameUserConsecutiveBid(Bid previousBid, String userId) {
+        if (previousBid != null && previousBid.getUserId().equals(userId)) {
+            throw new BussinessException(BidErrorCode.BID_SAME_USER_CONSECUTIVE_NOT_ALLOWED);
+        }
     }
 }
 

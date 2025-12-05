@@ -35,7 +35,6 @@ public class BidService {
     private final BidRepository bidRepository;
     private final AuctionRepository auctionRepository;
     private final PaymentClient paymentClient;
-    private final AlertClient alertClient;
 
     /**
      * 입찰 처리 서비스
