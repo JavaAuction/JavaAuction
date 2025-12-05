@@ -25,15 +25,20 @@ public class RepGetAlertsDtoV1 {
             pattern = "yyyy-MM-dd HH:mm:ss",
             timezone = "Asia/Seoul")
     private Instant createdAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "Asia/Seoul")
+    private Instant updatedAt;
 
     @QueryProjection
-    public RepGetAlertsDtoV1(UUID alertId, UUID auctionId, AlertType alertType, String content, Boolean isRead, Instant createdAt) {
+    public RepGetAlertsDtoV1(UUID alertId, UUID auctionId, AlertType alertType, String content, Boolean isRead, Instant createdAt, Instant updatedAt) {
         this.alertId = alertId;
         this.auctionId = auctionId;
         this.alertType = alertType;
         this.content = (content != null) ? content : "";
         this.isRead = isRead;
         this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
 }

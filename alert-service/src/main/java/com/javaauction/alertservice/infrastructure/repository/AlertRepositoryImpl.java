@@ -84,7 +84,8 @@ public class AlertRepositoryImpl implements AlertRepository {
                 qAlert.alertType,
                 qAlert.content,
                 qAlert.isRead,
-                qAlert.createdAt
+                qAlert.createdAt,
+                qAlert.updatedAt
         );
     }
 
