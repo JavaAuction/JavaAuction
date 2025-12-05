@@ -2,6 +2,7 @@ package com.javaauction.payment_service.application.service;
 
 import com.javaauction.payment_service.domain.enums.TransactionType;
 import com.javaauction.payment_service.domain.model.WalletTransaction;
+import com.javaauction.payment_service.domain.repository.WalletRepository;
 import com.javaauction.payment_service.domain.repository.WalletTransactionRepository;
 import com.javaauction.payment_service.presentation.advice.PaymentException;
 import com.javaauction.payment_service.presentation.dto.response.ResGetTransactionDto;
@@ -22,6 +23,7 @@ import static com.javaauction.payment_service.presentation.advice.PaymentErrorCo
 @Transactional(readOnly = true)
 public class WalletTransactionServiceV1 {
 
+    private final WalletRepository walletRepository;
     private final WalletTransactionRepository walletTransactionRepository;
 
     public Page<ResGetTransactionsDto> getTransactions(

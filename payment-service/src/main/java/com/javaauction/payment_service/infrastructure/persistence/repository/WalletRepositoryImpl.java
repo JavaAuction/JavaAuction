@@ -35,7 +35,7 @@ public class WalletRepositoryImpl implements WalletRepository {
     }
 
     @Override
-    public Optional<Wallet> findWalletByUserId(String userId) {
+    public Optional<Wallet> findByUserId(String userId) {
         return walletJpaRepository.findByUserId(userId)
                 .map(walletMapper::toDomain);
     }

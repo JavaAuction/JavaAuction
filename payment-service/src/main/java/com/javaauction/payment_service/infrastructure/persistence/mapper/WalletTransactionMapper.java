@@ -1,6 +1,5 @@
 package com.javaauction.payment_service.infrastructure.persistence.mapper;
 
-import com.javaauction.payment_service.domain.enums.ExternalType;
 import com.javaauction.payment_service.domain.enums.HoldStatus;
 import com.javaauction.payment_service.domain.enums.TransactionType;
 import com.javaauction.payment_service.domain.model.WalletTransaction;
@@ -20,8 +19,8 @@ public class WalletTransactionMapper {
                 .transactionType(toDomain(entity.getTransactionType()))
                 .amount(entity.getAmount())
                 .holdStatus(toDomain(entity.getHoldStatus()))
-                .externalType(toDomain(entity.getExternalType()))
-                .externalId(entity.getExternalId())
+                .auctionId(entity.getAuctionId())
+                .bidId(entity.getBidId())
                 .build();
     }
 
@@ -34,8 +33,8 @@ public class WalletTransactionMapper {
                 .transactionType(toEntity(walletTransaction.getTransactionType()))
                 .amount(walletTransaction.getAmount())
                 .holdStatus(toEntity(walletTransaction.getHoldStatus()))
-                .externalType(toEntity(walletTransaction.getExternalType()))
-                .externalId(walletTransaction.getExternalId())
+                .auctionId(walletTransaction.getAuctionId())
+                .bidId(walletTransaction.getBidId())
                 .build();
     }
 
@@ -53,13 +52,5 @@ public class WalletTransactionMapper {
 
     private HoldStatus toEntity(HoldStatus status) {
         return status == null ? null : HoldStatus.valueOf(status.name());
-    }
-
-    private ExternalType toDomain(ExternalType type) {
-        return type == null ? null : ExternalType.valueOf(type.name());
-    }
-
-    private ExternalType toEntity(ExternalType type) {
-        return type == null ? null : ExternalType.valueOf(type.name());
     }
 }

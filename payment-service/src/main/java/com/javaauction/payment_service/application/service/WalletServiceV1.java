@@ -1,7 +1,5 @@
 package com.javaauction.payment_service.application.service;
 
-import com.javaauction.payment_service.domain.enums.ExternalType;
-import com.javaauction.payment_service.domain.enums.HoldStatus;
 import com.javaauction.payment_service.domain.enums.TransactionType;
 import com.javaauction.payment_service.domain.model.Wallet;
 import com.javaauction.payment_service.domain.model.WalletTransaction;
@@ -14,13 +12,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
-import static com.javaauction.payment_service.domain.enums.ExternalType.AUCTION;
-import static com.javaauction.payment_service.domain.enums.ExternalType.BID;
 import static com.javaauction.payment_service.domain.enums.HoldStatus.HOLD_ACTIVE;
-import static com.javaauction.payment_service.domain.enums.TransactionType.CHARGE;
-import static com.javaauction.payment_service.domain.enums.TransactionType.WITHDRAW;
+import static com.javaauction.payment_service.domain.enums.HoldStatus.HOLD_RELEASED;
+import static com.javaauction.payment_service.domain.enums.TransactionType.*;
 import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.*;
 
 @Service
@@ -105,14 +102,33 @@ public class WalletServiceV1 {
             throw new PaymentException(WALLET_INSUFFICIENT_BALANCE);
 
         TransactionType transactionType = request.getTransactionType();
-        ExternalType externalType = null;
-        HoldStatus holdStatus = null;
 
         switch (transactionType) {
-            case PAYMENT -> externalType = AUCTION;
+            case PAYMENT -> {
+            }
+
             case HOLD -> {
-                externalType = BID;
-                holdStatus = HOLD_ACTIVE;
+                if (request.getBidId() == null)
+                    throw new PaymentException(WALLET_MISSING_BID_ID);
+
+                Optional<WalletTransaction> hold = walletTransactionRepository
+                        .findByAuctionIdAndTransactionTypeAndHoldStatus(request.getAuctionId(), HOLD, HOLD_ACTIVE);
+
+                if (hold.isPresent()) {
+                    WalletTransaction prevHold = hold.get();
+
+                    if (request.getDeductAmount() <= prevHold.getAmount())
+                        throw new PaymentException(WALLET_TRANSACTION_HOLD_AMOUNT_NOT_HIGHER_THAN_PREVIOUS);
+
+                    Wallet prevHoldWallet = walletRepository.findById(prevHold.getWalletId())
+                            .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
+
+                    WalletTransaction released = prevHold.withHoldStatus(HOLD_RELEASED);
+                    walletTransactionRepository.save(released);
+
+                    Wallet releasedWallet = prevHoldWallet.withBalance(prevHoldWallet.getBalance() + prevHold.getAmount());
+                    walletRepository.save(releasedWallet);
+                }
             }
 
             default -> throw new PaymentException(WALLET_INVALID_TRANSACTION_TYPE);
@@ -126,9 +142,9 @@ public class WalletServiceV1 {
                         .walletId(deduct.getId())
                         .transactionType(transactionType)
                         .amount(deductAmount)
-                        .holdStatus(holdStatus)
-                        .externalType(externalType)
-                        .externalId(request.getExternalId())
+                        .holdStatus(transactionType == HOLD ? HOLD_ACTIVE : null)
+                        .auctionId(request.getAuctionId())
+                        .bidId(request.getBidId())
                         .build()
         );
 
@@ -148,7 +164,7 @@ public class WalletServiceV1 {
     }
 
     private Wallet findWalletByUserId(String userId) {
-        return walletRepository.findWalletByUserId(userId)
+        return walletRepository.findByUserId(userId)
                 .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
     }
 }
