@@ -21,12 +21,14 @@ public class JpaAuditingConfig {
         return () -> {
             ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 
-            if (attrs == null) return Optional.empty();
+            if (attrs == null) return Optional.of("system");
 
             HttpServletRequest request = attrs.getRequest();
             String username = request.getHeader(USERNAME);
 
-            return Optional.ofNullable(username);
+            if (username == null || username.isBlank()) return Optional.of("system");
+
+            return Optional.of(username);
         };
     }
 }
