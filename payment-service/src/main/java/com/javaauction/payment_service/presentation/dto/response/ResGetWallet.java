@@ -8,16 +8,17 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class WalletDto {
-    private UUID walletId;
-    private Long beforeBalance;
-    private Long afterBalance;
+public class ResGetWallet {
 
-    public static WalletDto from(Wallet wallet, Long beforeBalance) {
-        return WalletDto.builder()
+    private UUID walletId;
+    private String userId;
+    private Long balance;
+
+    public static ResGetWallet from(Wallet wallet) {
+        return ResGetWallet.builder()
                 .walletId(wallet.getId())
-                .beforeBalance(beforeBalance)
-                .afterBalance(wallet.getBalance())
+                .userId(wallet.getUserId())
+                .balance(wallet.getBalance())
                 .build();
     }
 }
