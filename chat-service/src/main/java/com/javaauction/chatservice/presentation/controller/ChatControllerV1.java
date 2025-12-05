@@ -86,41 +86,13 @@ public class ChatControllerV1 {
 
     // 채팅 읽음 처리
     @PostMapping("/{chatroomId}/chats/read")
-    public ResponseEntity<RepPostChatsReadDtoV1> readChats(@PathVariable UUID chatroomId) {
+    public ResponseEntity<ApiResponse<RepPostChatsReadDtoV1>> readChats(@PathVariable UUID chatroomId,
+                                                                        @RequestHeader("X-User-Username") String username) {
 
-        String receiverId = "dummyReceiver";
+        RepPostChatsReadDtoV1 postChatsReadDto = chatService.postChatsRead(chatroomId, username);
 
-        // 더미 메시지 리스트
-        List<RepPostChatsDtoV1> chatList = List.of(
-                new RepPostChatsDtoV1(UUID.randomUUID(), chatroomId, "sender1", receiverId, "안녕하세요", false, Instant.now()),
-                new RepPostChatsDtoV1(UUID.randomUUID(), chatroomId, "sender2", receiverId, "혹시 이 물건 아직 남아있나요?", false, Instant.now())
+        return ResponseEntity.ok(
+                ApiResponse.success(ChatSuccessCode.CHAT_FIND_SUCCESS, postChatsReadDto)
         );
-
-        // 읽음 처리 (더미 환경이므로 리스트 변환)
-        List<RepPostChatsDtoV1> readChats = chatList.stream()
-                .map(chat -> RepPostChatsDtoV1.builder()
-                        .chattingId(chat.getChattingId())
-                        .chatroomId(chat.getChatroomId())
-                        .senderId(chat.getSenderId())
-                        .receiverId(chat.getReceiverId())
-                        .content(chat.getContent())
-                        .isRead(true)
-                        .createdAt(chat.getCreatedAt())
-                        .build()
-                ).toList();
-
-        // 읽음 처리 & 읽은 chatId 추출
-        List<UUID> readChatIds = chatList.stream()
-                .map(chat -> chat.getChattingId())
-                .toList();
-
-        RepPostChatsReadDtoV1 response = RepPostChatsReadDtoV1.builder()
-                .chatroomId(chatroomId)
-                .receiverId(receiverId)
-                .readChatIds(readChatIds)
-                .message("읽지 않은 채팅 " + readChats.size() + "건이 읽음 처리 되었습니다.")
-                .build();
-
-        return ResponseEntity.ok(response);
     }
 }

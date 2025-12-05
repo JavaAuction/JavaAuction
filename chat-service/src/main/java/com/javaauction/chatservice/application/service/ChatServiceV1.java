@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -34,11 +35,6 @@ public class ChatServiceV1 {
 
         RepGetProductsDtoV1 product = productClient.getProduct(reqPostChatroomsDto.getProductId()).getBody().getData();
 
-        // 상품 존재 여부 확인
-        if (product == null) {
-            throw new BussinessException(ChatErrorCode.CHAT_PRODUCT_NOT_FOUND);
-        }
-
         // 상품 등록자와 채팅 요청을 보내는 상대가 같은 사람인지 확인
         if (!product.userId().equals(reqPostChatroomsDto.getChatroomHost())) {
             throw new BussinessException(ChatErrorCode.CHAT_PRODUCT_FORBIDDEN);
@@ -50,6 +46,16 @@ public class ChatServiceV1 {
 
         }
 
+        // 채팅방 중복 체크(같은 상품ID + 채팅방 호스트 + 채팅방 게스트 조합이 이미 있는지)
+        boolean exists = chatroomRepository
+                .existsByProductIdAndChatroomHostAndChatroomGuestAndDeletedAtIsNull(
+                        reqPostChatroomsDto.getProductId(), reqPostChatroomsDto.getChatroomHost(), userId
+                );
+
+        if (exists) {
+            throw new BussinessException(ChatErrorCode.CHAT_CHATROOM_ALREADY_EXIST);
+        }
+
         Chatroom chatroom = Chatroom.ofNewChatroom(
                 reqPostChatroomsDto.getProductId(),
                 reqPostChatroomsDto.getChatroomHost(),
@@ -58,13 +64,13 @@ public class ChatServiceV1 {
 
         chatroomRepository.save(chatroom);
 
-        return new RepPostChatroomsDtoV1(
-                chatroom.getChatroomId(),
-                chatroom.getProductId(),
-                chatroom.getChatroomHost(),
-                chatroom.getChatroomGuest(),
-                chatroom.getCreatedAt()
-        );
+        return RepPostChatroomsDtoV1.builder()
+                .chatroomId(chatroom.getChatroomId())
+                .productId(chatroom.getProductId())
+                .chatroomHost(chatroom.getChatroomHost())
+                .chatroomGuest(chatroom.getChatroomGuest())
+                .createdAt(chatroom.getCreatedAt())
+                .build();
 
     }
 
@@ -101,15 +107,15 @@ public class ChatServiceV1 {
 
         chattingRepository.save(chatting);
 
-        return new RepPostChatsDtoV1(
-                chatting.getChattingId(),
-                chatting.getChatroom().getChatroomId(),
-                chatting.getSenderId(),
-                chatting.getReceiverId(),
-                chatting.getContent(),
-                chatting.getIsRead(),
-                chatting.getCreatedAt()
-        );
+        return RepPostChatsDtoV1.builder()
+                .chattingId(chatting.getChattingId())
+                .chatroomId(chatting.getChatroom().getChatroomId())
+                .senderId(chatting.getSenderId())
+                .receiverId(chatting.getReceiverId())
+                .content(chatting.getContent())
+                .isRead(chatting.getIsRead())
+                .createdAt(chatting.getCreatedAt())
+                .build();
 
     }
 
@@ -135,6 +141,33 @@ public class ChatServiceV1 {
         Page<RepGetChatsDtoV1> page = chattingRepository.findChattingPage(chatroomId, chattingSearchParam, pageable, userId, role);
 
         return page;
+    }
+
+    // 채팅 읽음 처리
+    @Transactional
+    public RepPostChatsReadDtoV1 postChatsRead(UUID chatroomId, String receiverId) {
+        // 채팅방 존재 여부 확인
+        Chatroom chatroom = chatroomRepository.findByChatroomIdAndDeletedAtIsNull(chatroomId)
+                .orElseThrow(() -> new BussinessException(ChatErrorCode.CHAT_CHATROOM_NOT_FOUND));
+
+        // 자신이 소속된 채팅방인지 확인
+        if (!(chatroom.getChatroomHost().equals(receiverId) || chatroom.getChatroomGuest().equals(receiverId))) {
+            throw new BussinessException(ChatErrorCode.CHAT_UNAUTH);
+        }
+
+        // 읽지 않은 채팅 목록 조회
+        List<UUID> unreadChatIds =
+                chattingRepository.findUnreadChatIds(chatroomId, receiverId);
+
+        // 읽음 처리
+        chattingRepository.markChatsAsRead(unreadChatIds);
+
+        return RepPostChatsReadDtoV1.builder()
+                .chatroomId(chatroomId)
+                .receiverId(receiverId)
+                .readChatIds(unreadChatIds)
+                .message(unreadChatIds.size() + "건의 읽지 않은 채팅이 읽음 처리 되었습니다.")
+                .build();
     }
 
 
