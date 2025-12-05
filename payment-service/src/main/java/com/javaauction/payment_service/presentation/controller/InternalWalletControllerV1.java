@@ -25,11 +25,11 @@ public class InternalWalletControllerV1 {
     private final WalletServiceV1 walletService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ResCreateWalletDto>> createWallet(@Valid @RequestBody ReqCreateWalletDto request) {
+    public ResponseEntity<ApiResponse<ResCreateWalletDto>> create(@Valid @RequestBody ReqCreateWalletDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.success(
                         WALLET_CREATE_SUCCESS,
-                        walletService.createWallet(request)
+                        walletService.create(request)
                 )
         );
     }

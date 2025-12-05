@@ -31,7 +31,8 @@ public class WalletServiceV1 {
     public static final String ADMIN = "ADMIN";
 
     @Transactional
-    public ResCreateWalletDto createWallet(ReqCreateWalletDto request) {
+    public ResCreateWalletDto create(ReqCreateWalletDto request) {
+
         Wallet wallet = walletRepository.save(
                 Wallet.builder()
                         .userId(request.getUserId())
@@ -46,7 +47,7 @@ public class WalletServiceV1 {
     }
 
     public ResGetWallet getWalletById(UUID walletId, String role) {
-        if (!role.equals(ADMIN))
+        if (isNotAdmin(role))
             throw new PaymentException(WALLET_ACCESS_DENIED);
 
         return ResGetWallet.from(findWalletById(walletId));
@@ -56,7 +57,10 @@ public class WalletServiceV1 {
     public ResChargeDto charge(UUID walletId, ReqChargeDto request, String userId, String role) {
 
         Wallet wallet = findWalletById(walletId);
-        validateWalletAccess(wallet, userId, role);
+
+        if (isNotAdmin(role) && isNotOwner(wallet, userId)) {
+            throw new PaymentException(WALLET_OWNER_MISMATCH);
+        }
 
         long beforeBalance = wallet.getBalance();
         long chargeAmount = request.getChargeAmount();
@@ -79,7 +83,10 @@ public class WalletServiceV1 {
     public ResWithdrawDto withdraw(UUID walletId, ReqWithdrawDto request, String userId, String role) {
 
         Wallet wallet = findWalletById(walletId);
-        validateWalletAccess(wallet, userId, role);
+
+        if (isNotAdmin(role) && isNotOwner(wallet, userId)) {
+            throw new PaymentException(WALLET_OWNER_MISMATCH);
+        }
 
         long beforeBalance = wallet.getBalance();
         long withdrawalAmount = request.getWithdrawAmount();
@@ -106,7 +113,7 @@ public class WalletServiceV1 {
 
         Wallet wallet = findWalletByUserId(request.getUserId());
 
-        if (!wallet.getUserId().equals(userId))
+        if (isNotOwner(wallet, userId))
             throw new PaymentException(WALLET_OWNER_MISMATCH);
 
         long beforeBalance = wallet.getBalance();
@@ -180,12 +187,11 @@ public class WalletServiceV1 {
                 .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
     }
 
-    private void validateWalletAccess(Wallet wallet, String userId, String role) {
-        boolean isAdmin = ADMIN.equals(role);
-        boolean isOwner = wallet.getUserId().equals(userId);
+    private boolean isNotAdmin(String role) {
+        return !ADMIN.equals(role);
+    }
 
-        if (!isAdmin && !isOwner) {
-            throw new PaymentException(WALLET_OWNER_MISMATCH);
-        }
+    private boolean isNotOwner(Wallet wallet, String userId) {
+        return !wallet.getUserId().equals(userId);
     }
 }
