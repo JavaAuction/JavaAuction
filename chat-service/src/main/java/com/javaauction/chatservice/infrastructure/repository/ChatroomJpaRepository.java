@@ -9,4 +9,11 @@ import java.util.UUID;
 public interface ChatroomJpaRepository extends JpaRepository<Chatroom, UUID>, ChatroomRepository {
     // 채팅방 존재 여부 확인
     Optional<Chatroom> findByChatroomIdAndDeletedAtIsNull(UUID chatroomId);
+
+    // 채팅방 중복 체크
+    boolean existsByProductIdAndChatroomHostAndChatroomGuestAndDeletedAtIsNull(
+            UUID productId,
+            String chatroomHost,
+            String chatroomGuest
+    );
 }
