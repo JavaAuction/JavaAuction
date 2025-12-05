@@ -2,6 +2,7 @@ package com.javaauction.auction_service.application.service;
 
 import com.javaauction.auction_service.domain.entity.Auction;
 import com.javaauction.auction_service.domain.entity.Bid;
+import com.javaauction.auction_service.domain.event.BidAlertEvent;
 import com.javaauction.auction_service.domain.event.BidResult;
 import com.javaauction.auction_service.domain.event.OldBidReleaseEvent;
 import com.javaauction.auction_service.domain.service.BidDomainService;
@@ -44,14 +45,20 @@ public class BidService {
 
         paymentPrecheck(userId, bidPrice);
 
-        paymentHold(userId, bidPrice, auctionId);
-
         BidResult result = bidDomainService.placeBidWithLock(
                 auctionId,
                 userId,
                 role,
                 bidPrice
         );
+
+        UUID bidId = result.getNewBid().getBidId();
+
+        // HOLD 요청
+        paymentHold(userId, bidPrice, auctionId, bidId);
+
+        // 알림 이벤트
+        eventPublisher.publishEvent(new BidAlertEvent(result));
 
         // 이전 최고 입찰자 상태 RELEASE로 변경하는 이벤트
         eventPublisher.publishEvent(new OldBidReleaseEvent(result));
@@ -108,12 +115,13 @@ public class BidService {
         }
     }
 
-    private void paymentHold(String userId, Long bidPrice, UUID auctionId) {
+    private void paymentHold(String userId, Long bidPrice, UUID auctionId, UUID bidId) {
         ReqDeductDto req = ReqDeductDto.builder()
                 .userId(userId)
                 .transactionType(DeductType.HOLD)
                 .deductAmount(bidPrice)
-                .externalId(auctionId)
+                .auctionId(auctionId)
+                .bidId(bidId)
                 .build();
 
         try {

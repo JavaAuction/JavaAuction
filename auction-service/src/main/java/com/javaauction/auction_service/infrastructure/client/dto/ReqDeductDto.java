@@ -10,5 +10,6 @@ public class ReqDeductDto {
     private String userId;
     private DeductType transactionType;
     private Long deductAmount;
-    private UUID externalId;
+    private UUID auctionId;
+    private UUID bidId;
 }
