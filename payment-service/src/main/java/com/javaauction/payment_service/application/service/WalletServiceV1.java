@@ -104,7 +104,8 @@ public class WalletServiceV1 {
         TransactionType transactionType = request.getTransactionType();
 
         switch (transactionType) {
-            case PAYMENT -> {}
+            case PAYMENT -> {
+            }
 
             case HOLD -> {
                 if (request.getBidId() == null)
@@ -115,6 +116,9 @@ public class WalletServiceV1 {
 
                 if (hold.isPresent()) {
                     WalletTransaction prevHold = hold.get();
+
+                    if (request.getDeductAmount() <= prevHold.getAmount())
+                        throw new PaymentException(WALLET_TRANSACTION_HOLD_AMOUNT_NOT_HIGHER_THAN_PREVIOUS);
 
                     Wallet prevHoldWallet = walletRepository.findById(prevHold.getWalletId())
                             .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
