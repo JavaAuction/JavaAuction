@@ -27,5 +27,7 @@ public class ReqDeductDto {
     private Long deductAmount;
 
     @NotNull
-    private UUID externalId;
+    private UUID auctionId;
+
+    private UUID bidId;
 }
