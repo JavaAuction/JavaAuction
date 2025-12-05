@@ -36,6 +36,9 @@ public class Auction extends BaseEntity {
     @Column(name = "product_id", nullable = false)
     private UUID productId;
 
+    @Column(name = "user_id", nullable = false)
+    private String userId;
+
     @Column(name = "product_name", nullable = false)
     private String productName;
 
@@ -95,7 +98,7 @@ public class Auction extends BaseEntity {
         this.status = AuctionStatus.SUCCESSFUL_BID;
     }
 
-    public void fileBid() {
+    public void failBid() {
         this.successfulBidder = null;
         this.currentPrice = null;
         this.status = AuctionStatus.FAIL_BID;

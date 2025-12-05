@@ -4,8 +4,11 @@ import com.javaauction.auction_service.application.service.AuctionService;
 import com.javaauction.auction_service.domain.entity.Auction;
 import com.javaauction.auction_service.domain.entity.Bid;
 import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
+import com.javaauction.auction_service.infrastructure.client.AlertFeignClient;
 import com.javaauction.auction_service.infrastructure.client.ProductFeignClient;
 import com.javaauction.auction_service.infrastructure.client.RepProductDto;
+import com.javaauction.auction_service.infrastructure.client.dto.AlertType;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqPostInternalAlertsDtoV1;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqProductStatusUpdateDto;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqProductStatusUpdateDto.ProductStatus;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
@@ -37,6 +40,7 @@ public class AuctionServiceImpl implements AuctionService {
     private final AuctionRepository auctionRepository;
     private final BidRepository bidRepository;
     private final ProductFeignClient productFeignClient;
+    private final AlertFeignClient alertFeignClient;
 
     @Override
     @Transactional
@@ -56,6 +60,7 @@ public class AuctionServiceImpl implements AuctionService {
         }
 
         Auction auction = Auction.builder()
+            .userId(user)
             .productId(req.productId())
             .productName(product.name())
             .startPrice(req.startPrice())
@@ -116,6 +121,13 @@ public class AuctionServiceImpl implements AuctionService {
                 auction.reRegister();
             }
         }
+
+        ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
+            .productStatus(ProductStatus.AUCTION_RUNNING)
+            .finalPrice(auction.getCurrentPrice())
+            .build();
+
+        productFeignClient.updateProductStatus(auction.getProductId(), productReq, user);
     }
 
     @Transactional
@@ -150,6 +162,23 @@ public class AuctionServiceImpl implements AuctionService {
             req.buyNowPrice() != null ? req.buyNowPrice() : auction.getBuyNowPrice(),
             req.endedAt() != null ? req.endedAt() : auction.getEndedAt()
         );
+
+        ProductStatus status = null;
+
+        switch (auction.getStatus()) {
+            case IN_PROGRESS -> status = ProductStatus.AUCTION_RUNNING;
+            case SUCCESSFUL_BID -> status = ProductStatus.SOLD;
+            default -> {
+                status = ProductStatus.AUCTION_WAITING;
+            }
+        }
+
+        ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
+            .productStatus(status)
+            .finalPrice(auction.getCurrentPrice())
+            .build();
+
+        productFeignClient.updateProductStatus(auction.getProductId(), productReq, user);
     }
 
     @Transactional
@@ -238,10 +267,47 @@ public class AuctionServiceImpl implements AuctionService {
         productFeignClient.updateProductStatus(auction.getProductId(), productReq,
             auction.getSuccessfulBidder());
         if (winningBid == null) {
-            auction.fileBid();
+            auction.failBid();
+
+            String fail = String.format("%s 의 경매가 유찰되었습니다.", auction.getProductName());
+
+            ReqPostInternalAlertsDtoV1 req = ReqPostInternalAlertsDtoV1.builder()
+                .auctionId(auctionId)
+                .alertType(AlertType.FAIL)
+                .content(fail)
+                .userId(auction.getUserId())
+                .build();
+
+            alertFeignClient.createAlert(req);
             return;
         }
 
         auction.successBid(winningBid.getUserId(), winningBid.getBidPrice());
+
+        String success = String.format("%s 의 경매가 %s 님에게 %s 원에 낙찰되었습니다.", auction.getProductName(),
+            auction.getSuccessfulBidder(),
+            auction.getCurrentPrice());
+
+        ReqPostInternalAlertsDtoV1 successReq = ReqPostInternalAlertsDtoV1.builder()
+            .auctionId(auctionId)
+            .alertType(AlertType.SUCCESS)
+            .content(success)
+            .userId(auction.getUserId())
+            .build();
+
+        alertFeignClient.createAlert(successReq);
+
+        String success2 = String.format("%s 의 경매가 입찰하신 %s 원에 낙찰되었습니다.", auction.getProductName(),
+            auction.getCurrentPrice());
+
+        ReqPostInternalAlertsDtoV1 successBidReq = ReqPostInternalAlertsDtoV1.builder()
+            .auctionId(auctionId)
+            .alertType(AlertType.SUCCESS)
+            .content(success2)
+            .userId(auction.getSuccessfulBidder())
+            .build();
+
+        alertFeignClient.createAlert(successBidReq);
+
     }
 }
