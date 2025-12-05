@@ -109,12 +109,9 @@ public class WalletServiceV1 {
     }
 
     @Transactional
-    public ResDeductDto deduct(ReqDeductDto request, String userId) {
+    public ResDeductDto deduct(ReqDeductDto request) {
 
         Wallet wallet = findWalletByUserId(request.getUserId());
-
-        if (isNotOwner(wallet, userId))
-            throw new PaymentException(WALLET_OWNER_MISMATCH);
 
         long beforeBalance = wallet.getBalance();
         long deductAmount = request.getDeductAmount();

@@ -35,13 +35,11 @@ public class InternalWalletControllerV1 {
     }
 
     @PostMapping("/deductions")
-    public ResponseEntity<ApiResponse<ResDeductDto>> deduct(
-            @Valid @RequestBody ReqDeductDto request, @RequestHeader(USERNAME) String userId
-    ) {
+    public ResponseEntity<ApiResponse<ResDeductDto>> deduct(@Valid @RequestBody ReqDeductDto request) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.success(
                         WALLET_DEDUCT_SUCCESS,
-                        walletService.deduct(request, userId)
+                        walletService.deduct(request)
                 )
         );
     }
