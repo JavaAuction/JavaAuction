@@ -2,8 +2,10 @@ package com.javaauction.auction_service.infrastructure.client.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.Instant;
-import org.hibernate.validator.constraints.UUID;
+import java.util.UUID;
+import lombok.Builder;
 
+@Builder
 public record RepPostInternalAlertsDtoV1(
     UUID alertId,
     String userId,
