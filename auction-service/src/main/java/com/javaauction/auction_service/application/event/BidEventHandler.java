@@ -49,8 +49,6 @@ public class BidEventHandler {
 
         oldBid.release();
         bidRepository.save(oldBid);
-
-        // TODO: 이후에 자금 동결 해제 API 호출
     }
 
     /**

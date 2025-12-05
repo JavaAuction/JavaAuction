@@ -8,9 +8,7 @@ import com.javaauction.auction_service.domain.event.OldBidReleaseEvent;
 import com.javaauction.auction_service.domain.service.BidDomainService;
 import com.javaauction.auction_service.infrastructure.client.AlertClient;
 import com.javaauction.auction_service.infrastructure.client.PaymentClient;
-import com.javaauction.auction_service.infrastructure.client.dto.DeductType;
-import com.javaauction.auction_service.infrastructure.client.dto.ReqDeductDto;
-import com.javaauction.auction_service.infrastructure.client.dto.ReqValidateDto;
+import com.javaauction.auction_service.infrastructure.client.dto.*;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
@@ -47,14 +45,17 @@ public class BidService {
 
         paymentPrecheck(userId, bidPrice);
 
-        paymentHold(userId, bidPrice, auctionId);
-
         BidResult result = bidDomainService.placeBidWithLock(
                 auctionId,
                 userId,
                 role,
                 bidPrice
         );
+
+        UUID bidId = result.getNewBid().getBidId();
+
+        // HOLD 요청
+        paymentHold(userId, bidPrice, auctionId, bidId);
 
         // 알림 이벤트
         eventPublisher.publishEvent(new BidAlertEvent(result));
@@ -114,12 +115,13 @@ public class BidService {
         }
     }
 
-    private void paymentHold(String userId, Long bidPrice, UUID auctionId) {
+    private void paymentHold(String userId, Long bidPrice, UUID auctionId, UUID bidId) {
         ReqDeductDto req = ReqDeductDto.builder()
                 .userId(userId)
                 .transactionType(DeductType.HOLD)
                 .deductAmount(bidPrice)
-                .externalId(auctionId)
+                .auctionId(auctionId)
+                .bidId(bidId)
                 .build();
 
         try {
