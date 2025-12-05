@@ -262,7 +262,7 @@ public class AuctionServiceImpl implements AuctionService {
         productFeignClient.updateProductStatus(auction.getProductId(), productReq,
             auction.getSuccessfulBidder());
         if (winningBid == null) {
-            auction.fileBid();
+            auction.faileBid();
             return;
         }
 
