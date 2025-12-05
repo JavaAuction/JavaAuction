@@ -31,7 +31,7 @@ public class AlertRepositoryImpl implements AlertRepository {
     private final JPAQueryFactory query;
 
     private static final Set<String> ALLOWED_SORT_PROPERTIES = Set.of(
-            "productName", "vendorType", "isRead", "createdAt", "updatedAt");
+            "alertType", "isRead", "createdAt", "updatedAt");
 
     QAlert qAlert = QAlert.alert;
 
@@ -80,7 +80,7 @@ public class AlertRepositoryImpl implements AlertRepository {
     private QRepGetAlertsDtoV1 getAlertProjection() {
         return new QRepGetAlertsDtoV1(
                 qAlert.alertId,
-                Expressions.nullExpression(), // 서비스에서 상품명 받아올 예정
+                qAlert.auctionId,
                 qAlert.alertType,
                 qAlert.content,
                 qAlert.isRead,

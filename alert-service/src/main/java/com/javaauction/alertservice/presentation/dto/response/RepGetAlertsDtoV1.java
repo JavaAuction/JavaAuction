@@ -17,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class RepGetAlertsDtoV1 {
     private UUID alertId;
-    private String productName;
+    private UUID auctionId;
     private AlertType alertType;
     private String content;
     private Boolean isRead;
@@ -27,9 +27,9 @@ public class RepGetAlertsDtoV1 {
     private Instant createdAt;
 
     @QueryProjection
-    public RepGetAlertsDtoV1(UUID alertId, String productName, AlertType alertType, String content, Boolean isRead, Instant createdAt) {
+    public RepGetAlertsDtoV1(UUID alertId, UUID auctionId, AlertType alertType, String content, Boolean isRead, Instant createdAt) {
         this.alertId = alertId;
-        this.productName = productName;
+        this.auctionId = auctionId;
         this.alertType = alertType;
         this.content = (content != null) ? content : "";
         this.isRead = isRead;

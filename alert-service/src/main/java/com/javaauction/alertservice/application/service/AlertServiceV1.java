@@ -50,60 +50,16 @@ public class AlertServiceV1 {
         alertRepository.save(alert);
 
         // 2. Slack 발송
-        try {
-            RepGetInternalUsersDtoV1 repUserDto = userClient.getUser(reqDto.getUserId());
-
-            if (repUserDto.getSlackId() != null && !repUserDto.getSlackId().isBlank()) {
-
-                // DM 채널 열기
-                Map<String, Object> openResp = slackClient.openConversation(
-                        "Bearer " + botToken,
-                        Map.of("users", repUserDto.getSlackId())
-                );
-
-                if (openResp != null && Boolean.TRUE.equals(openResp.get("ok"))) {
-                    Map<String, Object> channelMap = (Map<String, Object>) openResp.get("channel");
-                    String channelId = (String) channelMap.get("id");
-
-                    if (channelId != null && !channelId.isBlank()) {
-                        // 메시지 전송
-                        Map<String, Object> msgResp = slackClient.postMessage(
-                                "Bearer " + botToken,
-                                Map.of("channel", channelId, "text", reqDto.getContent())
-                        );
-
-                        if (msgResp == null || !Boolean.TRUE.equals(msgResp.get("ok"))) {
-                            log.warn("Slack 메시지 전송 실패: {}", msgResp != null ? msgResp.get("error") : "response null");
-                        }
-                    } else {
-                        log.warn("Slack DM 채널 ID 획득 실패");
-                    }
-                } else {
-                    log.warn("Slack DM 열기 실패: {}", openResp != null ? openResp.get("error") : "response null");
-                }
-            }
-        } catch (Exception e) {
-            log.error("Slack 메시지 발송 중 예외 발생", e);
-        }
+        sendSlack(alert.getUserId(), reqDto.getContent());
 
         // 3. 응답 반환
-        return new RepPostInternalAlertsDtoV1(
-                alert.getAlertId(),
-                alert.getUserId(),
-                alert.getAuctionId(),
-                alert.getAlertType(),
-                alert.getContent(),
-                alert.getIsRead(),
-                alert.getCreatedAt()
-        );
+        return RepPostInternalAlertsDtoV1.of(alert);
     }
 
 
     // 알림 리스트 조회
     public Page<RepGetAlertsDtoV1> getAlerts(SearchParam searchParam, Pageable pagable, String userId, String role) {
         Page<RepGetAlertsDtoV1> page = alertRepository.findAlertPage(searchParam, pagable, userId, role);
-
-        // todo : 알림의 경매 ID로 상품 이름 가져오기
 
         return page;
     }
@@ -124,11 +80,7 @@ public class AlertServiceV1 {
 
         alert.alertRead();
 
-        return new RepPostAlertsReadDtoV1(
-                alertId,
-                alert.getIsRead(),
-                alert.getUpdatedAt()
-        );
+        return RepPostAlertsReadDtoV1.of(alert);
 
     }
 
@@ -164,10 +116,41 @@ public class AlertServiceV1 {
                 ? "삭제할 알림을 찾을 수 없습니다."
                 : deletedIds.size() + "건의 알림이 삭제되었습니다.";
 
-        return RepDeleteAlertsDtoV1.builder()
-                .alertIds(deletedIds)
-                .message(message)
-                .build();
+        return RepDeleteAlertsDtoV1.of(deletedIds);
+    }
+
+    // 슬랙 메시지 전송
+    private void sendSlack(String userId, String content) {
+        try {
+            RepGetInternalUsersDtoV1 repUserDto = userClient.getUser(userId);
+
+            if (repUserDto.getSlackId() == null || repUserDto.getSlackId().isBlank()) {
+                return;
+            }
+
+            Map<String, Object> openResp = slackClient.openConversation(
+                    "Bearer " + botToken,
+                    Map.of("users", repUserDto.getSlackId())
+            );
+
+            if (openResp != null && Boolean.TRUE.equals(openResp.get("ok"))) {
+                Map<String, Object> channelMap = (Map<String, Object>) openResp.get("channel");
+                String channelId = (String) channelMap.get("id");
+
+                if (channelId != null && !channelId.isBlank()) {
+                    Map<String, Object> msgResp = slackClient.postMessage(
+                            "Bearer " + botToken,
+                            Map.of("channel", channelId, "text", content)
+                    );
+
+                    if (msgResp == null || !Boolean.TRUE.equals(msgResp.get("ok"))) {
+                        log.warn("Slack 메시지 전송 실패: {}", msgResp);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Slack 메시지 발송 중 예외 발생", e);
+        }
     }
 
     // 권한 체크
