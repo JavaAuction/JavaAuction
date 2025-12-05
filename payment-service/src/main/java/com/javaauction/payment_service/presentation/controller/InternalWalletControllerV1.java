@@ -11,13 +11,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.WALLET_INSUFFICIENT_BALANCE;
 import static com.javaauction.payment_service.presentation.advice.PaymentSuccessCode.*;
+import static com.javaauction.payment_service.presentation.constant.HttpHeaderNames.USERNAME;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,11 +35,13 @@ public class InternalWalletControllerV1 {
     }
 
     @PostMapping("/deductions")
-    public ResponseEntity<ApiResponse<ResDeductDto>> deduct(@Valid @RequestBody ReqDeductDto request) {
+    public ResponseEntity<ApiResponse<ResDeductDto>> deduct(
+            @Valid @RequestBody ReqDeductDto request, @RequestHeader(USERNAME) String userId
+    ) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.success(
                         WALLET_DEDUCT_SUCCESS,
-                        walletService.deduct(request)
+                        walletService.deduct(request, userId)
                 )
         );
     }

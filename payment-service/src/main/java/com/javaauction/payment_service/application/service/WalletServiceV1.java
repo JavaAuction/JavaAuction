@@ -28,6 +28,8 @@ public class WalletServiceV1 {
     private final WalletRepository walletRepository;
     private final WalletTransactionRepository walletTransactionRepository;
 
+    public static final String ADMIN = "ADMIN";
+
     @Transactional
     public ResCreateWalletDto createWallet(ReqCreateWalletDto request) {
         Wallet wallet = walletRepository.save(
@@ -39,14 +41,22 @@ public class WalletServiceV1 {
         return ResCreateWalletDto.from(wallet);
     }
 
-    public ResGetWallet getWallet(UUID walletId) {
+    public ResGetWallet getWalletByUserId(String userId) {
+        return ResGetWallet.from(findWalletByUserId(userId));
+    }
+
+    public ResGetWallet getWalletById(UUID walletId, String role) {
+        if (!role.equals(ADMIN))
+            throw new PaymentException(WALLET_ACCESS_DENIED);
+
         return ResGetWallet.from(findWalletById(walletId));
     }
 
     @Transactional
-    public ResChargeDto charge(UUID walletId, ReqChargeDto request) {
+    public ResChargeDto charge(UUID walletId, ReqChargeDto request, String userId, String role) {
 
         Wallet wallet = findWalletById(walletId);
+        validateWalletAccess(wallet, userId, role);
 
         long beforeBalance = wallet.getBalance();
         long chargeAmount = request.getChargeAmount();
@@ -66,9 +76,10 @@ public class WalletServiceV1 {
     }
 
     @Transactional
-    public ResWithdrawDto withdraw(UUID walletId, ReqWithdrawDto request) {
+    public ResWithdrawDto withdraw(UUID walletId, ReqWithdrawDto request, String userId, String role) {
 
         Wallet wallet = findWalletById(walletId);
+        validateWalletAccess(wallet, userId, role);
 
         long beforeBalance = wallet.getBalance();
         long withdrawalAmount = request.getWithdrawAmount();
@@ -91,9 +102,12 @@ public class WalletServiceV1 {
     }
 
     @Transactional
-    public ResDeductDto deduct(ReqDeductDto request) {
+    public ResDeductDto deduct(ReqDeductDto request, String userId) {
 
         Wallet wallet = findWalletByUserId(request.getUserId());
+
+        if (!wallet.getUserId().equals(userId))
+            throw new PaymentException(WALLET_OWNER_MISMATCH);
 
         long beforeBalance = wallet.getBalance();
         long deductAmount = request.getDeductAmount();
@@ -104,8 +118,7 @@ public class WalletServiceV1 {
         TransactionType transactionType = request.getTransactionType();
 
         switch (transactionType) {
-            case PAYMENT -> {
-            }
+            case PAYMENT -> {}
 
             case HOLD -> {
                 if (request.getBidId() == null)
@@ -152,7 +165,6 @@ public class WalletServiceV1 {
     }
 
     public Boolean validate(ReqValidateDto request) {
-
         Wallet wallet = findWalletByUserId(request.getUserId());
 
         return wallet.getBalance() >= request.getBidPrice();
@@ -166,5 +178,14 @@ public class WalletServiceV1 {
     private Wallet findWalletByUserId(String userId) {
         return walletRepository.findByUserId(userId)
                 .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
+    }
+
+    private void validateWalletAccess(Wallet wallet, String userId, String role) {
+        boolean isAdmin = ADMIN.equals(role);
+        boolean isOwner = wallet.getUserId().equals(userId);
+
+        if (!isAdmin && !isOwner) {
+            throw new PaymentException(WALLET_OWNER_MISMATCH);
+        }
     }
 }
