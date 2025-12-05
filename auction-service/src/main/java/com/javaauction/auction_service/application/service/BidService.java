@@ -2,9 +2,11 @@ package com.javaauction.auction_service.application.service;
 
 import com.javaauction.auction_service.domain.entity.Auction;
 import com.javaauction.auction_service.domain.entity.Bid;
+import com.javaauction.auction_service.domain.event.BidAlertEvent;
 import com.javaauction.auction_service.domain.event.BidResult;
 import com.javaauction.auction_service.domain.event.OldBidReleaseEvent;
 import com.javaauction.auction_service.domain.service.BidDomainService;
+import com.javaauction.auction_service.infrastructure.client.AlertClient;
 import com.javaauction.auction_service.infrastructure.client.PaymentClient;
 import com.javaauction.auction_service.infrastructure.client.dto.DeductType;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqDeductDto;
@@ -35,6 +37,7 @@ public class BidService {
     private final BidRepository bidRepository;
     private final AuctionRepository auctionRepository;
     private final PaymentClient paymentClient;
+    private final AlertClient alertClient;
 
     /**
      * 입찰 처리 서비스
@@ -52,6 +55,9 @@ public class BidService {
                 role,
                 bidPrice
         );
+
+        // 알림 이벤트
+        eventPublisher.publishEvent(new BidAlertEvent(result));
 
         // 이전 최고 입찰자 상태 RELEASE로 변경하는 이벤트
         eventPublisher.publishEvent(new OldBidReleaseEvent(result));
