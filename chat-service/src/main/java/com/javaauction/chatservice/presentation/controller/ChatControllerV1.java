@@ -1,15 +1,17 @@
 package com.javaauction.chatservice.presentation.controller;
 
 import com.javaauction.chatservice.application.service.ChatServiceV1;
-import com.javaauction.chatservice.presentation.dto.advice.ChatSuccessCode;
+import com.javaauction.chatservice.presentation.advice.ChatSuccessCode;
+import com.javaauction.chatservice.presentation.dto.common.ChatroomSearchParam;
+import com.javaauction.chatservice.presentation.dto.common.ChattingSearchParam;
 import com.javaauction.chatservice.presentation.dto.request.ReqPostChatroomsDtoV1;
 import com.javaauction.chatservice.presentation.dto.request.ReqPostChatsDtoV1;
 import com.javaauction.chatservice.presentation.dto.response.*;
 import com.javaauction.global.presentation.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,67 +23,64 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/chatrooms")
-public class ChatController {
+public class ChatControllerV1 {
     private final ChatServiceV1 chatService;
     // 채팅방 생성
     @PostMapping
-    public ResponseEntity<ApiResponse<RepPostChatroomsDtoV1>> createChatroom(@RequestBody ReqPostChatroomsDtoV1 reqDto) {
-        RepPostChatroomsDtoV1 postChatroomsDto = chatService.postChatrooms(reqDto, "tmpuser2"); // 임시로 userId 지정
+    public ResponseEntity<ApiResponse<RepPostChatroomsDtoV1>> createChatroom(@RequestBody ReqPostChatroomsDtoV1 reqDto,
+                                                                             @RequestHeader("X-User-Username") String username) {
+        RepPostChatroomsDtoV1 postChatroomsDto = chatService.postChatrooms(reqDto, username);
         return ResponseEntity.ok(ApiResponse.success(ChatSuccessCode.CHAT_CREATE_SUCCESS, postChatroomsDto));
     }
 
     // 채팅 전송
     @PostMapping("/{chatroomId}/chats")
-    public ResponseEntity<ApiResponse<RepPostChatsDtoV1>> createChats(@PathVariable UUID chatroomId, @RequestBody ReqPostChatsDtoV1 reqDto) {
-        RepPostChatsDtoV1 postChatsDto = chatService.postChats(chatroomId, reqDto, "tmpuser2"); // 임시로 userId 지정
+    public ResponseEntity<ApiResponse<RepPostChatsDtoV1>> createChats(@PathVariable UUID chatroomId, @RequestBody ReqPostChatsDtoV1 reqDto,
+                                                                      @RequestHeader("X-User-Username") String username) {
+        RepPostChatsDtoV1 postChatsDto = chatService.postChats(chatroomId, reqDto, username);
         return ResponseEntity.ok(ApiResponse.success(ChatSuccessCode.CHAT_CREATE_SUCCESS, postChatsDto));
     }
 
 
     // 채팅방 리스트 조회
     @GetMapping
-    public ResponseEntity<Page<RepGetChatroomsDtoV1>> getChatrooms(
-            @PageableDefault(size = 10) Pageable pageable
+    public ResponseEntity<ApiResponse<Page<RepGetChatroomsDtoV1>>> getChatrooms(
+            @RequestParam(required = false) UUID productId,
+            @RequestParam(required = false) String chatroomHost,
+            @RequestParam(required = false) String chatroomGuest,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestHeader("X-User-Username") String username,
+            @RequestHeader("X-User-Role") String role
     ) {
 
-        RepGetChatroomsDtoV1 response = new RepGetChatroomsDtoV1(
-                UUID.randomUUID(),
-                "샘플 상품명",
-                "chatroomHost",
-                "chatroomGuest",
-                "그냥 무나해주시면 안되나요?",
-                false,
-                Instant.now(),
-                Instant.now()
-        );
-        List<RepGetChatroomsDtoV1> chatrooms = List.of(response);
-        Page<RepGetChatroomsDtoV1> chatroomsDtoV1Page = new PageImpl<>(chatrooms, pageable, 0);
+        ChatroomSearchParam searchParam = new ChatroomSearchParam(productId, chatroomHost, chatroomGuest);
+        Page<RepGetChatroomsDtoV1> getChatroomsDto = chatService.getChatrooms(searchParam, pageable, username, role);
 
-        return ResponseEntity.ok(chatroomsDtoV1Page);
+        return ResponseEntity.ok(
+                ApiResponse.success(ChatSuccessCode.CHAT_FIND_SUCCESS, getChatroomsDto)
+        );
     }
 
 
     // 채팅 리스트 조회
     @GetMapping("/{chatroomId}/chats")
-    public ResponseEntity<Page<RepGetChatsDtoV1>> getChats(
+    public ResponseEntity<ApiResponse<Page<RepGetChatsDtoV1>>> getChats(
             @PathVariable UUID chatroomId,
-            @PageableDefault(size = 10) Pageable pageable
+            @RequestParam(required = false) String chatroomHostId,
+            @RequestParam(required = false) String chatroomGuestId,
+            @RequestParam(required = false) Boolean isRead,
+            @RequestParam(required = false) String content,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestHeader("X-User-Username") String username,
+            @RequestHeader("X-User-Role") String role
     ) {
 
-        RepGetChatsDtoV1 response = new RepGetChatsDtoV1(
-                UUID.randomUUID(),
-                chatroomId,
-                "senderId",
-                "receiverId",
-                true,
-                "이 정도 물건도 경매에 나와요?",
-                Instant.now(),
-                Instant.now()
-        );
-        List<RepGetChatsDtoV1> chats = List.of(response);
-        Page<RepGetChatsDtoV1> chatsDtoV1Page = new PageImpl<>(chats, pageable, 0);
+        ChattingSearchParam searchParam = new ChattingSearchParam(chatroomHostId, chatroomGuestId, isRead, content);
+        Page<RepGetChatsDtoV1> getChatsDto = chatService.getChats(chatroomId, searchParam, pageable, username, role);
 
-        return ResponseEntity.ok(chatsDtoV1Page);
+        return ResponseEntity.ok(
+                ApiResponse.success(ChatSuccessCode.CHAT_FIND_SUCCESS, getChatsDto)
+        );
     }
 
 

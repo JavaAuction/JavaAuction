@@ -1,4 +1,4 @@
-package com.javaauction.chatservice.presentation.dto.advice;
+package com.javaauction.chatservice.presentation.advice;
 
 import com.javaauction.global.infrastructure.code.ResponseCode;
 import lombok.Getter;
