@@ -28,8 +28,11 @@ public class WalletServiceV1 {
     private final WalletRepository walletRepository;
     private final WalletTransactionRepository walletTransactionRepository;
 
+    public static final String ADMIN = "ADMIN";
+
     @Transactional
-    public ResCreateWalletDto createWallet(ReqCreateWalletDto request) {
+    public ResCreateWalletDto create(ReqCreateWalletDto request) {
+
         Wallet wallet = walletRepository.save(
                 Wallet.builder()
                         .userId(request.getUserId())
@@ -39,14 +42,25 @@ public class WalletServiceV1 {
         return ResCreateWalletDto.from(wallet);
     }
 
-    public ResGetWallet getWallet(UUID walletId) {
+    public ResGetWallet getWalletByUserId(String userId) {
+        return ResGetWallet.from(findWalletByUserId(userId));
+    }
+
+    public ResGetWallet getWalletById(UUID walletId, String role) {
+        if (isNotAdmin(role))
+            throw new PaymentException(WALLET_ACCESS_DENIED);
+
         return ResGetWallet.from(findWalletById(walletId));
     }
 
     @Transactional
-    public ResChargeDto charge(UUID walletId, ReqChargeDto request) {
+    public ResChargeDto charge(UUID walletId, ReqChargeDto request, String userId, String role) {
 
         Wallet wallet = findWalletById(walletId);
+
+        if (isNotAdmin(role) && isNotOwner(wallet, userId)) {
+            throw new PaymentException(WALLET_OWNER_MISMATCH);
+        }
 
         long beforeBalance = wallet.getBalance();
         long chargeAmount = request.getChargeAmount();
@@ -66,9 +80,13 @@ public class WalletServiceV1 {
     }
 
     @Transactional
-    public ResWithdrawDto withdraw(UUID walletId, ReqWithdrawDto request) {
+    public ResWithdrawDto withdraw(UUID walletId, ReqWithdrawDto request, String userId, String role) {
 
         Wallet wallet = findWalletById(walletId);
+
+        if (isNotAdmin(role) && isNotOwner(wallet, userId)) {
+            throw new PaymentException(WALLET_OWNER_MISMATCH);
+        }
 
         long beforeBalance = wallet.getBalance();
         long withdrawalAmount = request.getWithdrawAmount();
@@ -104,8 +122,7 @@ public class WalletServiceV1 {
         TransactionType transactionType = request.getTransactionType();
 
         switch (transactionType) {
-            case PAYMENT -> {
-            }
+            case PAYMENT -> {}
 
             case HOLD -> {
                 if (request.getBidId() == null)
@@ -152,7 +169,6 @@ public class WalletServiceV1 {
     }
 
     public Boolean validate(ReqValidateDto request) {
-
         Wallet wallet = findWalletByUserId(request.getUserId());
 
         return wallet.getBalance() >= request.getBidPrice();
@@ -166,5 +182,13 @@ public class WalletServiceV1 {
     private Wallet findWalletByUserId(String userId) {
         return walletRepository.findByUserId(userId)
                 .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
+    }
+
+    private boolean isNotAdmin(String role) {
+        return !ADMIN.equals(role);
+    }
+
+    private boolean isNotOwner(Wallet wallet, String userId) {
+        return !wallet.getUserId().equals(userId);
     }
 }

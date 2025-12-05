@@ -11,13 +11,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.WALLET_INSUFFICIENT_BALANCE;
 import static com.javaauction.payment_service.presentation.advice.PaymentSuccessCode.*;
+import static com.javaauction.payment_service.presentation.constant.HttpHeaderNames.USERNAME;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,11 +25,11 @@ public class InternalWalletControllerV1 {
     private final WalletServiceV1 walletService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ResCreateWalletDto>> createWallet(@Valid @RequestBody ReqCreateWalletDto request) {
+    public ResponseEntity<ApiResponse<ResCreateWalletDto>> create(@Valid @RequestBody ReqCreateWalletDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.success(
                         WALLET_CREATE_SUCCESS,
-                        walletService.createWallet(request)
+                        walletService.create(request)
                 )
         );
     }
