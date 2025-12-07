@@ -6,6 +6,7 @@ import com.javaauction.auction_service.domain.event.BidResult;
 import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
+import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
 import com.javaauction.auction_service.presentation.advice.BidErrorCode;
 import com.javaauction.global.presentation.exception.BussinessException;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,10 @@ public class BidDomainService {
         // Auction 비관적 락
         Auction auction = auctionRepository.findByIdForUpdate(auctionId)
                 .orElseThrow(() -> new BussinessException(BidErrorCode.BID_AUCTION_NOT_FOUND));
+
+        if (userId.equals(auction.getUserId())){
+            throw new BussinessException(BidErrorCode.BID_FORBIDDEN);
+        }
 
         validateAuctionStatus(auction);
         validateAuctionTime(auction);

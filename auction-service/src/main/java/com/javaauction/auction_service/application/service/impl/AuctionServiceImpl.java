@@ -214,6 +214,10 @@ public class AuctionServiceImpl implements AuctionService {
         Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
                 .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
 
+        if (user.equals(auction.getUserId())){
+            throw new BussinessException(AuctionErrorCode.AUCTION_BUY_NOW_FORBIDDEN);
+        }
+
         if ((auction.getStatus() == AuctionStatus.PENDING)) {
             throw new BussinessException(AuctionErrorCode.AUCTION_PENDING);
         }
