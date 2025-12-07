@@ -2,11 +2,10 @@ package com.javaauction.auction_service.domain.service;
 
 import com.javaauction.auction_service.domain.entity.Auction;
 import com.javaauction.auction_service.domain.entity.Bid;
-import com.javaauction.auction_service.domain.event.BidResult;
 import com.javaauction.auction_service.domain.entity.enums.AuctionStatus;
+import com.javaauction.auction_service.domain.event.BidResult;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
-import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
 import com.javaauction.auction_service.presentation.advice.BidErrorCode;
 import com.javaauction.global.presentation.exception.BussinessException;
 import lombok.RequiredArgsConstructor;
