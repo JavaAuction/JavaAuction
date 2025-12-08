@@ -10,8 +10,17 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReqCaptureDto {
+public class ReqSettleDto {
+
+    @NotNull
+    private String buyerId;
+
+    @NotNull
+    private String sellerId;
 
     @NotNull
     private UUID auctionId;
+
+    @NotNull
+    private Long winningPrice;
 }

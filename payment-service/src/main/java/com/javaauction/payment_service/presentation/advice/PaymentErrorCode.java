@@ -18,7 +18,9 @@ public enum PaymentErrorCode implements ResponseCode {
     WALLET_TRANSACTION_INVALID_RELATION(HttpStatus.BAD_REQUEST, "PAYMENT-006", "요청 지갑에서 일치하는 거래 내역을 찾을 수 없습니다."),
     WALLET_TRANSACTION_HOLD_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT-007", "예치금 정보가 존재하지 않습니다."),
     WALLET_TRANSACTION_HOLD_AMOUNT_NOT_HIGHER_THAN_PREVIOUS(HttpStatus.BAD_REQUEST, "PAYMENT-008", "상회 입찰 금액이 기존 입찰금보다 높아야 합니다."),
-    WALLET_OWNER_MISMATCH(HttpStatus.FORBIDDEN, "PAYMENT-009", "지갑 소유주가 일치하지 않습니다.")
+    WALLET_OWNER_MISMATCH(HttpStatus.FORBIDDEN, "PAYMENT-009", "지갑 소유주가 일치하지 않습니다."),
+    WALLET_TRANSACTION_WINNING_BID_PRICE_MISMATCH(HttpStatus.BAD_REQUEST, "PAYMENT-010", "경매 낙찰가가 일치하지 않습니다."),
+    WALLET_BUYER_MISMATCH(HttpStatus.FORBIDDEN, "PAYMENT-011", "경매 입찰자가 일치하지 않습니다.")
     ;
 
     private final HttpStatus status;

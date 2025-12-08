@@ -100,7 +100,7 @@ public class WalletServiceV1 {
         WalletTransaction walletTransaction = walletTransactionRepository.save(
                 WalletTransaction.builder()
                         .walletId(withdrew.getId())
-                        .transactionType(WITHDRAW)
+                        .transactionType(WITHDRAWAL)
                         .amount(withdrawalAmount)
                         .build()
         );
