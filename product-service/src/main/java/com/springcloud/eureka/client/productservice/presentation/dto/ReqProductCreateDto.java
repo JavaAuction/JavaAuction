@@ -17,12 +17,11 @@ public class ReqProductCreateDto {
 
     private String description;
 
-    private  String imageUrl;
-
     @NotBlank
     private String categoryName;
 
-    public Product toEntity(String userId) {
-        return Product.create(userId, name, description, imageUrl, null);
+    // imageUrl은 Service에서 세팅
+    public Product toEntity(String userId, String imageUrl, ProductCategory category) {
+        return Product.create(userId, name, description, imageUrl, category);
     }
 }
