@@ -27,6 +27,7 @@ public class WalletServiceV1 {
 
     private final WalletRepository walletRepository;
     private final WalletTransactionRepository walletTransactionRepository;
+    private final FeeCalculator feeCalculator;
 
     public static final String ADMIN = "ADMIN";
 
@@ -114,7 +115,7 @@ public class WalletServiceV1 {
         Wallet wallet = findWalletByUserId(request.getUserId());
 
         long beforeBalance = wallet.getBalance();
-        long deductAmount = request.getDeductAmount();
+        long deductAmount = feeCalculator.calculateTotal(request.getDeductAmount());
 
         if (deductAmount > beforeBalance)
             throw new PaymentException(WALLET_INSUFFICIENT_BALANCE);
@@ -134,7 +135,7 @@ public class WalletServiceV1 {
                 if (hold.isPresent()) {
                     WalletTransaction prevHold = hold.get();
 
-                    if (request.getDeductAmount() <= prevHold.getAmount())
+                    if (deductAmount <= prevHold.getAmount())
                         throw new PaymentException(WALLET_TRANSACTION_HOLD_AMOUNT_NOT_HIGHER_THAN_PREVIOUS);
 
                     Wallet prevHoldWallet = walletRepository.findById(prevHold.getWalletId())
@@ -170,8 +171,9 @@ public class WalletServiceV1 {
 
     public Boolean validate(ReqValidateDto request) {
         Wallet wallet = findWalletByUserId(request.getUserId());
+        long validateAmount = feeCalculator.calculateTotal(request.getBidPrice());
 
-        return wallet.getBalance() >= request.getBidPrice();
+        return wallet.getBalance() >= validateAmount;
     }
 
     private Wallet findWalletById(UUID walletId) {

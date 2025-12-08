@@ -29,7 +29,6 @@ import static com.javaauction.payment_service.presentation.advice.PaymentErrorCo
 @Transactional(readOnly = true)
 public class WalletTransactionServiceV1 {
 
-    private final WalletRepository walletRepository;
     private final WalletTransactionRepository walletTransactionRepository;
 
     public Page<ResGetTransactionsDto> getTransactions(

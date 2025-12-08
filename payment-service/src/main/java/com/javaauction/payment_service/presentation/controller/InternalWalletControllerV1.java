@@ -45,7 +45,7 @@ public class InternalWalletControllerV1 {
     }
 
     @PostMapping("/validations")
-    public ResponseEntity<ApiResponse<?>> validate(@Valid @RequestBody ReqValidateDto request) {
+    public ResponseEntity<ApiResponse<Void>> validate(@Valid @RequestBody ReqValidateDto request) {
 
         return walletService.validate(request)
                 ? ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(WALLET_VALIDATE_SUCCESS))
