@@ -310,21 +310,6 @@ public class AuctionServiceImpl implements AuctionService {
         Bid winningBid = bidRepository.findTopByAuctionIdOrderByBidPriceDesc(auctionId)
             .orElse(null);
 
-        ProductStatus status = null;
-
-        switch (auction.getStatus()) {
-            case IN_PROGRESS -> status = ProductStatus.AUCTION_RUNNING;
-            case SUCCESSFUL_BID -> status = ProductStatus.SOLD;
-            default -> status = ProductStatus.AUCTION_WAITING;
-        }
-
-        ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
-            .productStatus(status)
-            .finalPrice(auction.getCurrentPrice())
-            .build();
-
-        productFeignClient.updateProductStatus(auction.getProductId(), productReq,
-            auction.getSuccessfulBidder());
         if (winningBid == null) {
             auction.failBid();
 
@@ -338,10 +323,26 @@ public class AuctionServiceImpl implements AuctionService {
                 .build();
 
             alertFeignClient.createAlert(req);
+
+            ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
+                .productStatus(ProductStatus.AUCTION_WAITING)
+                .finalPrice(auction.getCurrentPrice())
+                .build();
+
+            productFeignClient.updateProductStatus(auction.getProductId(), productReq,
+                auction.getSuccessfulBidder());
             return;
         }
 
         auction.successBid(winningBid.getUserId(), winningBid.getBidPrice());
+
+        ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
+            .productStatus(ProductStatus.SOLD)
+            .finalPrice(auction.getCurrentPrice())
+            .build();
+
+        productFeignClient.updateProductStatus(auction.getProductId(), productReq,
+            auction.getSuccessfulBidder());
 
         String success = String.format("%s 의 경매가 %s 님에게 %s 원에 낙찰되었습니다.", auction.getProductName(),
             auction.getSuccessfulBidder(),
