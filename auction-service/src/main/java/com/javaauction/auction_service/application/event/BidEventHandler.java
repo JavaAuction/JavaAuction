@@ -5,9 +5,9 @@ import com.javaauction.auction_service.domain.entity.Bid;
 import com.javaauction.auction_service.domain.event.BidAlertEvent;
 import com.javaauction.auction_service.domain.event.BidResult;
 import com.javaauction.auction_service.domain.event.OldBidReleaseEvent;
-import com.javaauction.auction_service.infrastructure.client.AlertClient;
+import com.javaauction.auction_service.infrastructure.client.AlertFeignClient;
 import com.javaauction.auction_service.infrastructure.client.dto.AlertType;
-import com.javaauction.auction_service.infrastructure.client.dto.ReqAlertDto;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqPostInternalAlertsDtoV1;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ import java.util.UUID;
 public class BidEventHandler {
 
     private final BidRepository bidRepository;
-    private final AlertClient alertClient;
+    private final AlertFeignClient alertClient;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -60,7 +60,7 @@ public class BidEventHandler {
         BidResult result = event.getResult();
         Auction auction = result.getAuction();
 
-        ReqAlertDto req = ReqAlertDto.builder()
+        ReqPostInternalAlertsDtoV1 req = ReqPostInternalAlertsDtoV1.builder()
                 .auctionId(auction.getAuctionId())
                 .userId(auction.getCreatedBy()) // 경매 등록자에게 알림
                 .alertType(AlertType.BID)
