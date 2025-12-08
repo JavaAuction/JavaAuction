@@ -6,12 +6,9 @@ import com.javaauction.user.application.dto.ReqSignupDto;
 import com.javaauction.user.application.dto.ReqUpdateDto;
 import com.javaauction.user.application.service.UserServiceV1;
 import com.javaauction.user.infrastructure.JWT.JwtUserContext;
-import com.javaauction.user.infrastructure.external.dto.GetReviewIntDto;
+import com.javaauction.user.infrastructure.external.dto.ResInternalBidsDto;
 import com.javaauction.user.presentation.advice.UserSuccessCode;
-import com.javaauction.user.presentation.dto.ResGetAllDto;
-import com.javaauction.user.presentation.dto.ResGetMyInfoDto;
-import com.javaauction.user.presentation.dto.ResGetUserAdminDto;
-import com.javaauction.user.presentation.dto.ResLoginDto;
+import com.javaauction.user.presentation.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -79,6 +76,11 @@ public class UserControllerV1 {
         userService.deleteUser(userId, JwtUserContext.getUsernameFromHeader(), JwtUserContext.getRoleFromHeader());
 
         return ResponseEntity.ok(ApiResponse.success(UserSuccessCode.USER_DELETED));
+    }
+
+    @GetMapping("/users/me/bids")
+    public ResponseEntity<ApiResponse<ResInternalBidsDto>> getMyBids(){
+        return userService.getUserBids(JwtUserContext.getUsernameFromHeader(), JwtUserContext.getRoleFromHeader());
     }
 
 }
