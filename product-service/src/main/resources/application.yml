@@ -24,3 +24,10 @@ eureka:
       defaultZone: http://localhost:19090/eureka/
     register-with-eureka: true
     fetch-registry: true
+
+aws:
+  s3:
+    bucket: java-auction-bucket
+    region: ap-northeast-2
+    access-key: ${AWS_ACCESS_KEY}
+    secret-key: ${AWS_SECRET_KEY}

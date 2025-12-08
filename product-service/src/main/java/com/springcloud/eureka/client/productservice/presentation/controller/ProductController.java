@@ -5,10 +5,10 @@ import com.javaauction.global.presentation.response.ApiResponse;
 import com.springcloud.eureka.client.productservice.application.service.ProductService;
 import com.springcloud.eureka.client.productservice.domain.enums.ProductStatus;
 import com.springcloud.eureka.client.productservice.presentation.dto.*;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 import java.util.UUID;
@@ -21,10 +21,12 @@ public class ProductController {
     private final ProductService productService;
 
     // 상품 등록
-    @PostMapping
-    public ResponseEntity<ApiResponse<RepProductDto>> createProduct(@Valid @RequestBody ReqProductCreateDto request, @RequestHeader("X-User-Username") String username) {
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<ApiResponse<RepProductDto>> createProduct(@RequestPart("request") ReqProductCreateDto request,
+                                                                    @RequestPart(value = "file", required = false) MultipartFile file,
+                                                                    @RequestHeader("X-User-Username") String username) {
 
-        RepProductDto response = productService.createProduct(username, request);
+        RepProductDto response = productService.createProduct(username, request, file);
 
         return ResponseEntity
                 .status(BaseSuccessCode.CREATED.getStatus())
@@ -65,13 +67,14 @@ public class ProductController {
     }
 
     // 상품 정보 수정
-    @PutMapping("/{productId}")
+    @PutMapping(value = "/{productId}", consumes = "multipart/form-data")
     public ResponseEntity<ApiResponse<RepProductDto>> updateProduct(
             @PathVariable UUID productId,
-            @RequestBody ReqProductUpdateDto request,
+            @RequestPart("request") ReqProductUpdateDto request,
+            @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestHeader("X-User-Username") String username
     ) {
-        RepProductDto response = productService.updateProduct(productId, request, username);
+        RepProductDto response = productService.updateProduct(productId, request,file, username);
         return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, response));
     }
 
