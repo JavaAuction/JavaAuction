@@ -61,7 +61,7 @@ public class ChatroomRepositoryImpl implements ChatroomRepository {
                                 .and(qChatting.createdAt.eq(latestChatCreatedAtSubQuery()))
                 )
                 .where(whereExpression(chatroomSearchParam, userId, role))
-                .orderBy(qChatroom.createdAt.desc())
+                .orderBy(qChatting.createdAt.desc().nullsLast(), qChatroom.createdAt.desc()) // 가장 최근에 채팅 올라온 순서
                 .offset(adjustedPageable.getOffset())
                 .limit(adjustedPageable.getPageSize());
 
@@ -97,7 +97,7 @@ public class ChatroomRepositoryImpl implements ChatroomRepository {
                 qChatroom.chatroomHost,
                 qChatroom.chatroomGuest,
                 qChatting.content,
-                qChatroom.createdAt
+                qChatting.createdAt
         );
     }
 

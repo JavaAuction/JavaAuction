@@ -127,23 +127,7 @@ public class BidService {
         try {
             paymentClient.deduct(req);
         } catch (FeignException.BadRequest e) {
-            handlePaymentError(e);
+            throw new BussinessException(BidErrorCode.BID_PAYMENT_ERROR);
         }
     }
-
-    private void handlePaymentError(FeignException.BadRequest e) {
-        String body = e.contentUTF8();
-
-        if (body.contains("WALLET_INSUFFICIENT_BALANCE"))
-            throw new BussinessException(BidErrorCode.BID_INSUFFICIENT_BALANCE);
-
-        if (body.contains("WALLET_TRANSACTION_HOLD_AMOUNT_NOT_HIGHER_THAN_PREVIOUS"))
-            throw new BussinessException(BidErrorCode.BID_PRICE_TOO_LOW);
-
-        if (body.contains("WALLET_MISSING_BID_ID"))
-            throw new BussinessException(BidErrorCode.BID_PAYMENT_ERROR);
-
-        throw new BussinessException(BidErrorCode.BID_PAYMENT_ERROR);
-    }
-
 }

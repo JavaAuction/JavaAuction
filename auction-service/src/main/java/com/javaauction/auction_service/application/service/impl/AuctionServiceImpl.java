@@ -13,7 +13,6 @@ import com.javaauction.auction_service.infrastructure.client.dto.ReqProductStatu
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
-import com.javaauction.auction_service.presentation.advice.BidErrorCode;
 import com.javaauction.auction_service.presentation.dto.request.ReqCreateAuctionDto;
 import com.javaauction.auction_service.presentation.dto.request.ReqUpdateAuctionDto;
 import com.javaauction.auction_service.presentation.dto.request.ReqUpdateStatusAuctionDto;
@@ -232,6 +231,13 @@ public class AuctionServiceImpl implements AuctionService {
 
         UUID tempBidId = UUID.randomUUID();
 
+        // 자금 precheck
+        try {
+            paymentClient.validateBalance(new ReqValidateDto(user, price));
+        } catch (FeignException e) {
+            throw new BussinessException(AuctionErrorCode.AUCTION_INSUFFICIENT_BALANCE);
+        }
+
         // 1) 자금 동결(HOLD)
         ReqDeductDto holdReq = ReqDeductDto.builder()
                 .userId(user)
@@ -244,7 +250,7 @@ public class AuctionServiceImpl implements AuctionService {
         try {
             paymentClient.deduct(holdReq);
         } catch (FeignException e) {
-            handlePaymentError(e);
+            throw new BussinessException(AuctionErrorCode.AUCTION_PAYMENT_ERROR);
         }
 
         // 2) 결제 확정(CAPTURE)
@@ -254,7 +260,7 @@ public class AuctionServiceImpl implements AuctionService {
         try {
             paymentClient.capture(captureReq);
         } catch (FeignException e) {
-            handlePaymentError(e);
+            throw new BussinessException(AuctionErrorCode.AUCTION_PAYMENT_ERROR);
         }
 
         // 3) 경매 상태 변경
@@ -304,21 +310,6 @@ public class AuctionServiceImpl implements AuctionService {
         Bid winningBid = bidRepository.findTopByAuctionIdOrderByBidPriceDesc(auctionId)
             .orElse(null);
 
-        ProductStatus status = null;
-
-        switch (auction.getStatus()) {
-            case IN_PROGRESS -> status = ProductStatus.AUCTION_RUNNING;
-            case SUCCESSFUL_BID -> status = ProductStatus.SOLD;
-            default -> status = ProductStatus.AUCTION_WAITING;
-        }
-
-        ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
-            .productStatus(status)
-            .finalPrice(auction.getCurrentPrice())
-            .build();
-
-        productFeignClient.updateProductStatus(auction.getProductId(), productReq,
-            auction.getSuccessfulBidder());
         if (winningBid == null) {
             auction.failBid();
 
@@ -332,10 +323,26 @@ public class AuctionServiceImpl implements AuctionService {
                 .build();
 
             alertFeignClient.createAlert(req);
+
+            ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
+                .productStatus(ProductStatus.AUCTION_WAITING)
+                .finalPrice(auction.getCurrentPrice())
+                .build();
+
+            productFeignClient.updateProductStatus(auction.getProductId(), productReq,
+                auction.getSuccessfulBidder());
             return;
         }
 
         auction.successBid(winningBid.getUserId(), winningBid.getBidPrice());
+
+        ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
+            .productStatus(ProductStatus.SOLD)
+            .finalPrice(auction.getCurrentPrice())
+            .build();
+
+        productFeignClient.updateProductStatus(auction.getProductId(), productReq,
+            auction.getSuccessfulBidder());
 
         String success = String.format("%s 의 경매가 %s 님에게 %s 원에 낙찰되었습니다.", auction.getProductName(),
             auction.getSuccessfulBidder(),
@@ -362,17 +369,5 @@ public class AuctionServiceImpl implements AuctionService {
 
         alertFeignClient.createAlert(successBidReq);
 
-    }
-
-    private void handlePaymentError(FeignException e) {
-        String body = e.contentUTF8();
-
-        if (body.contains("WALLET_INSUFFICIENT_BALANCE"))
-            throw new BussinessException(BidErrorCode.BID_INSUFFICIENT_BALANCE);
-
-        if (body.contains("WALLET_TRANSACTION_HOLD_NOT_FOUND"))
-            throw new BussinessException(BidErrorCode.BID_PAYMENT_ERROR);
-
-        throw new BussinessException(BidErrorCode.BID_PAYMENT_ERROR);
     }
 }
