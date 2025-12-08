@@ -8,6 +8,7 @@ import com.springcloud.eureka.client.productservice.domain.error.ProductErrorCod
 import com.springcloud.eureka.client.productservice.infrastructure.client.UserServiceClient;
 import com.springcloud.eureka.client.productservice.infrastructure.repository.ProductCategoryRepository;
 import com.springcloud.eureka.client.productservice.infrastructure.repository.ProductRepository;
+import com.springcloud.eureka.client.productservice.infrastructure.s3.S3ImageUploader;
 import com.springcloud.eureka.client.productservice.presentation.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -27,15 +29,21 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductCategoryRepository categoryRepository;
     private final UserServiceClient userServiceClient;
+    private final S3ImageUploader s3ImageUploader;
 
     // 상품 생성
-    public RepProductDto createProduct(String username, ReqProductCreateDto request){
+    public RepProductDto createProduct(String username, ReqProductCreateDto request, MultipartFile file){
         // 카테고리 조회
         ProductCategory category = categoryRepository.findByName(request.getCategoryName())
                 .orElseThrow(() -> new BussinessException(ProductErrorCode.CATEGORY_NOT_FOUND));
 
-        Product product = request.toEntity(username);
-        product.changeCategory(category);
+        // 이미지 업로드
+        String imageUrl = null;
+        if (file != null && !file.isEmpty()) {
+            imageUrl = s3ImageUploader.uploadProductImage(file);
+        }
+
+        Product product = request.toEntity(username, imageUrl, category);
         product.setCreate(Instant.now(), username);
         Product saved = productRepository.save(product);
         return RepProductDto.from(saved);
@@ -81,7 +89,7 @@ public class ProductService {
     }
 
     // 상품 정보 수정
-    public RepProductDto updateProduct(UUID productId, ReqProductUpdateDto request, String username) {
+    public RepProductDto updateProduct(UUID productId, ReqProductUpdateDto request, MultipartFile file, String username) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
 
@@ -91,8 +99,15 @@ public class ProductService {
         if (request.getDescription() != null) {
             product.changeDescription(request.getDescription());
         }
-        if (request.getImageUrl() != null) {
-            product.changeImageUrl(request.getImageUrl());
+        if (request.getCategoryName() != null) {
+            ProductCategory category = categoryRepository.findByName(request.getCategoryName())
+                    .orElseThrow(() -> new BussinessException(ProductErrorCode.CATEGORY_NOT_FOUND));
+            product.changeCategory(category);
+        }
+        // 새 이미지가 온 경우에만 교체
+        if (file != null && !file.isEmpty()) {
+            String newImageUrl = s3ImageUploader.uploadProductImage(file);
+            product.changeImageUrl(newImageUrl);
         }
 
         product.setUpdated(Instant.now(), username);
