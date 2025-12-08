@@ -106,11 +106,19 @@ public class WalletTransactionRepositoryImpl implements WalletTransactionReposit
     }
 
     @Override
+    public Optional<WalletTransaction> findByAuctionIdAndTransactionType(UUID auctionId, TransactionType transactionType) {
+        Optional<WalletTransactionEntity> walletTransactionEntity =
+                walletTransactionJpaRepository.findByAuctionIdAndTransactionType(auctionId, transactionType);
+
+        return walletTransactionEntity.map(walletTransactionMapper::toDomain);
+    }
+
+    @Override
     public Optional<WalletTransaction> findByAuctionIdAndTransactionTypeAndHoldStatus(
             UUID auctionId, TransactionType transactionType, HoldStatus holdStatus
     ) {
-        Optional<WalletTransactionEntity> walletTransactionEntity = walletTransactionJpaRepository.findByAuctionIdAndTransactionTypeAndHoldStatus(
-                auctionId, transactionType, holdStatus);
+        Optional<WalletTransactionEntity> walletTransactionEntity =
+                walletTransactionJpaRepository.findByAuctionIdAndTransactionTypeAndHoldStatus(auctionId, transactionType, holdStatus);
 
         return walletTransactionEntity.map(walletTransactionMapper::toDomain);
     }

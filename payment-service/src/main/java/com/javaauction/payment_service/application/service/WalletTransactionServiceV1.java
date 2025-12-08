@@ -21,8 +21,7 @@ import java.util.UUID;
 
 import static com.javaauction.payment_service.domain.enums.HoldStatus.HOLD_ACTIVE;
 import static com.javaauction.payment_service.domain.enums.HoldStatus.HOLD_CAPTURED;
-import static com.javaauction.payment_service.domain.enums.TransactionType.HOLD;
-import static com.javaauction.payment_service.domain.enums.TransactionType.SELLER_PROCEED;
+import static com.javaauction.payment_service.domain.enums.TransactionType.*;
 import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.*;
 
 @Service
@@ -57,27 +56,59 @@ public class WalletTransactionServiceV1 {
     @Transactional
     public void settle(ReqSettleDto request) {
 
+        TransactionType transactionType = request.getTransactionType();
+
+        switch (transactionType) {
+            case PAYMENT -> settlePayment(request);
+
+            case HOLD -> settleHold(request);
+
+            default -> throw new PaymentException(WALLET_INVALID_TRANSACTION_TYPE);
+        }
+    }
+
+    private void settlePayment(ReqSettleDto request) {
+
+        WalletTransaction payment = walletTransactionRepository
+                .findByAuctionIdAndTransactionType(request.getAuctionId(), PAYMENT)
+                .orElseThrow(() -> new PaymentException(WALLET_TRANSACTION_PAYMENT_NOT_FOUND));
+
+        verifyAmountAndBuyer(payment, request.getBuyerId(), request.getAmount());
+
+        settleSellerProceeds(request.getSellerId(), payment, request.getAuctionId());
+    }
+
+    private void settleHold(ReqSettleDto request) {
+
         WalletTransaction hold = walletTransactionRepository
                 .findByAuctionIdAndTransactionTypeAndHoldStatus(request.getAuctionId(), HOLD, HOLD_ACTIVE)
                 .orElseThrow(() -> new PaymentException(WALLET_TRANSACTION_HOLD_NOT_FOUND));
 
-        if (!Objects.equals(hold.getAmount(), request.getAmount()))
-            throw new PaymentException(WALLET_TRANSACTION_AMOUNT_MISMATCH);
-
-        Wallet buyerWallet = walletRepository.findById(hold.getWalletId())
-                .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
-
-        if (!buyerWallet.getUserId().equals(request.getBuyerId()))
-            throw new PaymentException(WALLET_BUYER_MISMATCH);
+        verifyAmountAndBuyer(hold, request.getBuyerId(), request.getAmount());
 
         WalletTransaction captured = hold.withHoldStatus(HOLD_CAPTURED);
         walletTransactionRepository.save(captured);
 
-        Wallet sellerWallet = walletRepository.findByUserId(request.getSellerId())
+        settleSellerProceeds(request.getSellerId(), hold, request.getAuctionId());
+    }
+
+    private void verifyAmountAndBuyer(WalletTransaction walletTransaction, String buyerId, Long amount) {
+        if (!Objects.equals(walletTransaction.getAmount(), amount))
+            throw new PaymentException(WALLET_TRANSACTION_AMOUNT_MISMATCH);
+
+        Wallet buyerWallet = walletRepository.findById(walletTransaction.getWalletId())
+                .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
+
+        if (!buyerWallet.getUserId().equals(buyerId))
+            throw new PaymentException(WALLET_BUYER_MISMATCH);
+    }
+
+    private void settleSellerProceeds(String sellerId, WalletTransaction walletTransaction, UUID auctionId) {
+        Wallet sellerWallet = walletRepository.findByUserId(sellerId)
                 .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
 
         long sellerBeforeAmount = sellerWallet.getBalance();
-        long sellerNetAmount = feeCalculator.calculateNetAmount(hold.getAmount());
+        long sellerNetAmount = feeCalculator.calculateNetAmount(walletTransaction.getAmount());
 
         Wallet settled = sellerWallet.withBalance(sellerBeforeAmount + sellerNetAmount);
         walletRepository.save(settled);
@@ -87,7 +118,7 @@ public class WalletTransactionServiceV1 {
                         .walletId(settled.getId())
                         .amount(sellerNetAmount)
                         .transactionType(SELLER_PROCEED)
-                        .auctionId(request.getAuctionId())
+                        .auctionId(auctionId)
                         .build()
         );
     }

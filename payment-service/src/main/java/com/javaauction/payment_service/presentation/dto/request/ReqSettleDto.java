@@ -1,5 +1,6 @@
 package com.javaauction.payment_service.presentation.dto.request;
 
+import com.javaauction.payment_service.domain.enums.TransactionType;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,6 +12,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReqSettleDto {
+
+    @NotNull
+    private TransactionType transactionType;
 
     @NotNull
     private String buyerId;

@@ -20,7 +20,8 @@ public enum PaymentErrorCode implements ResponseCode {
     WALLET_TRANSACTION_HOLD_AMOUNT_NOT_HIGHER_THAN_PREVIOUS(HttpStatus.BAD_REQUEST, "PAYMENT-008", "상회 입찰 금액이 기존 입찰금보다 높아야 합니다."),
     WALLET_OWNER_MISMATCH(HttpStatus.FORBIDDEN, "PAYMENT-009", "지갑 소유주가 일치하지 않습니다."),
     WALLET_TRANSACTION_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "PAYMENT-010", "구매가 또는 낙찰가가 일치하지 않습니다."),
-    WALLET_BUYER_MISMATCH(HttpStatus.FORBIDDEN, "PAYMENT-011", "경매 입찰자가 일치하지 않습니다.")
+    WALLET_BUYER_MISMATCH(HttpStatus.FORBIDDEN, "PAYMENT-011", "경매 입찰자가 일치하지 않습니다."),
+    WALLET_TRANSACTION_PAYMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "PAYMENT-012", "즉시 구매 정보가 존재하지 않습니다."),
     ;
 
     private final HttpStatus status;
