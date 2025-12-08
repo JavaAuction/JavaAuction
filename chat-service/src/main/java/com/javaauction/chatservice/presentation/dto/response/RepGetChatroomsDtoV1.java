@@ -20,16 +20,16 @@ public class RepGetChatroomsDtoV1 {
     @JsonFormat(shape = JsonFormat.Shape.STRING,
             pattern = "yyyy-MM-dd HH:mm:ss",
             timezone = "Asia/Seoul")
-    private Instant createdAt;
+    private Instant lastMessageAt;
 
     @QueryProjection
-    public RepGetChatroomsDtoV1(UUID chatroomId, UUID productId, String chatroomHost, String chatroomGuest, String lastMessage, Instant createdAt) {
+    public RepGetChatroomsDtoV1(UUID chatroomId, UUID productId, String chatroomHost, String chatroomGuest, String lastMessage, Instant lastMessageAt) {
         this.chatroomId = chatroomId;
         this.productId = productId;
         this.chatroomHost = chatroomHost;
         this.chatroomGuest = chatroomGuest;
         this.lastMessage = lastMessage;
-        this.createdAt = createdAt;
+        this.lastMessageAt = lastMessageAt;
     }
 
 }
