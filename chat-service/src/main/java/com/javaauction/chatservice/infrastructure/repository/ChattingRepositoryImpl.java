@@ -111,7 +111,7 @@ public class ChattingRepositoryImpl implements ChattingRepository {
             userCondition.or(qChatting.receiverId.eq(userId));
 
             booleanBuilder
-                    .and(qChatroom.deletedAt.isNull())
+                    .and(qChatting.deletedAt.isNull())
                     .and(userCondition);
         }
 
