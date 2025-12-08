@@ -22,5 +22,5 @@ public class ReqSettleDto {
     private UUID auctionId;
 
     @NotNull
-    private Long winningPrice;
+    private Long amount;
 }

@@ -61,8 +61,8 @@ public class WalletTransactionServiceV1 {
                 .findByAuctionIdAndTransactionTypeAndHoldStatus(request.getAuctionId(), HOLD, HOLD_ACTIVE)
                 .orElseThrow(() -> new PaymentException(WALLET_TRANSACTION_HOLD_NOT_FOUND));
 
-        if (!Objects.equals(hold.getAmount(), request.getWinningPrice()))
-            throw new PaymentException(WALLET_TRANSACTION_WINNING_BID_PRICE_MISMATCH);
+        if (!Objects.equals(hold.getAmount(), request.getAmount()))
+            throw new PaymentException(WALLET_TRANSACTION_AMOUNT_MISMATCH);
 
         Wallet buyerWallet = walletRepository.findById(hold.getWalletId())
                 .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
