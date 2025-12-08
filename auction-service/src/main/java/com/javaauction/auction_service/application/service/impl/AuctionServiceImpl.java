@@ -13,7 +13,6 @@ import com.javaauction.auction_service.infrastructure.client.dto.ReqProductStatu
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
-import com.javaauction.auction_service.presentation.advice.BidErrorCode;
 import com.javaauction.auction_service.presentation.dto.request.ReqCreateAuctionDto;
 import com.javaauction.auction_service.presentation.dto.request.ReqUpdateAuctionDto;
 import com.javaauction.auction_service.presentation.dto.request.ReqUpdateStatusAuctionDto;
@@ -232,6 +231,13 @@ public class AuctionServiceImpl implements AuctionService {
 
         UUID tempBidId = UUID.randomUUID();
 
+        // 자금 precheck
+        try {
+            paymentClient.validateBalance(new ReqValidateDto(user, price));
+        } catch (FeignException e) {
+            throw new BussinessException(AuctionErrorCode.AUCTION_INSUFFICIENT_BALANCE);
+        }
+
         // 1) 자금 동결(HOLD)
         ReqDeductDto holdReq = ReqDeductDto.builder()
                 .userId(user)
@@ -244,7 +250,7 @@ public class AuctionServiceImpl implements AuctionService {
         try {
             paymentClient.deduct(holdReq);
         } catch (FeignException e) {
-            handlePaymentError(e);
+            throw new BussinessException(AuctionErrorCode.AUCTION_PAYMENT_ERROR);
         }
 
         // 2) 결제 확정(CAPTURE)
@@ -254,7 +260,7 @@ public class AuctionServiceImpl implements AuctionService {
         try {
             paymentClient.capture(captureReq);
         } catch (FeignException e) {
-            handlePaymentError(e);
+            throw new BussinessException(AuctionErrorCode.AUCTION_PAYMENT_ERROR);
         }
 
         // 3) 경매 상태 변경
@@ -362,17 +368,5 @@ public class AuctionServiceImpl implements AuctionService {
 
         alertFeignClient.createAlert(successBidReq);
 
-    }
-
-    private void handlePaymentError(FeignException e) {
-        String body = e.contentUTF8();
-
-        if (body.contains("WALLET_INSUFFICIENT_BALANCE"))
-            throw new BussinessException(BidErrorCode.BID_INSUFFICIENT_BALANCE);
-
-        if (body.contains("WALLET_TRANSACTION_HOLD_NOT_FOUND"))
-            throw new BussinessException(BidErrorCode.BID_PAYMENT_ERROR);
-
-        throw new BussinessException(BidErrorCode.BID_PAYMENT_ERROR);
     }
 }
