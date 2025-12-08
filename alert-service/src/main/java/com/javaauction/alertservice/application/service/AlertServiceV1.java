@@ -75,7 +75,7 @@ public class AlertServiceV1 {
 
         // 권한 체크
         if (!hasPermission(userId, role, alert)) {
-            throw new BussinessException(AlertErrorCode.ALERT_UNAUTH);
+            throw new BussinessException(AlertErrorCode.ALERT_FORBIDDEN);
         }
 
         alert.alertRead();
@@ -89,6 +89,11 @@ public class AlertServiceV1 {
     @Transactional
     public RepDeleteAlertsDtoV1 deleteAlerts(ReqDeleteAlertsDtoV1 request, String userId, String role) {
 
+        // 요청이 비어있을때
+        if (request.getAlertIds() == null || request.getAlertIds().isEmpty()) {
+            throw new BussinessException(AlertErrorCode.ALERT_DELETE_IDS_EMPTY);
+        }
+
         // 삭제 대상 조회
         List<Alert> alerts = alertRepository.findAllByAlertIdInAndDeletedAtIsNull(request.getAlertIds());
 
@@ -100,7 +105,7 @@ public class AlertServiceV1 {
         // 권한 체크
         alerts.forEach(alert -> {
             if (!hasPermission(userId, role, alert)) {
-                throw new BussinessException(AlertErrorCode.ALERT_UNAUTH);
+                throw new BussinessException(AlertErrorCode.ALERT_FORBIDDEN);
             }
 
             alert.softDelete(Instant.now(), userId);
@@ -110,11 +115,6 @@ public class AlertServiceV1 {
         List<UUID> deletedIds = alerts.stream()
                 .map(Alert::getAlertId)
                 .toList();
-
-        // 메시지 생성
-        String message = deletedIds.isEmpty()
-                ? "삭제할 알림을 찾을 수 없습니다."
-                : deletedIds.size() + "건의 알림이 삭제되었습니다.";
 
         return RepDeleteAlertsDtoV1.of(deletedIds);
     }
