@@ -64,13 +64,7 @@ public class ChatServiceV1 {
 
         chatroomRepository.save(chatroom);
 
-        return RepPostChatroomsDtoV1.builder()
-                .chatroomId(chatroom.getChatroomId())
-                .productId(chatroom.getProductId())
-                .chatroomHost(chatroom.getChatroomHost())
-                .chatroomGuest(chatroom.getChatroomGuest())
-                .createdAt(chatroom.getCreatedAt())
-                .build();
+        return RepPostChatroomsDtoV1.from(chatroom);
 
     }
 
@@ -83,7 +77,7 @@ public class ChatServiceV1 {
 
         // 자신이 소속된 채팅방인지 확인
         if (!(chatroom.getChatroomHost().equals(userId) || chatroom.getChatroomGuest().equals(userId))) {
-            throw new BussinessException(ChatErrorCode.CHAT_UNAUTH);
+            throw new BussinessException(ChatErrorCode.CHATROOM_ACCESS_DENIED);
         }
 
         // 자기 자신과 채팅할 수 없음
@@ -107,15 +101,7 @@ public class ChatServiceV1 {
 
         chattingRepository.save(chatting);
 
-        return RepPostChatsDtoV1.builder()
-                .chattingId(chatting.getChattingId())
-                .chatroomId(chatting.getChatroom().getChatroomId())
-                .senderId(chatting.getSenderId())
-                .receiverId(chatting.getReceiverId())
-                .content(chatting.getContent())
-                .isRead(chatting.getIsRead())
-                .createdAt(chatting.getCreatedAt())
-                .build();
+        return RepPostChatsDtoV1.from(chatting);
 
     }
 
@@ -135,7 +121,7 @@ public class ChatServiceV1 {
 
         // 일반 회원은 자신이 소속된 채팅방인지 확인
         if (role.equals("USER") && !(chatroom.getChatroomHost().equals(userId) || chatroom.getChatroomGuest().equals(userId))) {
-            throw new BussinessException(ChatErrorCode.CHAT_UNAUTH);
+            throw new BussinessException(ChatErrorCode.CHATROOM_ACCESS_DENIED);
         }
 
         Page<RepGetChatsDtoV1> page = chattingRepository.findChattingPage(chatroomId, chattingSearchParam, pageable, userId, role);
@@ -152,7 +138,7 @@ public class ChatServiceV1 {
 
         // 자신이 소속된 채팅방인지 확인
         if (!(chatroom.getChatroomHost().equals(receiverId) || chatroom.getChatroomGuest().equals(receiverId))) {
-            throw new BussinessException(ChatErrorCode.CHAT_UNAUTH);
+            throw new BussinessException(ChatErrorCode.CHATROOM_ACCESS_DENIED);
         }
 
         // 읽지 않은 채팅 목록 조회
@@ -169,6 +155,4 @@ public class ChatServiceV1 {
                 .message(unreadChatIds.size() + "건의 읽지 않은 채팅이 읽음 처리 되었습니다.")
                 .build();
     }
-
-
 }

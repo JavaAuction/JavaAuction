@@ -16,7 +16,7 @@ public class Chatting extends BaseEntity {
     @Column(name = "chatting_id", nullable = false)
     private UUID chattingId;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chatroom_id", referencedColumnName = "chatroom_id", nullable = false)
     private Chatroom chatroom;
 
