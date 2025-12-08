@@ -15,6 +15,8 @@ public enum BidErrorCode implements ResponseCode {
     BID_ADMIN_NOT_ALLOWED("BID005","관리자는 입찰 불가능합니다.", HttpStatus.FORBIDDEN),
     BID_INSUFFICIENT_BALANCE("BID006", "잔액이 부족하여 입찰할 수 없습니다.", HttpStatus.BAD_REQUEST),
     BID_SAME_USER_CONSECUTIVE_NOT_ALLOWED("BID007", "연속으로 입찰할 수 없습니다.",  HttpStatus.BAD_REQUEST),
+    BID_FORBIDDEN("BID008", "본인 상품에 입찰할 수 없습니다.", HttpStatus.FORBIDDEN),
+    BID_PAYMENT_ERROR("BID009", "결제 중 오류가 발생했습니다.", HttpStatus.BAD_REQUEST),
     ;
 
     private final String code;

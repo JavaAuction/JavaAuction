@@ -1,13 +1,13 @@
 package com.javaauction.chatservice.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.javaauction.chatservice.domain.entity.Chatroom;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -15,12 +15,24 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RepPostChatroomsDtoV1 {
+
     private UUID chatroomId;
     private UUID productId;
     private String chatroomHost;
     private String chatroomGuest;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING,
             pattern = "yyyy-MM-dd HH:mm:ss",
             timezone = "Asia/Seoul")
     private Instant createdAt;
+
+    public static RepPostChatroomsDtoV1 from(Chatroom chatroom) {
+        return RepPostChatroomsDtoV1.builder()
+                .chatroomId(chatroom.getChatroomId())
+                .productId(chatroom.getProductId())
+                .chatroomHost(chatroom.getChatroomHost())
+                .chatroomGuest(chatroom.getChatroomGuest())
+                .createdAt(chatroom.getCreatedAt())
+                .build();
+    }
 }

@@ -13,9 +13,11 @@ import com.javaauction.user.domain.repository.AddressRepository;
 import com.javaauction.user.domain.repository.UserRepository;
 import com.javaauction.user.infrastructure.JWT.JwtUserContext;
 import com.javaauction.user.infrastructure.JWT.JwtUtil;
+import com.javaauction.user.infrastructure.external.client.PaymentServiceClient;
 import com.javaauction.user.infrastructure.external.client.AuctionServiceClient;
 import com.javaauction.user.infrastructure.external.client.ReviewServiceClient;
 import com.javaauction.user.infrastructure.external.dto.GetReviewIntDto;
+import com.javaauction.user.infrastructure.external.dto.ReqCreateWalletDto;
 import com.javaauction.user.infrastructure.external.dto.ResInternalBidsDto;
 import com.javaauction.user.presentation.advice.UserErrorCode;
 import com.javaauction.user.presentation.dto.*;
@@ -48,6 +50,7 @@ public class UserServiceV1 {
     private final AuthenticationManager authenticationManager;
     private final AddressRepository addressRepository;
     private final ReviewServiceClient reviewServiceClient;
+    private final PaymentServiceClient paymentServiceClient;
     private final AuctionServiceClient auctionServiceClient;
 
     public void signup(ReqSignupDto dto) {
@@ -72,6 +75,10 @@ public class UserServiceV1 {
                 .build();
 
         user.setCreate(Instant.now(), JwtUserContext.getUsernameFromHeader());
+
+
+
+        paymentServiceClient.create(ReqCreateWalletDto.builder().userId(user.getUsername()).build());
         userRepository.save(user);
     }
 

@@ -127,7 +127,7 @@ public class BidService {
         try {
             paymentClient.deduct(req);
         } catch (FeignException.BadRequest e) {
-            throw new BussinessException(BidErrorCode.BID_INSUFFICIENT_BALANCE);
+            throw new BussinessException(BidErrorCode.BID_PAYMENT_ERROR);
         }
     }
 }

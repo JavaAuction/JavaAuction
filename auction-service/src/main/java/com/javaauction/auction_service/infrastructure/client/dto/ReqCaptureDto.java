@@ -1,19 +1,18 @@
 package com.javaauction.auction_service.infrastructure.client.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Getter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReqAlertDto {
+public class ReqCaptureDto {
+
+    @NotNull
     private UUID auctionId;
-    private String userId;
-    private AlertType alertType;
-    private String content;
 }
+

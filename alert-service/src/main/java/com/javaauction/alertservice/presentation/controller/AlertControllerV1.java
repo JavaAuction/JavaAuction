@@ -55,7 +55,7 @@ public class AlertControllerV1 {
     }
 
     // 알림 읽음 처리
-    @PostMapping("/{alertId}/read")
+    @PatchMapping("/{alertId}/read")
     public ResponseEntity<ApiResponse<RepPostAlertsReadDtoV1>> readAlert(@PathVariable UUID alertId,
                                                                          @RequestHeader("X-User-Username") String username,
                                                                          @RequestHeader("X-User-Role") String role) {

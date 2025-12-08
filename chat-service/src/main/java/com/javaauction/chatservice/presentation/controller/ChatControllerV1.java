@@ -48,7 +48,7 @@ public class ChatControllerV1 {
             @RequestParam(required = false) UUID productId,
             @RequestParam(required = false) String chatroomHost,
             @RequestParam(required = false) String chatroomGuest,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @PageableDefault(size = 10) Pageable pageable,
             @RequestHeader("X-User-Username") String username,
             @RequestHeader("X-User-Role") String role
     ) {
