@@ -1,7 +1,8 @@
 package com.javaauction.auction_service.infrastructure.config.check;
 
+import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
+import com.javaauction.global.presentation.exception.BussinessException;
 import jakarta.servlet.http.HttpServletRequest;
-import java.nio.file.AccessDeniedException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -26,7 +27,7 @@ public class AdminOnlyAspect {
         String role = request.getHeader("X-User-Role");
 
         if (role == null || !role.equalsIgnoreCase("ADMIN")) {
-            throw new AccessDeniedException("관리자 권한이 필요합니다.");
+            throw new BussinessException(AuctionErrorCode.AUCTION_FORBIDDEN_ERROR);
         }
 
         return joinPoint.proceed();

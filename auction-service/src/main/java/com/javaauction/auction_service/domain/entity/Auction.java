@@ -100,7 +100,7 @@ public class Auction extends BaseEntity {
 
     public void failBid() {
         this.successfulBidder = null;
-        this.currentPrice = null;
+        this.currentPrice = 0L;
         this.status = AuctionStatus.FAIL_BID;
     }
 
