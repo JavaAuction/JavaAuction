@@ -4,6 +4,8 @@ import com.javaauction.auction_service.infrastructure.client.dto.ReqCaptureDto;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqDeductDto;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqValidateDto;
 import com.javaauction.global.presentation.response.ApiResponse;
+import com.javaauction.payment_service.presentation.dto.request.ReqSettleDto;
+import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,5 +21,8 @@ public interface PaymentClient {
 
     @PostMapping("/internal/wallets/transactions/capture")
     ApiResponse<?> capture(@RequestBody ReqCaptureDto request);
+
+    @PostMapping("/internal/wallets/transactions/settlement")
+    void settle(@Valid @RequestBody ReqSettleDto request);
 }
 

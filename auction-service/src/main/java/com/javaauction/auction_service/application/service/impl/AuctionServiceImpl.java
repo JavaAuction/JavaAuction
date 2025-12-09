@@ -8,8 +8,14 @@ import com.javaauction.auction_service.infrastructure.client.AlertFeignClient;
 import com.javaauction.auction_service.infrastructure.client.PaymentClient;
 import com.javaauction.auction_service.infrastructure.client.ProductFeignClient;
 import com.javaauction.auction_service.infrastructure.client.RepProductDto;
-import com.javaauction.auction_service.infrastructure.client.dto.*;
+import com.javaauction.auction_service.infrastructure.client.dto.AlertType;
+import com.javaauction.auction_service.infrastructure.client.dto.DeductType;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqCaptureDto;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqDeductDto;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqPostInternalAlertsDtoV1;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqProductStatusUpdateDto;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqProductStatusUpdateDto.ProductStatus;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqValidateDto;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
@@ -21,17 +27,18 @@ import com.javaauction.auction_service.presentation.dto.response.ResCreatedAucti
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionsDto;
 import com.javaauction.global.presentation.exception.BussinessException;
+import com.javaauction.payment_service.domain.enums.TransactionType;
+import com.javaauction.payment_service.presentation.dto.request.ReqSettleDto;
 import feign.FeignException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -213,19 +220,23 @@ public class AuctionServiceImpl implements AuctionService {
     public ResBuyNowDto buyNow(UUID auctionId, String user) {
 
         Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
-                .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
+            .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
 
-        if (auction.getStatus() == AuctionStatus.PENDING)
+        if (auction.getStatus() == AuctionStatus.PENDING) {
             throw new BussinessException(AuctionErrorCode.AUCTION_PENDING);
+        }
 
-        if (auction.getStatus() == AuctionStatus.SUCCESSFUL_BID)
+        if (auction.getStatus() == AuctionStatus.SUCCESSFUL_BID) {
             throw new BussinessException(AuctionErrorCode.AUCTION_SUCCESSFUL_BID);
+        }
 
-        if (!auction.getBuyNowEnable())
+        if (!auction.getBuyNowEnable()) {
             throw new BussinessException(AuctionErrorCode.AUCTION_BUY_NOW_NOT_AVAILABLE);
+        }
 
-        if (user.equals(auction.getUserId()))
+        if (user.equals(auction.getUserId())) {
             throw new BussinessException(AuctionErrorCode.AUCTION_BUY_NOW_FORBIDDEN);
+        }
 
         long price = auction.getBuyNowPrice();
 
@@ -240,12 +251,12 @@ public class AuctionServiceImpl implements AuctionService {
 
         // 1) 자금 동결(HOLD)
         ReqDeductDto holdReq = ReqDeductDto.builder()
-                .userId(user)
-                .transactionType(DeductType.HOLD)
-                .deductAmount(price)
-                .auctionId(auctionId)
-                .bidId(tempBidId)
-                .build();
+            .userId(user)
+            .transactionType(DeductType.HOLD)
+            .deductAmount(price)
+            .auctionId(auctionId)
+            .bidId(tempBidId)
+            .build();
 
         try {
             paymentClient.deduct(holdReq);
@@ -268,28 +279,27 @@ public class AuctionServiceImpl implements AuctionService {
 
         // 4) 상품 상태 변경
         ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
-                .productStatus(ProductStatus.SOLD)
-                .finalPrice(price)
-                .build();
+            .productStatus(ProductStatus.SOLD)
+            .finalPrice(price)
+            .build();
 
         productFeignClient.updateProductStatus(
-                auction.getProductId(),
-                productReq,
-                user
+            auction.getProductId(),
+            productReq,
+            user
         );
 
         // 5) 알림 전송(판매자)
         alertFeignClient.createAlert(
-                ReqPostInternalAlertsDtoV1.builder()
-                        .auctionId(auctionId)
-                        .alertType(AlertType.SUCCESS)
-                        .userId(auction.getUserId())
-                        .content(String.format(
-                                "%s 상품이 %d원에 즉시 구매되었습니다.",
-                                auction.getProductName(), price))
-                        .build()
+            ReqPostInternalAlertsDtoV1.builder()
+                .auctionId(auctionId)
+                .alertType(AlertType.SUCCESS)
+                .userId(auction.getUserId())
+                .content(String.format(
+                    "%s 상품이 %d원에 즉시 구매되었습니다.",
+                    auction.getProductName(), price))
+                .build()
         );
-
 
         return ResBuyNowDto.builder()
             .auctionId(auctionId)
@@ -313,12 +323,10 @@ public class AuctionServiceImpl implements AuctionService {
         if (winningBid == null) {
             auction.failBid();
 
-            String fail = String.format("%s 의 경매가 유찰되었습니다.", auction.getProductName());
-
             ReqPostInternalAlertsDtoV1 req = ReqPostInternalAlertsDtoV1.builder()
                 .auctionId(auctionId)
                 .alertType(AlertType.FAIL)
-                .content(fail)
+                .content(String.format("%s 의 경매가 유찰되었습니다.", auction.getProductName()))
                 .userId(auction.getUserId())
                 .build();
 
@@ -344,26 +352,25 @@ public class AuctionServiceImpl implements AuctionService {
         productFeignClient.updateProductStatus(auction.getProductId(), productReq,
             auction.getSuccessfulBidder());
 
-        String success = String.format("%s 의 경매가 %s 님에게 %s 원에 낙찰되었습니다.", auction.getProductName(),
-            auction.getSuccessfulBidder(),
-            auction.getCurrentPrice());
+        paymentClient.settle(new ReqSettleDto(TransactionType.HOLD, auction.getSuccessfulBidder(),
+            auction.getUserId(), auction.getAuctionId(), auction.getCurrentPrice()));
 
         ReqPostInternalAlertsDtoV1 successReq = ReqPostInternalAlertsDtoV1.builder()
             .auctionId(auctionId)
             .alertType(AlertType.SUCCESS)
-            .content(success)
+            .content(String.format("%s 의 경매가 %s 님에게 %s 원에 낙찰되었습니다.", auction.getProductName(),
+                auction.getSuccessfulBidder(),
+                auction.getCurrentPrice()))
             .userId(auction.getUserId())
             .build();
 
         alertFeignClient.createAlert(successReq);
 
-        String success2 = String.format("%s 의 경매가 입찰하신 %s 원에 낙찰되었습니다.", auction.getProductName(),
-            auction.getCurrentPrice());
-
         ReqPostInternalAlertsDtoV1 successBidReq = ReqPostInternalAlertsDtoV1.builder()
             .auctionId(auctionId)
             .alertType(AlertType.SUCCESS)
-            .content(success2)
+            .content(String.format("%s 의 경매가 입찰하신 %s 원에 낙찰되었습니다.", auction.getProductName(),
+                auction.getCurrentPrice()))
             .userId(auction.getSuccessfulBidder())
             .build();
 
