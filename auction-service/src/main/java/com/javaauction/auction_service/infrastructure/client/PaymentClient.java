@@ -1,7 +1,7 @@
 package com.javaauction.auction_service.infrastructure.client;
 
-import com.javaauction.auction_service.infrastructure.client.dto.ReqCaptureDto;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqDeductDto;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqSettleDto;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqValidateDto;
 import com.javaauction.global.presentation.response.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -17,7 +17,7 @@ public interface PaymentClient {
     @PostMapping("/internal/wallets/deductions")
     ApiResponse<?> deduct(@RequestBody ReqDeductDto request);
 
-    @PostMapping("/internal/wallets/transactions/capture")
-    ApiResponse<?> capture(@RequestBody ReqCaptureDto request);
+    @PostMapping("/internal/wallets/transactions/settlement")
+    ApiResponse<?> settle(@RequestBody ReqSettleDto request);
 }
 

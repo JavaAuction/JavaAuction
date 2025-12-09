@@ -229,8 +229,6 @@ public class AuctionServiceImpl implements AuctionService {
 
         long price = auction.getBuyNowPrice();
 
-        UUID tempBidId = UUID.randomUUID();
-
         // 자금 precheck
         try {
             paymentClient.validateBalance(new ReqValidateDto(user, price));
@@ -241,10 +239,10 @@ public class AuctionServiceImpl implements AuctionService {
         // 1) 자금 동결(HOLD)
         ReqDeductDto holdReq = ReqDeductDto.builder()
                 .userId(user)
-                .transactionType(DeductType.HOLD)
+                .transactionType(DeductType.PAYMENT)
                 .deductAmount(price)
                 .auctionId(auctionId)
-                .bidId(tempBidId)
+                .bidId(null)
                 .build();
 
         try {
@@ -253,12 +251,18 @@ public class AuctionServiceImpl implements AuctionService {
             throw new BussinessException(AuctionErrorCode.AUCTION_PAYMENT_ERROR);
         }
 
-        // 2) 결제 확정(CAPTURE)
+        // 2) 결제 확정 Settlement
 
-        ReqCaptureDto captureReq = new ReqCaptureDto(auctionId);
+        ReqSettleDto settleReq = ReqSettleDto.builder()
+                .transactionType(TransactionType.PAYMENT)
+                .buyerId(user)
+                .sellerId(auction.getUserId())
+                .auctionId(auctionId)
+                .amount(price)
+                .build();
 
         try {
-            paymentClient.capture(captureReq);
+            paymentClient.settle(settleReq);
         } catch (FeignException e) {
             throw new BussinessException(AuctionErrorCode.AUCTION_PAYMENT_ERROR);
         }
