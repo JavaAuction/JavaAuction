@@ -1,24 +1,23 @@
 package com.javaauction.auction_service.infrastructure.client.dto;
 
 import jakarta.validation.constraints.NotNull;
-import java.util.UUID;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
+@Getter
 @Builder
-public record ReqSettleDto(
+@NoArgsConstructor
+@AllArgsConstructor
+public class ReqSettleDto {
 
-    @NotNull TransactionType transactionType,
-
-    @NotNull String buyerId,
-
-    @NotNull String sellerId,
-
-    @NotNull UUID auctionId,
-
-    @NotNull Long amount
-) {
-
-    public enum TransactionType {
-        CHARGE, WITHDRAWAL, PAYMENT, HOLD, SELLER_PROCEED
-    }
+    private TransactionType transactionType;
+    private String buyerId;
+    private String sellerId;
+    private UUID auctionId;
+    private Long amount;
 }
+
