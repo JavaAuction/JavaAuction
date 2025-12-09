@@ -28,8 +28,7 @@ public class AuctionAdminController {
     public ResponseEntity<ApiResponse<Void>> UpdateAuctionStatus(
         @PathVariable("auctionId") UUID id,
         @RequestBody ReqUpdateStatusAuctionDto req,
-        @RequestHeader("X-User-Username") String username,
-        @RequestHeader("X-User-Role") String role
+        @RequestHeader("X-User-Username") String username
     ) {
         auctionService.UpdateAuctionStatus(id, req, username);
 

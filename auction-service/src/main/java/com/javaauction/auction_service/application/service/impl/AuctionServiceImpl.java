@@ -15,6 +15,8 @@ import com.javaauction.auction_service.infrastructure.client.dto.ReqDeductDto;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqPostInternalAlertsDtoV1;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqProductStatusUpdateDto;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqProductStatusUpdateDto.ProductStatus;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqSettleDto;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqSettleDto.TransactionType;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqValidateDto;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
@@ -27,8 +29,6 @@ import com.javaauction.auction_service.presentation.dto.response.ResCreatedAucti
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetAuctionsDto;
 import com.javaauction.global.presentation.exception.BussinessException;
-import com.javaauction.payment_service.domain.enums.TransactionType;
-import com.javaauction.payment_service.presentation.dto.request.ReqSettleDto;
 import feign.FeignException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -352,8 +352,14 @@ public class AuctionServiceImpl implements AuctionService {
         productFeignClient.updateProductStatus(auction.getProductId(), productReq,
             auction.getSuccessfulBidder());
 
-        paymentClient.settle(new ReqSettleDto(TransactionType.HOLD, auction.getSuccessfulBidder(),
-            auction.getUserId(), auction.getAuctionId(), auction.getCurrentPrice()));
+        paymentClient.settle(ReqSettleDto.builder()
+            .transactionType(TransactionType.HOLD)
+            .sellerId(auction.getUserId())
+            .buyerId(auction.getSuccessfulBidder())
+            .auctionId(auction.getAuctionId())
+            .amount(auction.getCurrentPrice())
+            .build()
+        );
 
         ReqPostInternalAlertsDtoV1 successReq = ReqPostInternalAlertsDtoV1.builder()
             .auctionId(auctionId)
