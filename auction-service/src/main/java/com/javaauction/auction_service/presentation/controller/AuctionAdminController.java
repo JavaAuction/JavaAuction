@@ -1,6 +1,7 @@
 package com.javaauction.auction_service.presentation.controller;
 
 import com.javaauction.auction_service.application.service.AuctionService;
+import com.javaauction.auction_service.infrastructure.config.check.IsAdmin;
 import com.javaauction.auction_service.presentation.advice.AuctionSuccessCode;
 import com.javaauction.auction_service.presentation.dto.request.ReqUpdateStatusAuctionDto;
 import com.javaauction.global.presentation.response.ApiResponse;
@@ -22,6 +23,7 @@ public class AuctionAdminController {
 
     private final AuctionService auctionService;
 
+    @IsAdmin
     @PatchMapping("/{auctionId}/status")
     public ResponseEntity<ApiResponse<Void>> UpdateAuctionStatus(
         @PathVariable("auctionId") UUID id,
@@ -34,6 +36,7 @@ public class AuctionAdminController {
             ApiResponse.success(AuctionSuccessCode.AUCTION_STATUS_UPDATED));
     }
 
+    @IsAdmin
     @DeleteMapping("/{auctionId}")
     public ResponseEntity<ApiResponse<Void>> deleteAuction(
         @PathVariable("auctionId") UUID id,

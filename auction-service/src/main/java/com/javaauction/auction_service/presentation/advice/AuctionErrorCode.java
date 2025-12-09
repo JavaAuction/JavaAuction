@@ -17,7 +17,8 @@ public enum AuctionErrorCode implements ResponseCode {
     AUCTION_PRODUCT_FORBIDDEN("AUCTION009", "본인 상품만 경매를 열 수 있습니다.", HttpStatus.FORBIDDEN),
     AUCTION_BUY_NOW_FORBIDDEN("AUCTION010", "본인 상품은 구매할 수 없습니다.", HttpStatus.FORBIDDEN),
     AUCTION_INSUFFICIENT_BALANCE("AUCTION011", "잔액이 부족해 구매할 수 없습니다.", HttpStatus.FORBIDDEN),
-    AUCTION_PAYMENT_ERROR("AUCTION012", "결제 중 에러가 발생했습니다.", HttpStatus.BAD_REQUEST);
+    AUCTION_PAYMENT_ERROR("AUCTION012", "결제 중 에러가 발생했습니다.", HttpStatus.BAD_REQUEST),
+    AUCTION_FORBIDDEN_ERROR("AUCTION013", "관리자만 가능합니다.", HttpStatus.FORBIDDEN);
 
     private final String code;
     private final String message;

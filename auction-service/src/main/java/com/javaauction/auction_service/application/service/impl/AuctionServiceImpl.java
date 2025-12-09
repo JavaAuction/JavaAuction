@@ -251,7 +251,7 @@ public class AuctionServiceImpl implements AuctionService {
             throw new BussinessException(AuctionErrorCode.AUCTION_PAYMENT_ERROR);
         }
 
-        // 2) 결제 확정 Settlement
+        // 2) 결제 확정(CAPTURE)
 
         ReqSettleDto settleReq = ReqSettleDto.builder()
                 .transactionType(TransactionType.PAYMENT)
@@ -317,12 +317,10 @@ public class AuctionServiceImpl implements AuctionService {
         if (winningBid == null) {
             auction.failBid();
 
-            String fail = String.format("%s 의 경매가 유찰되었습니다.", auction.getProductName());
-
             ReqPostInternalAlertsDtoV1 req = ReqPostInternalAlertsDtoV1.builder()
                 .auctionId(auctionId)
                 .alertType(AlertType.FAIL)
-                .content(fail)
+                .content(String.format("%s 의 경매가 유찰되었습니다.", auction.getProductName()))
                 .userId(auction.getUserId())
                 .build();
 
@@ -348,26 +346,31 @@ public class AuctionServiceImpl implements AuctionService {
         productFeignClient.updateProductStatus(auction.getProductId(), productReq,
             auction.getSuccessfulBidder());
 
-        String success = String.format("%s 의 경매가 %s 님에게 %s 원에 낙찰되었습니다.", auction.getProductName(),
-            auction.getSuccessfulBidder(),
-            auction.getCurrentPrice());
+        paymentClient.settle(ReqSettleDto.builder()
+            .transactionType(TransactionType.HOLD)
+            .sellerId(auction.getUserId())
+            .buyerId(auction.getSuccessfulBidder())
+            .auctionId(auction.getAuctionId())
+            .amount(auction.getCurrentPrice())
+            .build()
+        );
 
         ReqPostInternalAlertsDtoV1 successReq = ReqPostInternalAlertsDtoV1.builder()
             .auctionId(auctionId)
             .alertType(AlertType.SUCCESS)
-            .content(success)
+            .content(String.format("%s 의 경매가 %s 님에게 %s 원에 낙찰되었습니다.", auction.getProductName(),
+                auction.getSuccessfulBidder(),
+                auction.getCurrentPrice()))
             .userId(auction.getUserId())
             .build();
 
         alertFeignClient.createAlert(successReq);
 
-        String success2 = String.format("%s 의 경매가 입찰하신 %s 원에 낙찰되었습니다.", auction.getProductName(),
-            auction.getCurrentPrice());
-
         ReqPostInternalAlertsDtoV1 successBidReq = ReqPostInternalAlertsDtoV1.builder()
             .auctionId(auctionId)
             .alertType(AlertType.SUCCESS)
-            .content(success2)
+            .content(String.format("%s 의 경매가 입찰하신 %s 원에 낙찰되었습니다.", auction.getProductName(),
+                auction.getCurrentPrice()))
             .userId(auction.getSuccessfulBidder())
             .build();
 
