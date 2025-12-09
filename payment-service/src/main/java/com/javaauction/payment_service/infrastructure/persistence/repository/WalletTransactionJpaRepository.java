@@ -10,6 +10,8 @@ import java.util.UUID;
 
 public interface WalletTransactionJpaRepository extends JpaRepository<WalletTransactionEntity, UUID> {
 
+    Optional<WalletTransactionEntity> findByAuctionIdAndTransactionType(UUID auctionId, TransactionType transactionType);
+
     Optional<WalletTransactionEntity> findByAuctionIdAndTransactionTypeAndHoldStatus(
             UUID auctionId, TransactionType transactionType, HoldStatus holdStatus
     );

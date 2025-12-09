@@ -1,5 +1,5 @@
 package com.javaauction.payment_service.domain.enums;
 
 public enum TransactionType {
-    CHARGE, WITHDRAW, PAYMENT, HOLD
+    CHARGE, WITHDRAWAL, PAYMENT, HOLD, SELLER_PROCEED
 }

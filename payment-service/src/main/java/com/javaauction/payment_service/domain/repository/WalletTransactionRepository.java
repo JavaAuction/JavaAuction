@@ -20,6 +20,8 @@ public interface WalletTransactionRepository {
 
     WalletTransaction findById(UUID transactionId);
 
+    Optional<WalletTransaction> findByAuctionIdAndTransactionType(UUID auctionId, TransactionType transactionType);
+
     Optional<WalletTransaction> findByAuctionIdAndTransactionTypeAndHoldStatus(
             UUID auctionId, TransactionType transactionType, HoldStatus holdStatus
     );
