@@ -14,9 +14,11 @@ import com.javaauction.user.domain.repository.UserRepository;
 import com.javaauction.user.infrastructure.JWT.JwtUserContext;
 import com.javaauction.user.infrastructure.JWT.JwtUtil;
 import com.javaauction.user.infrastructure.external.client.PaymentServiceClient;
+import com.javaauction.user.infrastructure.external.client.AuctionServiceClient;
 import com.javaauction.user.infrastructure.external.client.ReviewServiceClient;
 import com.javaauction.user.infrastructure.external.dto.GetReviewIntDto;
 import com.javaauction.user.infrastructure.external.dto.ReqCreateWalletDto;
+import com.javaauction.user.infrastructure.external.dto.ResInternalBidsDto;
 import com.javaauction.user.presentation.advice.UserErrorCode;
 import com.javaauction.user.presentation.dto.*;
 import jakarta.transaction.Transactional;
@@ -26,6 +28,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -48,6 +51,7 @@ public class UserServiceV1 {
     private final AddressRepository addressRepository;
     private final ReviewServiceClient reviewServiceClient;
     private final PaymentServiceClient paymentServiceClient;
+    private final AuctionServiceClient auctionServiceClient;
 
     public void signup(ReqSignupDto dto) {
 
@@ -180,6 +184,10 @@ public class UserServiceV1 {
         reviewServiceClient.deleteAllByUserId(userId);
         addressRepository.findByUser(user).forEach(addressEntity -> {addressEntity.softDelete(Instant.now(), JwtUserContext.getUsernameFromHeader());});
         user.softDelete(Instant.now(), requester);
+    }
+
+    public ResponseEntity<ApiResponse<ResInternalBidsDto>> getUserBids(String usernameFromHeader, String roleFromHeader) {
+        return auctionServiceClient.getBidsInternal(usernameFromHeader);
     }
 
     //internal api
