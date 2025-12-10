@@ -10,7 +10,15 @@ import java.util.UUID;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "p_alert")
+@Table(
+        name = "p_alert",
+        indexes = {
+                @Index(
+                        name = "idx_alert_userid_isread_createdat",
+                        columnList = "user_id, is_read, created_at DESC"
+                )
+        }
+)
 public class Alert extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -1,6 +1,5 @@
 package com.javaauction.alertservice.infrastructure.repository;
 
-import com.javaauction.alertservice.domain.entity.Alert;
 import com.javaauction.alertservice.presentation.dto.common.SearchParam;
 import com.javaauction.alertservice.presentation.dto.response.RepGetAlertsDtoV1;
 import org.springframework.data.domain.Page;

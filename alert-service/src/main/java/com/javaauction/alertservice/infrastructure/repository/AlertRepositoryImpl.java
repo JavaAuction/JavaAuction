@@ -18,7 +18,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.OrderSpecifier;
 
 import java.util.*;
