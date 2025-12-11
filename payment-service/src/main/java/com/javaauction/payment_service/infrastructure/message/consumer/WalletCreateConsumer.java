@@ -22,11 +22,11 @@ public class WalletCreateConsumer {
     private final WalletEventProducer walletEventProducer;
 
     @KafkaListener(
-            topics = "wallet.create.request",
+            topics = "wallet.create",
             groupId = "payment-service"
     )
     public void onMessage(WalletCreateRequestedEvent event) {
-        log.info("[WalletCreateRequestConsumer] wallet.create.request 이벤트 수신: {}", event);
+        log.info("[WalletCreateRequestConsumer] wallet.create 이벤트 수신: {}", event);
 
         try {
             // 1. 이벤트 -> DTO 변환
