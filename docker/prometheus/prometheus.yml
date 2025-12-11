@@ -1,0 +1,66 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'javaauction-monitor'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'user-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['host.docker.internal:19092']
+        labels:
+          service: 'user-service'
+          application: 'user-service'
+
+  - job_name: 'product-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'host.docker.internal:19093' ]
+        labels:
+          service: 'product-service'
+          application: 'product-service'
+
+  - job_name: 'auction-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'host.docker.internal:19094' ]
+        labels:
+          service: 'auction-service'
+          application: 'auction-service'
+
+  - job_name: 'payment-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'host.docker.internal:19095' ]
+        labels:
+          service: 'payment-service'
+          application: 'payment-service'
+
+  - job_name: 'chat-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'host.docker.internal:19096' ]
+        labels:
+          service: 'chat-service'
+          application: 'chat-service'
+
+  - job_name: 'alert-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'host.docker.internal:19097' ]
+        labels:
+          service: 'alert-service'
+          application: 'alert-service'
+
+  - job_name: 'review-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'host.docker.internal:19098' ]
+        labels:
+          service: 'review-service'
+          application: 'review-service'

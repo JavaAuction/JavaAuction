@@ -1,5 +1,6 @@
 package com.javaauction.user.presentation.dto;
 
+import com.javaauction.user.application.dto.CachedUserDto;
 import com.javaauction.user.domain.entity.UserEntity;
 import com.javaauction.user.infrastructure.external.dto.GetReviewIntDto;
 import lombok.AllArgsConstructor;
@@ -27,6 +28,14 @@ public class ResGetUserDto {
     }
 
     public static ResGetUserDto of(UserEntity user, Double rating, List<GetReviewIntDto> reviews){
+        return ResGetUserDto.builder()
+                .username(user.getUsername())
+                .rating(rating)
+                .reviews(reviews)
+                .build();
+    }
+
+    public static ResGetUserDto of(CachedUserDto user, Double rating, List<GetReviewIntDto> reviews){
         return ResGetUserDto.builder()
                 .username(user.getUsername())
                 .rating(rating)

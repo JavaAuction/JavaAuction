@@ -4,9 +4,7 @@ import com.javaauction.global.infrastructure.code.BaseErrorCode;
 import com.javaauction.global.infrastructure.code.BaseSuccessCode;
 import com.javaauction.global.presentation.exception.BussinessException;
 import com.javaauction.global.presentation.response.ApiResponse;
-import com.javaauction.user.application.dto.ReqLoginDto;
-import com.javaauction.user.application.dto.ReqSignupDto;
-import com.javaauction.user.application.dto.ReqUpdateDto;
+import com.javaauction.user.application.dto.*;
 import com.javaauction.user.domain.entity.AddressEntity;
 import com.javaauction.user.domain.entity.UserEntity;
 import com.javaauction.user.domain.repository.AddressRepository;
@@ -24,10 +22,8 @@ import com.javaauction.user.presentation.dto.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -52,6 +48,8 @@ public class UserServiceV1 {
     private final ReviewServiceClient reviewServiceClient;
     private final PaymentServiceClient paymentServiceClient;
     private final AuctionServiceClient auctionServiceClient;
+    private final UserCacheService userCacheService;
+
 
     public void signup(ReqSignupDto dto) {
 
@@ -76,9 +74,11 @@ public class UserServiceV1 {
 
         user.setCreate(Instant.now(), JwtUserContext.getUsernameFromHeader());
 
+        // 지갑 생성 (Payment-Service)
+        paymentServiceClient.create(
+                ReqCreateWalletDto.builder().userId(user.getUsername()).build()
+        );
 
-
-        paymentServiceClient.create(ReqCreateWalletDto.builder().userId(user.getUsername()).build());
         userRepository.save(user);
     }
 
@@ -107,9 +107,7 @@ public class UserServiceV1 {
 
     public Page<ResGetAllDto> getAllUsers(int page, int size, String sortBy, boolean isAsc, String role) {
 
-        if (!"ADMIN".equals(role)) {
-            throw new BussinessException(BaseErrorCode.ACCESS_DENIED);
-        }
+        if (!"ADMIN".equals(role)) throw new BussinessException(BaseErrorCode.ACCESS_DENIED);
 
         if (size != 10 && size != 30 && size != 50) size = 10;
         if (!"modifiedAt".equals(sortBy)) sortBy = "createdAt";
@@ -132,57 +130,62 @@ public class UserServiceV1 {
 
     public Object getUser(String userId, String requester, String role) {
 
-        UserEntity user = getUserWithValidation(userId);
-        ReviewInfo reviewInfo = getReviewInfo(userId);
-        String address = getAddressStringSafe(user.getAddress());
+        CachedUserDto cached = userCacheService.getCachedUserDto(userId);
 
-        // 자기 자신 조회
-        if (user.getUsername().equals(requester)) {
+        ReviewInfo reviewInfo = getReviewInfo(userId);
+
+        // 본인 조회
+        if (cached.getUsername().equals(requester)) {
             return ApiResponse.success(BaseSuccessCode.OK,
-                    ResGetMyInfoDto.of(user, address, reviewInfo.rating(), reviewInfo.reviews()));
+                    ResGetMyInfoDto.of(cached, reviewInfo.rating(), reviewInfo.reviews()));
         }
 
         // 관리자 조회
         if ("ADMIN".equals(role)) {
             return ApiResponse.success(BaseSuccessCode.OK,
-                    ResGetUserAdminDto.of(user, address, reviewInfo.rating(), reviewInfo.reviews()));
+                    ResGetUserAdminDto.of(cached, reviewInfo.rating(), reviewInfo.reviews()));
         }
 
-        // 일반유저 조회
+        // 일반 유저
         return ApiResponse.success(BaseSuccessCode.OK,
-                ResGetUserDto.of(user, reviewInfo.rating(), reviewInfo.reviews()));
+                ResGetUserDto.of(cached, reviewInfo.rating(), reviewInfo.reviews()));
     }
-
 
     public ResGetMyInfoDto getMyInfo(String username) {
 
-        UserEntity me = getUserWithValidation(username);
+        CachedUserDto cached = userCacheService.getCachedUserDto(username);
         ReviewInfo review = getReviewInfo(username);
-        String address = getAddressStringSafe(me.getAddress());
 
-        return ResGetMyInfoDto.of(me, address, review.rating(), review.reviews());
+        return ResGetMyInfoDto.of(cached, review.rating(), review.reviews());
     }
 
     @Transactional
+    @CacheEvict(value = "user", key = "'dto_' + #username")
     public void updateUser(ReqUpdateDto dto, String username) {
 
-        UserEntity me = userRepository.findByUsername(username)
+        UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
 
-        me.update(dto);
-        me.setUpdated(Instant.now(), username);
+        user.update(dto);
+        user.setUpdated(Instant.now(), username);
     }
 
     @Transactional
+    @CacheEvict(value = "user", key = "'dto_' + #userId")
     public void deleteUser(String userId, String requester, String role) {
 
         if (!userId.equals(requester) && !"ADMIN".equals(role)) {
             throw new BussinessException(BaseErrorCode.ACCESS_DENIED);
         }
 
-        UserEntity user = getUserWithValidation(userId);
+        UserEntity user = userRepository.findByUsername(userId)
+                .orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
+
         reviewServiceClient.deleteAllByUserId(userId);
-        addressRepository.findByUser(user).forEach(addressEntity -> {addressEntity.softDelete(Instant.now(), JwtUserContext.getUsernameFromHeader());});
+
+        addressRepository.findByUser(user)
+                .forEach(a -> a.softDelete(Instant.now(), requester));
+
         user.softDelete(Instant.now(), requester);
     }
 
@@ -192,17 +195,15 @@ public class UserServiceV1 {
 
     //internal api
     public ResGetUserIntDto getUserInternal(String userId) {
-        UserEntity user = userRepository.findByUsername(userId)
-                .orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
 
-        String address = getAddressStringSafe(user.getAddress());
+        CachedUserDto cached = userCacheService.getCachedUserDto(userId);
 
         return ResGetUserIntDto.builder()
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .address(address)
-                .slackId(user.getSlackId())
-                .role(user.getRole().name())
+                .username(cached.getUsername())
+                .email(cached.getEmail())
+                .address(cached.getAddress())
+                .slackId(cached.getSlackId())
+                .role(cached.getRole())
                 .build();
     }
 
@@ -212,20 +213,6 @@ public class UserServiceV1 {
     }
 
     //helper
-    // 유저 유효성 검사
-    private UserEntity getUserWithValidation(String username) {
-
-        UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
-
-        if (user.getDeletedAt() != null) {
-            throw new BussinessException(UserErrorCode.CANNOT_DELETE_DELETED_USER);
-        }
-
-        return user;
-    }
-
-
     // 주소 처리
     private String getAddressStringSafe(UUID addressId) {
 
@@ -245,7 +232,7 @@ public class UserServiceV1 {
     private ReviewInfo getReviewInfo(String userId) {
 
         List<GetReviewIntDto> reviews = reviewServiceClient.getReviewByUser(userId);
-        double rating = Math.round(reviewServiceClient.getUserRating(userId) * 10)/10.0;
+        double rating = Math.round(reviewServiceClient.getUserRating(userId) * 10) / 10.0;
 
         return new ReviewInfo(reviews, rating);
     }
