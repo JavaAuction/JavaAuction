@@ -31,7 +31,7 @@ public class WalletServiceV1 {
     public static final String ADMIN = "ADMIN";
 
     @Transactional
-    public ResCreateWalletDto create(ReqCreateWalletDto request) {
+    public ResCreateDto create(ReqCreateDto request) {
 
         Wallet wallet = walletRepository.save(
                 Wallet.builder()
@@ -39,7 +39,7 @@ public class WalletServiceV1 {
                         .build()
         );
 
-        return ResCreateWalletDto.from(wallet);
+        return ResCreateDto.from(wallet);
     }
 
     public ResGetWallet getWalletByUserId(String userId) {

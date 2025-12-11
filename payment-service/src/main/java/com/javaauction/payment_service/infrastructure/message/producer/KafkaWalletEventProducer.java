@@ -1,5 +1,7 @@
 package com.javaauction.payment_service.infrastructure.message.producer;
 
+import com.javaauction.payment_service.infrastructure.message.event.WalletCreateFailedEvent;
+import com.javaauction.payment_service.infrastructure.message.event.WalletCreateSucceededEvent;
 import com.javaauction.payment_service.infrastructure.message.event.WalletDeductFailedEvent;
 import com.javaauction.payment_service.infrastructure.message.event.WalletDeductSucceededEvent;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +16,18 @@ public class KafkaWalletEventProducer implements WalletEventProducer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
+    private static final String CREATE_RESULT_TOPIC = "wallet.create.result";
     private static final String DEDUCT_RESULT_TOPIC = "wallet.deduct.result";
+
+    @Override
+    public void publishWalletCreateSucceeded(WalletCreateSucceededEvent event) {
+        sendEvent(CREATE_RESULT_TOPIC, event.getUserId(), event);
+    }
+
+    @Override
+    public void publishWalletCreateFailed(WalletCreateFailedEvent event) {
+        sendEvent(CREATE_RESULT_TOPIC, event.getUserId(), event);
+    }
 
     @Override
     public void publishWalletDeductSucceeded(WalletDeductSucceededEvent event) {
@@ -28,7 +41,7 @@ public class KafkaWalletEventProducer implements WalletEventProducer {
 
     private void sendEvent(String topic, String key, Object event) {
         try {
-            log.info("[KafkaWalletEventProducer] deduct 결과 이벤트 발행: topic={}, key={}, payload={}", topic, key, event);
+            log.info("[KafkaWalletEventProducer] 결과 이벤트 발행: topic={}, key={}, payload={}", topic, key, event);
 
             kafkaTemplate.send(topic, key, event)
                     .whenComplete((result, ex) -> {
@@ -44,7 +57,7 @@ public class KafkaWalletEventProducer implements WalletEventProducer {
                     });
 
         } catch (Exception e) {
-            log.error("[KafkaWalletEventProducer] deduct 결과 이벤트 발행 실패: {}", e.getMessage(), e);
+            log.error("[KafkaWalletEventProducer] 결과 이벤트 발행 실패: {}", e.getMessage(), e);
         }
     }
 }
