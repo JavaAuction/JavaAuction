@@ -1,7 +1,7 @@
 package com.javaauction.chatservice.presentation.controller;
 
 import com.javaauction.chatservice.application.service.ChatServiceV1;
-import com.javaauction.chatservice.application.service.SseEmitterService;
+import com.javaauction.chatservice.application.service.SseEmitterServiceV1;
 import com.javaauction.chatservice.presentation.advice.ChatSuccessCode;
 import com.javaauction.chatservice.presentation.dto.common.ChatroomSearchParam;
 import com.javaauction.chatservice.presentation.dto.common.ChattingSearchParam;
@@ -25,7 +25,7 @@ import java.util.UUID;
 @RequestMapping("/v1/chatrooms")
 public class ChatControllerV1 {
     private final ChatServiceV1 chatService;
-    private final SseEmitterService sseEmitterService;
+    private final SseEmitterServiceV1 sseEmitterService;
 
     // 채팅방 생성
     @PostMapping
@@ -101,8 +101,9 @@ public class ChatControllerV1 {
     // SSE 구독
     @GetMapping(value= "/{chatroomId}/subscribe", produces = "text/event-stream")
     public SseEmitter getSubscribe(
-            @PathVariable UUID chatroomId
+            @PathVariable UUID chatroomId,
+            @RequestHeader("X-User-Username") String username
     ) {
-        return sseEmitterService.subscribe(chatroomId);
+        return sseEmitterService.subscribe(chatroomId, username);
     }
 }

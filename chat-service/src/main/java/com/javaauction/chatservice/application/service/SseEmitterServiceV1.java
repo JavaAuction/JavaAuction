@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class SseEmitterService {
+public class SseEmitterServiceV1 {
 
     private static final MediaType UTF8_PLAIN =
             new MediaType("text", "plain", StandardCharsets.UTF_8);
@@ -21,13 +21,13 @@ public class SseEmitterService {
 
     private static final long TIMEOUT = 1000L * 60 * 60; // 1시간
 
-    public SseEmitter subscribe(UUID chatroomId) {
+    public SseEmitter subscribe(UUID chatroomId, String userId) {
         SseEmitter emitter = new SseEmitter(TIMEOUT);
-        emitterRepository.save(chatroomId, emitter);
+        emitterRepository.save(chatroomId, userId, emitter);
 
-        emitter.onCompletion(() -> emitterRepository.delete(chatroomId));
-        emitter.onTimeout(() -> emitterRepository.delete(chatroomId));
-        emitter.onError(e -> emitterRepository.delete(chatroomId));
+        emitter.onCompletion(() -> emitterRepository.delete(chatroomId, userId));
+        emitter.onTimeout(() -> emitterRepository.delete(chatroomId, userId));
+        emitter.onError(e -> emitterRepository.delete(chatroomId, userId));
 
         try {
             emitter.send(SseEmitter.event()
@@ -38,6 +38,7 @@ public class SseEmitterService {
         return emitter;
     }
 
+
     public void sendChatMessage(UUID chatroomId, Chatting chatData) {
         String json = String.format(
                 "{\"senderId\":\"%s\", \"content\":\"%s\"}",
@@ -47,4 +48,5 @@ public class SseEmitterService {
 
         emitterRepository.send(chatroomId, json);
     }
+
 }

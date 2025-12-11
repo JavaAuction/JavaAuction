@@ -13,30 +13,37 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class SseEmitterRepository {
 
-    private final Map<UUID, SseEmitter> emitterMap = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<String, SseEmitter>> emitterMap = new ConcurrentHashMap<>();
 
-    public SseEmitter save(UUID chatroomId, SseEmitter emitter) {
-        emitterMap.put(chatroomId, emitter);
+    public SseEmitter save(UUID chatroomId, String userId, SseEmitter emitter) {
+        emitterMap
+                .computeIfAbsent(chatroomId, k -> new ConcurrentHashMap<>())
+                .put(userId, emitter);
         return emitter;
     }
 
-    public void delete(UUID chatroomId) {
-        emitterMap.remove(chatroomId);
+    public void delete(UUID chatroomId, String userId) {
+        Map<String, SseEmitter> map = emitterMap.get(chatroomId);
+        if (map != null) {
+            map.remove(userId);
+        }
     }
 
     public void send(UUID chatroomId, String message) {
-        SseEmitter emitter = emitterMap.get(chatroomId);
-        if (emitter == null) return;
+        Map<String, SseEmitter> map = emitterMap.get(chatroomId);
+        if (map == null) return;
 
-        try {
-            emitter.send(
-                    SseEmitter.event()
-                            .name("chat-message")
-                            .data(message)
-            );
-        } catch (IOException e) {
-            emitterMap.remove(chatroomId);
-            emitter.completeWithError(e);
-        }
+        map.forEach((userId, emitter) -> {
+            try {
+                emitter.send(
+                        SseEmitter.event()
+                                .name("chat-message")
+                                .data(message)
+                );
+            } catch (IOException e) {
+                map.remove(userId);
+                emitter.completeWithError(e);
+            }
+        });
     }
 }
