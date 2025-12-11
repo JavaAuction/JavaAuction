@@ -1,9 +1,11 @@
 package com.javaauction.payment_service.infrastructure.message.producer;
 
-import com.javaauction.payment_service.infrastructure.message.event.WalletCreateFailedEvent;
-import com.javaauction.payment_service.infrastructure.message.event.WalletCreateSucceededEvent;
-import com.javaauction.payment_service.infrastructure.message.event.WalletDeductFailedEvent;
-import com.javaauction.payment_service.infrastructure.message.event.WalletDeductSucceededEvent;
+import com.javaauction.payment_service.infrastructure.message.event.fail.WalletCreateFailedEvent;
+import com.javaauction.payment_service.infrastructure.message.event.fail.WalletDeductFailedEvent;
+import com.javaauction.payment_service.infrastructure.message.event.fail.WalletSettleFailedEvent;
+import com.javaauction.payment_service.infrastructure.message.event.success.WalletCreateSucceededEvent;
+import com.javaauction.payment_service.infrastructure.message.event.success.WalletDeductSucceededEvent;
+import com.javaauction.payment_service.infrastructure.message.event.success.WalletSettleSucceededEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -18,6 +20,7 @@ public class KafkaWalletEventProducer implements WalletEventProducer {
 
     private static final String CREATE_RESULT_TOPIC = "wallet.create.result";
     private static final String DEDUCT_RESULT_TOPIC = "wallet.deduct.result";
+    private static final String SETTLE_RESULT_TOPIC = "wallet.settle.result";
 
     @Override
     public void publishWalletCreateSucceeded(WalletCreateSucceededEvent event) {
@@ -37,6 +40,16 @@ public class KafkaWalletEventProducer implements WalletEventProducer {
     @Override
     public void publishWalletDeductFailed(WalletDeductFailedEvent event) {
         sendEvent(DEDUCT_RESULT_TOPIC, event.getUserId(), event);
+    }
+
+    @Override
+    public void publishWalletSettleSucceeded(WalletSettleSucceededEvent event) {
+        sendEvent(SETTLE_RESULT_TOPIC, event.getBuyerId(), event);
+    }
+
+    @Override
+    public void publishWalletSettleFailed(WalletSettleFailedEvent event) {
+        sendEvent(SETTLE_RESULT_TOPIC, event.getBuyerId(), event);
     }
 
     private void sendEvent(String topic, String key, Object event) {
