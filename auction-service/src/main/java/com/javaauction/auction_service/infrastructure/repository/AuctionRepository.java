@@ -18,9 +18,5 @@ public interface AuctionRepository extends JpaRepository<Auction, UUID>, Auction
 
     Optional<Auction> findByAuctionIdAndDeletedAtIsNull(UUID auctionId);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select a from Auction a where a.auctionId = :auctionId")
-    Optional<Auction> findByIdForUpdate(@Param("auctionId") UUID auctionId);
-
     List<Auction> findAllByStatusAndEndedAtBefore(AuctionStatus auctionStatus, LocalDateTime now);
 }
