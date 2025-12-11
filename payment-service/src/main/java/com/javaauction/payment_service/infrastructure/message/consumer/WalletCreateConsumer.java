@@ -1,9 +1,9 @@
 package com.javaauction.payment_service.infrastructure.message.consumer;
 
 import com.javaauction.payment_service.application.service.WalletServiceV1;
-import com.javaauction.payment_service.infrastructure.message.event.WalletCreateFailedEvent;
-import com.javaauction.payment_service.infrastructure.message.event.WalletCreateRequestedEvent;
-import com.javaauction.payment_service.infrastructure.message.event.WalletCreateSucceededEvent;
+import com.javaauction.payment_service.infrastructure.message.event.fail.WalletCreateFailedEvent;
+import com.javaauction.payment_service.infrastructure.message.event.request.WalletCreateRequestedEvent;
+import com.javaauction.payment_service.infrastructure.message.event.success.WalletCreateSucceededEvent;
 import com.javaauction.payment_service.infrastructure.message.producer.WalletEventProducer;
 import com.javaauction.payment_service.presentation.advice.PaymentException;
 import com.javaauction.payment_service.presentation.dto.request.ReqCreateDto;
@@ -34,7 +34,7 @@ public class WalletCreateConsumer {
                     .userId(event.getUserId())
                     .build();
 
-            // 2. deduct 호출
+            // 2. create 호출
             ResCreateDto res = walletService.create(req);
 
             // 3. 지갑 생성 성공 시 결과 이벤트 발행

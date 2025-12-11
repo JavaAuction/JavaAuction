@@ -1,4 +1,4 @@
-package com.javaauction.payment_service.infrastructure.message.event;
+package com.javaauction.payment_service.infrastructure.message.event.success;
 
 import com.javaauction.payment_service.domain.enums.TransactionType;
 import lombok.*;

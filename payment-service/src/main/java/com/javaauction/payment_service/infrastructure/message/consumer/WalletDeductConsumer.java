@@ -1,9 +1,9 @@
 package com.javaauction.payment_service.infrastructure.message.consumer;
 
 import com.javaauction.payment_service.application.service.WalletServiceV1;
-import com.javaauction.payment_service.infrastructure.message.event.WalletDeductFailedEvent;
-import com.javaauction.payment_service.infrastructure.message.event.WalletDeductRequestedEvent;
-import com.javaauction.payment_service.infrastructure.message.event.WalletDeductSucceededEvent;
+import com.javaauction.payment_service.infrastructure.message.event.fail.WalletDeductFailedEvent;
+import com.javaauction.payment_service.infrastructure.message.event.request.WalletDeductRequestedEvent;
+import com.javaauction.payment_service.infrastructure.message.event.success.WalletDeductSucceededEvent;
 import com.javaauction.payment_service.infrastructure.message.producer.WalletEventProducer;
 import com.javaauction.payment_service.presentation.advice.PaymentException;
 import com.javaauction.payment_service.presentation.dto.request.ReqDeductDto;
