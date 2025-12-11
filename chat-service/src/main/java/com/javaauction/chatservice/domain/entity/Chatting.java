@@ -44,7 +44,4 @@ public class Chatting extends BaseEntity {
         return new Chatting(chatroom, senderId, receiverId, content);
     }
 
-    public void chattingRead() {
-        this.isRead = true;
-    }
 }

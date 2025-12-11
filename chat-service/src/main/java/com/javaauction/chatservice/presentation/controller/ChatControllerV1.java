@@ -1,6 +1,7 @@
 package com.javaauction.chatservice.presentation.controller;
 
 import com.javaauction.chatservice.application.service.ChatServiceV1;
+import com.javaauction.chatservice.application.service.SseEmitterService;
 import com.javaauction.chatservice.presentation.advice.ChatSuccessCode;
 import com.javaauction.chatservice.presentation.dto.common.ChatroomSearchParam;
 import com.javaauction.chatservice.presentation.dto.common.ChattingSearchParam;
@@ -15,9 +16,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -25,6 +25,8 @@ import java.util.UUID;
 @RequestMapping("/v1/chatrooms")
 public class ChatControllerV1 {
     private final ChatServiceV1 chatService;
+    private final SseEmitterService sseEmitterService;
+
     // 채팅방 생성
     @PostMapping
     public ResponseEntity<ApiResponse<RepPostChatroomsDtoV1>> createChatroom(@RequestBody ReqPostChatroomsDtoV1 reqDto,
@@ -94,5 +96,13 @@ public class ChatControllerV1 {
         return ResponseEntity.ok(
                 ApiResponse.success(ChatSuccessCode.CHAT_FIND_SUCCESS, postChatsReadDto)
         );
+    }
+
+    // SSE 구독
+    @GetMapping(value= "/{chatroomId}/subscribe", produces = "text/event-stream")
+    public SseEmitter getSubscribe(
+            @PathVariable UUID chatroomId
+    ) {
+        return sseEmitterService.subscribe(chatroomId);
     }
 }

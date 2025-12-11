@@ -28,6 +28,7 @@ public class ChatServiceV1 {
     private final ChatroomJpaRepository chatroomRepository;
     private final ChattingJpaRepository chattingRepository;
     private final ProductClientV1 productClient;
+    private final SseEmitterService sseEmitterService;
 
     // 채팅방 생성
     @Transactional
@@ -100,6 +101,9 @@ public class ChatServiceV1 {
 
 
         chattingRepository.save(chatting);
+
+        // SSE 구독
+        sseEmitterService.sendChatMessage(chatroomId, chatting);
 
         return RepPostChatsDtoV1.from(chatting);
 
