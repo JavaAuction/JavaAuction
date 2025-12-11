@@ -21,11 +21,11 @@ public class WalletSettleConsumer {
     private final WalletEventProducer walletEventProducer;
 
     @KafkaListener(
-            topics = "wallet.settle.request",
+            topics = "auction-payment-topic",
             groupId = "payment-service"
     )
     public void onMessage(WalletSettleRequestedEvent event) {
-        log.info("[WalletSettleRequestConsumer] wallet.settle.request 이벤트 수신: {}", event);
+        log.info("[WalletSettleRequestConsumer] auction-payment-topic 이벤트 수신: {}", event);
 
         try {
             // 1. 이벤트 -> DTO 변환

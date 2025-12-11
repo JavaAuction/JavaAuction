@@ -34,17 +34,17 @@ public class KafkaWalletEventProducer implements WalletEventProducer {
 
     @Override
     public void publishWalletDeductSucceeded(WalletDeductSucceededEvent event) {
-        sendEvent(DEDUCT_RESULT_TOPIC, event.getUserId(), event);
+        sendEvent(DEDUCT_RESULT_TOPIC, event.getAuctionId().toString(), event);
     }
 
     @Override
     public void publishWalletDeductFailed(WalletDeductFailedEvent event) {
-        sendEvent(DEDUCT_RESULT_TOPIC, event.getUserId(), event);
+        sendEvent(DEDUCT_RESULT_TOPIC, event.getAuctionId().toString(), event);
     }
 
     @Override
     public void publishWalletSettleSucceeded(WalletSettleSucceededEvent event) {
-        sendEvent(SETTLE_RESULT_TOPIC, event.getBuyerId(), event);
+        sendEvent(SETTLE_RESULT_TOPIC, event.getAuctionId().toString(), event);
     }
 
     @Override
