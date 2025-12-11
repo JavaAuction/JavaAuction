@@ -13,10 +13,10 @@ import com.javaauction.user.infrastructure.JWT.JwtUserContext;
 import com.javaauction.user.infrastructure.JWT.JwtUtil;
 import com.javaauction.user.infrastructure.external.client.PaymentServiceClient;
 import com.javaauction.user.infrastructure.external.client.AuctionServiceClient;
-import com.javaauction.user.infrastructure.external.client.ReviewServiceClient;
 import com.javaauction.user.infrastructure.external.dto.GetReviewIntDto;
-import com.javaauction.user.infrastructure.external.dto.ReqCreateWalletDto;
+import com.javaauction.user.infrastructure.external.kafka.ReviewEventService;
 import com.javaauction.user.infrastructure.external.dto.ResInternalBidsDto;
+import com.javaauction.user.infrastructure.external.event.WalletCreateEvent;
 import com.javaauction.user.presentation.advice.UserErrorCode;
 import com.javaauction.user.presentation.dto.*;
 import jakarta.transaction.Transactional;
@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,10 +46,11 @@ public class UserServiceV1 {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final AddressRepository addressRepository;
-    private final ReviewServiceClient reviewServiceClient;
+    private final ReviewEventService reviewEventService;
     private final PaymentServiceClient paymentServiceClient;
     private final AuctionServiceClient auctionServiceClient;
     private final UserCacheService userCacheService;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
 
     public void signup(ReqSignupDto dto) {
@@ -75,9 +77,7 @@ public class UserServiceV1 {
         user.setCreate(Instant.now(), JwtUserContext.getUsernameFromHeader());
 
         // 지갑 생성 (Payment-Service)
-        paymentServiceClient.create(
-                ReqCreateWalletDto.builder().userId(user.getUsername()).build()
-        );
+        kafkaTemplate.send("wallet.create", user.getUsername(), new WalletCreateEvent(user.getUsername()));
 
         userRepository.save(user);
     }
@@ -181,7 +181,7 @@ public class UserServiceV1 {
         UserEntity user = userRepository.findByUsername(userId)
                 .orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
 
-        reviewServiceClient.deleteAllByUserId(userId);
+        reviewEventService.deleteAllByUserId(userId);
 
         addressRepository.findByUser(user)
                 .forEach(a -> a.softDelete(Instant.now(), requester));
@@ -231,8 +231,8 @@ public class UserServiceV1 {
     //리뷰 정보 조회
     private ReviewInfo getReviewInfo(String userId) {
 
-        List<GetReviewIntDto> reviews = reviewServiceClient.getReviewByUser(userId);
-        double rating = Math.round(reviewServiceClient.getUserRating(userId) * 10) / 10.0;
+        List<GetReviewIntDto> reviews = reviewEventService.getReviewByUser(userId);
+        double rating = Math.round(reviewEventService.getUserRating(userId) * 10) / 10.0;
 
         return new ReviewInfo(reviews, rating);
     }
