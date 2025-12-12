@@ -22,11 +22,11 @@ public class WalletDeductConsumer {
     private final WalletEventProducer walletEventProducer;
 
     @KafkaListener(
-            topics = "wallet.deduct.request",
+            topics = "auction.wallet.deduct",
             groupId = "payment-service"
     )
     public void onMessage(WalletDeductRequestedEvent event) {
-        log.info("[WalletDeductRequestConsumer] wallet.deduct.request 이벤트 수신: {}", event);
+        log.info("[WalletDeductRequestConsumer] auction.wallet.deduct 이벤트 수신: {}", event);
 
         try {
             // 1. 이벤트 -> DTO 변환
