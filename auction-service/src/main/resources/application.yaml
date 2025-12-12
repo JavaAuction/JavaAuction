@@ -34,6 +34,11 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
+# 배포시 host redis로 수정 필요
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 eureka:
   client:
