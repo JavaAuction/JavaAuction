@@ -1,5 +1,6 @@
 package com.javaauction.user.presentation.dto;
 
+import com.javaauction.user.application.dto.CachedUserDto;
 import com.javaauction.user.domain.entity.UserEntity;
 import com.javaauction.user.infrastructure.external.dto.GetReviewIntDto;
 import lombok.AllArgsConstructor;
@@ -35,18 +36,6 @@ public class ResGetUserAdminDto {
     private List<GetReviewIntDto> reviews;
 
 
-
-    public static ResGetUserAdminDto of(UserEntity user) {
-        return ResGetUserAdminDto.builder()
-                .username(user.getUsername())
-                .name(user.getName())
-                .email(user.getEmail())
-                .role(user.getRole().name())
-                .slackId(user.getSlackId())
-                .createdAt(user.getCreatedAt())
-                .build();
-    }
-
     public static ResGetUserAdminDto of(UserEntity user, String address, Double rating, List<GetReviewIntDto> reviews) {
         return ResGetUserAdminDto.builder()
                 .username(user.getUsername())
@@ -56,6 +45,20 @@ public class ResGetUserAdminDto {
                 .slackId(user.getSlackId())
                 .createdAt(user.getCreatedAt())
                 .address(address)
+                .rating(rating)
+                .reviews(reviews)
+                .build();
+    }
+
+    public static Object of(CachedUserDto user, double rating, List<GetReviewIntDto> reviews) {
+        return ResGetUserAdminDto.builder()
+                .username(user.getUsername())
+                .name(user.getName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .slackId(user.getSlackId())
+                .createdAt(user.getCreatedAt())
+                .address(user.getAddress())
                 .rating(rating)
                 .reviews(reviews)
                 .build();

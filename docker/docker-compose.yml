@@ -140,7 +140,7 @@ services:
   # User Service (19092)
   user-service:
     build:
-      context: ../user
+      context: ../user-service
       dockerfile: ../docker/Dockerfile
     container_name: user-service
     ports:
@@ -151,10 +151,13 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/user_db
       SPRING_DATASOURCE_USERNAME: javaauction
       SPRING_DATASOURCE_PASSWORD: 1234
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
     networks:
       - javaauction-network
     depends_on:
       - postgres
+      - redis
       - config-server
 
   # Product Service (19093)
@@ -237,7 +240,7 @@ services:
   # Alert Service (19097)
   alert-service:
     build:
-      context: ../alert
+      context: ../alert-service
       dockerfile: ../docker/Dockerfile
     container_name: alert-service
     ports:
@@ -253,6 +256,82 @@ services:
     depends_on:
       - postgres
 
+  # Review Service (19098)
+  review-service:
+    build:
+      context: ../review-service
+      dockerfile: ../docker/Dockerfile
+    container_name: review-service
+    ports:
+      - "19098:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      CONFIG_SERVER_URL: http://config-server:19100
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/review_db
+      SPRING_DATASOURCE_USERNAME: javaauction
+      SPRING_DATASOURCE_PASSWORD: 1234
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    networks:
+      - javaauction-network
+    depends_on:
+      - postgres
+      - redis
+      - config-server
+
+  # Prometheus (19099)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: javaauction-prometheus
+    ports:
+      - "19099:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - javaauction-network
+    depends_on:
+      - user-service
+      - review-service
+      - gateway
+      - eureka-server
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Grafana (19101)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: javaauction-grafana
+    ports:
+      - "19101:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+    networks:
+      - javaauction-network
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 networks:
   javaauction-network:
     driver: bridge
@@ -260,3 +339,5 @@ networks:
 volumes:
   postgres-data:
   redis-data:
+  prometheus-data:
+  grafana-data:
