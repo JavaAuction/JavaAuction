@@ -14,10 +14,17 @@ public class AlertKafkaConsumer {
 
     private final AlertServiceV1 alertService;
 
-    @KafkaListener(topics = "auction-alert-topic", groupId = "alert-service-group") // 임시 topics 설정
+    @KafkaListener(topics = "auction-alert-topic", groupId = "alert-group",
+                   containerFactory = "kafkaListenerContainerFactory")
     public void handleAlertMessage(ReqPostInternalAlertsDtoV1 message) {
+        log.info("카프카 메시지 수신: {}", message);
 
-        // 알림 생성
-        alertService.postInternalAlerts(message);
+        try {
+            alertService.postInternalAlerts(message);
+            log.info("알림 저장 성공: {}", message.getUserId());
+
+        } catch (Exception e) {
+            log.error("알림 저장 실패: {}", message, e);
+        }
     }
 }
