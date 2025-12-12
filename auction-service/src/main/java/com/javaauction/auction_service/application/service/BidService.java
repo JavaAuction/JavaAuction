@@ -10,6 +10,7 @@ import com.javaauction.auction_service.infrastructure.client.PaymentClient;
 import com.javaauction.auction_service.infrastructure.client.dto.DeductType;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqDeductDto;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqValidateDto;
+import com.javaauction.auction_service.infrastructure.lock.DistributedLock;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
@@ -40,6 +41,12 @@ public class BidService {
     /**
      * 입찰 처리 서비스
      */
+    @DistributedLock(
+            key = "#auctionId",           // 경매 ID 기준으로 락
+            prefix = "auction:bids",      // 락 prefix
+            waitTime = 5L,
+            leaseTime = 3L
+    )
     @Transactional
     public BidResult placeBid(UUID auctionId, String userId, String role, Long bidPrice) {
 
