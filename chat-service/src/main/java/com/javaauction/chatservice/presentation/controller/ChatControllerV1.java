@@ -102,8 +102,9 @@ public class ChatControllerV1 {
     @GetMapping(value= "/{chatroomId}/subscribe", produces = "text/event-stream")
     public SseEmitter getSubscribe(
             @PathVariable UUID chatroomId,
-            @RequestHeader("X-User-Username") String username
+            @RequestHeader("X-User-Username") String username,
+            @RequestHeader("X-User-Role") String role
     ) {
-        return sseEmitterService.subscribe(chatroomId, username);
+        return sseEmitterService.subscribe(chatroomId, username, role);
     }
 }

@@ -1,15 +1,15 @@
 package com.javaauction.chatservice.infrastructure.repository;
 
-import org.springframework.http.MediaType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Component
 public class SseEmitterRepository {
 
@@ -22,10 +22,11 @@ public class SseEmitterRepository {
         return emitter;
     }
 
-    public void delete(UUID chatroomId, String userId) {
+    public void delete(UUID chatroomId, String userId, String role) {
         Map<String, SseEmitter> map = emitterMap.get(chatroomId);
         if (map != null) {
             map.remove(userId);
+            log.info("[SSE] emitter removed: {} (role={})", userId, role);
         }
     }
 
@@ -41,6 +42,7 @@ public class SseEmitterRepository {
                                 .data(message)
                 );
             } catch (IOException e) {
+                log.warn("[SSE] 전송 실패, emitter 제거: {}", userId);
                 map.remove(userId);
                 emitter.completeWithError(e);
             }
