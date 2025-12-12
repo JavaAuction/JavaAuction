@@ -25,7 +25,6 @@ public class BidDomainService {
     private final BidRepository bidRepository;
 
     /**
-     * 비관적 락을 사용해 경매 한 건 단위로 입찰 처리.
      * - 입찰 가능 여부 검증
      * - 성공 시 Auction 상태 변경 + Bid insert
      */
@@ -34,8 +33,7 @@ public class BidDomainService {
 
         validateRole(role);
 
-        // Auction 비관적 락
-        Auction auction = auctionRepository.findByIdForUpdate(auctionId)
+        Auction auction = auctionRepository.findByAuctionIdAndDeletedAtIsNull(auctionId)
                 .orElseThrow(() -> new BussinessException(BidErrorCode.BID_AUCTION_NOT_FOUND));
 
         if (userId.equals(auction.getUserId())){

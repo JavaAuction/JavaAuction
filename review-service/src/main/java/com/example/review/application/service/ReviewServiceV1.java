@@ -5,7 +5,7 @@ import com.example.review.application.dto.ReqUpdateReviewDto;
 import com.example.review.presentation.dto.ResGetReviewDto;
 import com.example.review.domain.entity.ReviewEntity;
 import com.example.review.domain.repository.ReviewRepository;
-import com.example.review.infrastructure.feign.client.UserServiceClient;
+import com.example.review.infrastructure.kafka.UserEventService;
 import com.example.review.presentation.advice.ReviewErrorCode;
 import com.javaauction.global.infrastructure.code.BaseErrorCode;
 import com.javaauction.global.presentation.exception.BussinessException;
@@ -25,10 +25,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReviewServiceV1 {
     private final ReviewRepository reviewRepository;
-    private final UserServiceClient userServiceClient;
+    private final UserEventService userEventService;
 
     public void createReview(String userId, String username, ReqCreateReviewDto reqCreateReviewDto) {
-        if(!userServiceClient.existsUser(userId)) {
+        if(!userEventService.existsUser(userId)) {
             throw new BussinessException(ReviewErrorCode.TARGET_NOT_FOUND);
         }
         //본인의 리뷰 작성 불가
@@ -64,7 +64,7 @@ public class ReviewServiceV1 {
 
     @Transactional(readOnly = true)
     public Page<ResGetReviewDto> getUserReviews(String userId, int page, int size, String sortBy, boolean isAsc, boolean isWriter) {
-        if (!userServiceClient.existsUser(userId)) {
+        if (!userEventService.existsUser(userId)) {
             throw new BussinessException(ReviewErrorCode.TARGET_NOT_FOUND);
         }
         Pageable pageable = buildPageable(page, size, sortBy, isAsc);
