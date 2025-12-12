@@ -2,10 +2,10 @@ package com.javaauction.payment_service.presentation.controller;
 
 import com.javaauction.global.presentation.response.ApiResponse;
 import com.javaauction.payment_service.application.service.WalletServiceV1;
-import com.javaauction.payment_service.presentation.dto.request.ReqCreateWalletDto;
+import com.javaauction.payment_service.presentation.dto.request.ReqCreateDto;
 import com.javaauction.payment_service.presentation.dto.request.ReqDeductDto;
 import com.javaauction.payment_service.presentation.dto.request.ReqValidateDto;
-import com.javaauction.payment_service.presentation.dto.response.ResCreateWalletDto;
+import com.javaauction.payment_service.presentation.dto.response.ResCreateDto;
 import com.javaauction.payment_service.presentation.dto.response.ResDeductDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.WALLET_INSUFFICIENT_BALANCE;
 import static com.javaauction.payment_service.presentation.advice.PaymentSuccessCode.*;
-import static com.javaauction.payment_service.presentation.constant.HttpHeaderNames.USERNAME;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,7 +24,7 @@ public class InternalWalletControllerV1 {
     private final WalletServiceV1 walletService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ResCreateWalletDto>> create(@Valid @RequestBody ReqCreateWalletDto request) {
+    public ResponseEntity<ApiResponse<ResCreateDto>> create(@Valid @RequestBody ReqCreateDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.success(
                         WALLET_CREATE_SUCCESS,
