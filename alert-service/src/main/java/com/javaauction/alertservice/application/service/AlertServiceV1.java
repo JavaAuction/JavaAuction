@@ -2,6 +2,7 @@ package com.javaauction.alertservice.application.service;
 
 import com.javaauction.alertservice.application.client.SlackClientV1;
 import com.javaauction.alertservice.application.client.UserClientV1;
+import com.javaauction.alertservice.application.event.AlertCreatedEvent;
 import com.javaauction.alertservice.domain.entity.Alert;
 import com.javaauction.alertservice.infrastructure.repository.AlertJpaRepository;
 import com.javaauction.alertservice.presentation.advice.AlertErrorCode;
@@ -13,6 +14,7 @@ import com.javaauction.global.presentation.exception.BussinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,8 +32,7 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class AlertServiceV1 {
     private final AlertJpaRepository alertRepository;
-    private final UserClientV1 userClient;
-    private final SlackClientV1 slackClient;
+    private final ApplicationEventPublisher publisher;
 
     @Value("${slack.bot.token}")
     private String botToken;
@@ -49,8 +50,8 @@ public class AlertServiceV1 {
         );
         alertRepository.save(alert);
 
-        // 2. Slack 발송
-        sendSlack(alert.getUserId(), reqDto.getContent());
+        // 2. Slack 발송 이벤트 발행
+        publisher.publishEvent(new AlertCreatedEvent(alert));
 
         // 3. 응답 반환
         return RepPostInternalAlertsDtoV1.of(alert);
@@ -117,40 +118,6 @@ public class AlertServiceV1 {
                 .toList();
 
         return RepDeleteAlertsDtoV1.of(deletedIds);
-    }
-
-    // 슬랙 메시지 전송
-    private void sendSlack(String userId, String content) {
-        try {
-            RepGetInternalUsersDtoV1 repUserDto = userClient.getUser(userId);
-
-            if (repUserDto.getSlackId() == null || repUserDto.getSlackId().isBlank()) {
-                return;
-            }
-
-            Map<String, Object> openResp = slackClient.openConversation(
-                    "Bearer " + botToken,
-                    Map.of("users", repUserDto.getSlackId())
-            );
-
-            if (openResp != null && Boolean.TRUE.equals(openResp.get("ok"))) {
-                Map<String, Object> channelMap = (Map<String, Object>) openResp.get("channel");
-                String channelId = (String) channelMap.get("id");
-
-                if (channelId != null && !channelId.isBlank()) {
-                    Map<String, Object> msgResp = slackClient.postMessage(
-                            "Bearer " + botToken,
-                            Map.of("channel", channelId, "text", content)
-                    );
-
-                    if (msgResp == null || !Boolean.TRUE.equals(msgResp.get("ok"))) {
-                        log.warn("Slack 메시지 전송 실패: {}", msgResp);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error("Slack 메시지 발송 중 예외 발생", e);
-        }
     }
 
     // 권한 체크
