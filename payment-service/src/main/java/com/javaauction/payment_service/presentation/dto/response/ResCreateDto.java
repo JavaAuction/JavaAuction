@@ -8,14 +8,14 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class ResCreateWalletDto {
+public class ResCreateDto {
 
     private UUID walletId;
     private String userId;
     private Long balance;
 
-    public static ResCreateWalletDto from(Wallet wallet) {
-        return ResCreateWalletDto.builder()
+    public static ResCreateDto from(Wallet wallet) {
+        return ResCreateDto.builder()
                 .walletId(wallet.getId())
                 .userId(wallet.getUserId())
                 .balance(wallet.getBalance())

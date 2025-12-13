@@ -20,6 +20,18 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: alert-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.javaauction.alertservice.presentation.dto.request.ReqPostInternalAlertsDtoV1
+
+
 eureka:
   client:
     register-with-eureka: true

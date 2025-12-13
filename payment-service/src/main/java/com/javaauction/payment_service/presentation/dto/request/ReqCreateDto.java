@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ReqCreateWalletDto {
+public class ReqCreateDto {
 
     @NotBlank
     private String userId;
