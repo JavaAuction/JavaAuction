@@ -50,8 +50,6 @@ public class BidDomainService {
 
         Bid newBid = saveNewBid(auctionId, userId, bidPrice);
 
-        auction.updateCurrentBid(userId, bidPrice);
-
         return new BidResult(
                 auction,
                 previousBid != null ? previousBid.getUserId() : null,

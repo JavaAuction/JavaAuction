@@ -3,7 +3,6 @@ package com.javaauction.auction_service.application.service;
 import com.javaauction.auction_service.application.event.AuctionKafkaEvent;
 import com.javaauction.auction_service.domain.entity.Auction;
 import com.javaauction.auction_service.domain.entity.Bid;
-import com.javaauction.auction_service.domain.event.BidAlertEvent;
 import com.javaauction.auction_service.domain.event.BidResult;
 import com.javaauction.auction_service.domain.service.BidDomainService;
 import com.javaauction.auction_service.infrastructure.client.PaymentClient;
@@ -61,12 +60,6 @@ public class BidService {
 
         // HOLD 요청
         paymentHold(userId, bidPrice, auctionId, bidId);
-
-        // 알림 이벤트
-        eventPublisher.publishEvent(new BidAlertEvent(result));
-
-        // 이전 최고 입찰자 상태 RELEASE로 변경하는 이벤트
-        //eventPublisher.publishEvent(new OldBidReleaseEvent(result));
 
         return result;
     }

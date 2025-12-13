@@ -4,6 +4,8 @@ import com.javaauction.auction_service.domain.entity.Bid;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import com.javaauction.auction_service.domain.entity.enums.BidStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -50,6 +52,8 @@ public interface BidRepository extends JpaRepository<Bid, UUID>, BidQueryDslRepo
             @Param("auctionId") UUID auctionId,
             @Param("currentBidId") UUID currentBidId
     );
+
+    Bid findTopByAuctionIdAndStatusOrderByBidPriceDesc(UUID auctionId, BidStatus bidStatus);
 }
 
 
