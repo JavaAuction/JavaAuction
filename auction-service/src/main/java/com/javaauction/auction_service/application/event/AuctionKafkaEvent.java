@@ -1,6 +1,7 @@
 package com.javaauction.auction_service.application.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.javaauction.auction_service.infrastructure.client.dto.ReqDeductDto;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqPostInternalAlertsDtoV1;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqSettleDto;
 import lombok.RequiredArgsConstructor;
@@ -24,5 +25,7 @@ public class AuctionKafkaEvent {
         kafkaTemplate.send("auction-payment-topic", req);
     }
 
-
+    public void send(ReqDeductDto req) {
+        kafkaTemplate.send("auction.wallet.deduct", req);
+    }
 }

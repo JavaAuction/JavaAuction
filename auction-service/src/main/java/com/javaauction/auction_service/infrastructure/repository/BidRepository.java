@@ -37,6 +37,19 @@ public interface BidRepository extends JpaRepository<Bid, UUID>, BidQueryDslRepo
     List<Bid> findByAuctionIdOrderByCreatedAtDesc(UUID auctionId);
 
     Optional<Bid> findTopByAuctionIdOrderByBidPriceDesc(UUID auctionId);
+
+    @Query("""
+        SELECT b
+        FROM Bid b
+        WHERE b.auctionId = :auctionId
+          AND b.bidId <> :currentBidId
+          AND b.status IN ('HELD', 'PENDING')
+        ORDER BY b.bidPrice DESC
+        """)
+    Bid findPreviousBid(
+            @Param("auctionId") UUID auctionId,
+            @Param("currentBidId") UUID currentBidId
+    );
 }
 
 

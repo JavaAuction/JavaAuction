@@ -8,6 +8,7 @@ import com.javaauction.auction_service.domain.event.OldBidReleaseEvent;
 import com.javaauction.auction_service.infrastructure.client.AlertFeignClient;
 import com.javaauction.auction_service.infrastructure.client.dto.AlertType;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqPostInternalAlertsDtoV1;
+import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,32 +25,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BidEventHandler {
 
-    private final BidRepository bidRepository;
-    private final AlertFeignClient alertClient;
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleOldBidRelease(OldBidReleaseEvent event) {
-
-        var result = event.getBidResult();
-
-        String oldUserId = result.getOldUserId();
-        Long oldPrice    = result.getOldPrice();
-        UUID auctionId   = result.getAuctionId();
-
-        if (oldUserId == null || oldPrice == null) return;
-
-        Bid oldBid = bidRepository.findHeldBidExact(auctionId, oldUserId, oldPrice)
-                .orElse(null);
-
-        log.info("release event => oldUserId={}, newUserId={}",
-                result.getOldUserId(), result.getNewBid().getUserId());
-
-        if (oldBid == null) return;
-
-        oldBid.release();
-        bidRepository.save(oldBid);
-    }
+    private final AuctionKafkaEvent auctionKafkaEvent;
+    private final AuctionRepository auctionRepository;
 
     /**
      * 새 입찰 발생 시 경매 등록자에게 알림 전송
@@ -73,6 +50,6 @@ public class BidEventHandler {
 
         log.info("경매 등록자 '{}'에게 입찰 알림 전송", auction.getCreatedBy());
 
-        alertClient.createAlert(req);
+        auctionKafkaEvent.send(req);
     }
 }

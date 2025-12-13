@@ -1,26 +1,24 @@
 package com.javaauction.auction_service.application.service;
 
+import com.javaauction.auction_service.application.event.AuctionKafkaEvent;
 import com.javaauction.auction_service.domain.entity.Auction;
 import com.javaauction.auction_service.domain.entity.Bid;
 import com.javaauction.auction_service.domain.event.BidAlertEvent;
 import com.javaauction.auction_service.domain.event.BidResult;
-import com.javaauction.auction_service.domain.event.OldBidReleaseEvent;
 import com.javaauction.auction_service.domain.service.BidDomainService;
 import com.javaauction.auction_service.infrastructure.client.PaymentClient;
 import com.javaauction.auction_service.infrastructure.client.dto.DeductType;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqDeductDto;
-import com.javaauction.auction_service.infrastructure.client.dto.ReqValidateDto;
 import com.javaauction.auction_service.infrastructure.lock.DistributedLock;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
-import com.javaauction.auction_service.presentation.advice.BidErrorCode;
 import com.javaauction.auction_service.presentation.dto.response.ResGetBidsDto;
 import com.javaauction.auction_service.presentation.dto.response.internal.InternalBidDto;
 import com.javaauction.auction_service.presentation.dto.response.internal.ResInternalBidsDto;
 import com.javaauction.global.presentation.exception.BussinessException;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BidService {
@@ -37,6 +36,7 @@ public class BidService {
     private final BidRepository bidRepository;
     private final AuctionRepository auctionRepository;
     private final PaymentClient paymentClient;
+    private final AuctionKafkaEvent auctionKafkaEvent;
 
     /**
      * 입찰 처리 서비스
@@ -49,8 +49,6 @@ public class BidService {
     )
     @Transactional
     public BidResult placeBid(UUID auctionId, String userId, String role, Long bidPrice) {
-
-        paymentPrecheck(userId, bidPrice);
 
         BidResult result = bidDomainService.placeBidWithLock(
                 auctionId,
@@ -68,7 +66,7 @@ public class BidService {
         eventPublisher.publishEvent(new BidAlertEvent(result));
 
         // 이전 최고 입찰자 상태 RELEASE로 변경하는 이벤트
-        eventPublisher.publishEvent(new OldBidReleaseEvent(result));
+        //eventPublisher.publishEvent(new OldBidReleaseEvent(result));
 
         return result;
     }
@@ -107,7 +105,7 @@ public class BidService {
                 .build();
     }
 
-    private void paymentPrecheck(String userId, Long bidPrice) {
+    /*private void paymentPrecheck(String userId, Long bidPrice) {
 
         ReqValidateDto req = new ReqValidateDto(
                 userId,
@@ -120,7 +118,7 @@ public class BidService {
             // 잔액 부족
             throw new BussinessException(BidErrorCode.BID_INSUFFICIENT_BALANCE);
         }
-    }
+    }*/
 
     private void paymentHold(String userId, Long bidPrice, UUID auctionId, UUID bidId) {
         ReqDeductDto req = ReqDeductDto.builder()
@@ -131,10 +129,6 @@ public class BidService {
                 .bidId(bidId)
                 .build();
 
-        try {
-            paymentClient.deduct(req);
-        } catch (FeignException.BadRequest e) {
-            throw new BussinessException(BidErrorCode.BID_PAYMENT_ERROR);
-        }
+        auctionKafkaEvent.send(req);
     }
 }
