@@ -69,8 +69,7 @@ public class WalletDeductResultConsumer {
             log.warn("[auction] 알 수 없는 타입. typeId={}, json={}", typeId, json);
 
         } catch (Exception e) {
-            // 여기서 예외 던지면 Kafka가 같은 offset 무한 재시도 → 결국 DB 업데이트 0
-            log.error("[auction] 이벤트 처리 실패(예외 삼킴). typeId={}, offset={}, json={}", typeId, record.offset(), json, e);
+            log.error("[auction] 이벤트 처리 실패. typeId={}, offset={}, json={}", typeId, record.offset(), json, e);
         }
     }
 
