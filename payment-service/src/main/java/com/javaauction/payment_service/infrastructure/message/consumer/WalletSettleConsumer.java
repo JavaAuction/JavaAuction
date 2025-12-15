@@ -25,7 +25,7 @@ public class WalletSettleConsumer {
             groupId = "payment-service"
     )
     public void onMessage(WalletSettleRequestedEvent event) {
-        log.info("[WalletSettleRequestConsumer] auction-payment-topic 이벤트 수신: {}", event);
+        log.info("[WalletSettleConsumer] auction-payment-topic 이벤트 수신: {}", event);
 
         try {
             // 1. 이벤트 -> DTO 변환
@@ -53,7 +53,7 @@ public class WalletSettleConsumer {
 
         } catch (PaymentException e) {
             // 정산 실패 시 결과 이벤트 발행
-            log.warn("[WalletSettleRequestConsumer] 정산 실패 - 실패 이벤트 발행: {}", e.getResponseCode().getCode());
+            log.warn("[WalletSettleConsumer] 정산 실패 - 실패 이벤트 발행: {}", e.getResponseCode().getCode());
 
             WalletSettleFailedEvent failedEvent = WalletSettleFailedEvent.builder()
                     .auctionId(event.getAuctionId())
