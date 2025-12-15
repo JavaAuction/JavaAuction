@@ -103,16 +103,18 @@ public class WalletDeductResultConsumer {
             return;
         }
 
-        // HELD 확정 + 가격 반영
-        currentBid.markHeld();
-        auction.updateCurrentPrice(currentBid.getBidPrice());
+        // 이전 HELD RELEASE
+        Bid prevHeld = bidRepository
+                .findTopByAuctionIdAndStatusOrderByBidPriceDesc(auctionId, BidStatus.HELD);
 
-        // 이전 HELD 정리
-        Bid prevHeld = bidRepository.findTopByAuctionIdAndStatusOrderByBidPriceDesc(auctionId, BidStatus.HELD);
-        if (prevHeld != null && !prevHeld.getBidId().equals(currentBid.getBidId())) {
+        if (prevHeld != null) {
             prevHeld.markReleased();
             bidRepository.save(prevHeld);
         }
+
+        // HELD 확정
+        currentBid.markHeld();
+        auction.updateCurrentPrice(currentBid.getBidPrice());
 
         bidRepository.save(currentBid);
         auctionRepository.save(auction);
