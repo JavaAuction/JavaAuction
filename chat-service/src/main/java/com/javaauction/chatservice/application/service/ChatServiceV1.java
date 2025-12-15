@@ -110,6 +110,7 @@ public class ChatServiceV1 {
     }
 
     // 채팅방 리스트 조회
+    @Transactional(readOnly = true)
     public Page<RepGetChatroomsDtoV1> getChatrooms(ChatroomSearchParam chatroomSearchParam, Pageable pageable, String userId, String role) {
 
         Page<RepGetChatroomsDtoV1> page = chatroomRepository.findChatroomPage(chatroomSearchParam, pageable, userId, role);
@@ -118,6 +119,7 @@ public class ChatServiceV1 {
     }
 
     // 채팅 리스트 조회
+    @Transactional(readOnly = true)
     public Page<RepGetChatsDtoV1> getChats(UUID chatroomId, ChattingSearchParam chattingSearchParam, Pageable pageable, String userId, String role) {
         // 채팅방 존재 여부 확인
         Chatroom chatroom = chatroomRepository.findByChatroomIdAndDeletedAtIsNull(chatroomId)
