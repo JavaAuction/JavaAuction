@@ -12,4 +12,6 @@ public interface WalletRepository {
     Optional<Wallet> findById(UUID walletId);
 
     Optional<Wallet> findByUserId(String userId);
+
+    void delete(UUID id);
 }

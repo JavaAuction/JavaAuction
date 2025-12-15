@@ -26,7 +26,7 @@ public class WalletCreateConsumer {
             groupId = "payment-service"
     )
     public void onMessage(WalletCreateRequestedEvent event) {
-        log.info("[WalletCreateRequestConsumer] wallet.create 이벤트 수신: {}", event);
+        log.info("[WalletCreateConsumer] wallet.create 이벤트 수신: {}", event);
 
         try {
             // 1. 이벤트 -> DTO 변환
@@ -48,7 +48,7 @@ public class WalletCreateConsumer {
 
         } catch (PaymentException e) {
             // 지갑 생성 실패 시 결과 이벤트 발행
-            log.warn("[WalletCreateRequestConsumer] 지갑 생성 실패 - 실패 이벤트 발행: {}", e.getResponseCode().getCode());
+            log.warn("[WalletCreateConsumer] 지갑 생성 실패 - 실패 이벤트 발행: {}", e.getResponseCode().getCode());
 
             WalletCreateFailedEvent failedEvent = WalletCreateFailedEvent.builder()
                     .userId(event.getUserId())

@@ -4,6 +4,7 @@ import com.javaauction.global.presentation.response.ApiResponse;
 import com.javaauction.payment_service.application.service.WalletServiceV1;
 import com.javaauction.payment_service.presentation.dto.request.ReqCreateDto;
 import com.javaauction.payment_service.presentation.dto.request.ReqDeductDto;
+import com.javaauction.payment_service.presentation.dto.request.ReqDeleteDto;
 import com.javaauction.payment_service.presentation.dto.request.ReqValidateDto;
 import com.javaauction.payment_service.presentation.dto.response.ResCreateDto;
 import com.javaauction.payment_service.presentation.dto.response.ResDeductDto;
@@ -49,5 +50,14 @@ public class InternalWalletControllerV1 {
         return walletService.validate(request)
                 ? ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(WALLET_VALIDATE_SUCCESS))
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(WALLET_INSUFFICIENT_BALANCE));
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<ApiResponse<Void>> delete(@Valid @RequestBody ReqDeleteDto request) {
+        walletService.delete(request);
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.success(WALLET_DELETE_SUCCESS)
+        );
     }
 }

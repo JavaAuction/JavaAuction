@@ -2,9 +2,11 @@ package com.javaauction.payment_service.infrastructure.message.producer;
 
 import com.javaauction.payment_service.infrastructure.message.event.fail.WalletCreateFailedEvent;
 import com.javaauction.payment_service.infrastructure.message.event.fail.WalletDeductFailedEvent;
+import com.javaauction.payment_service.infrastructure.message.event.fail.WalletDeleteFailedEvent;
 import com.javaauction.payment_service.infrastructure.message.event.fail.WalletSettleFailedEvent;
 import com.javaauction.payment_service.infrastructure.message.event.success.WalletCreateSucceededEvent;
 import com.javaauction.payment_service.infrastructure.message.event.success.WalletDeductSucceededEvent;
+import com.javaauction.payment_service.infrastructure.message.event.success.WalletDeleteSucceededEvent;
 import com.javaauction.payment_service.infrastructure.message.event.success.WalletSettleSucceededEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ public class KafkaWalletEventProducer implements WalletEventProducer {
     private static final String CREATE_RESULT_TOPIC = "wallet.create.result";
     private static final String DEDUCT_RESULT_TOPIC = "wallet.deduct.result";
     private static final String SETTLE_RESULT_TOPIC = "wallet.settle.result";
+    private static final String SETTLE_DELETE_TOPIC = "wallet.delete.result";
 
     @Override
     public void publishWalletCreateSucceeded(WalletCreateSucceededEvent event) {
@@ -50,6 +53,16 @@ public class KafkaWalletEventProducer implements WalletEventProducer {
     @Override
     public void publishWalletSettleFailed(WalletSettleFailedEvent event) {
         sendEvent(SETTLE_RESULT_TOPIC, event.getBuyerId(), event);
+    }
+
+    @Override
+    public void publishWalletDeleteSucceeded(WalletDeleteSucceededEvent event) {
+        sendEvent(SETTLE_DELETE_TOPIC, event.getUserId(), event);
+    }
+
+    @Override
+    public void publishWalletDeleteFailed(WalletDeleteFailedEvent event) {
+        sendEvent(SETTLE_DELETE_TOPIC, event.getUserId(), event);
     }
 
     private void sendEvent(String topic, String key, Object event) {

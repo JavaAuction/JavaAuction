@@ -17,6 +17,7 @@ public enum PaymentSuccessCode implements ResponseCode {
     WALLET_VALIDATE_SUCCESS(HttpStatus.OK, "PAYMENT205", "잔액 검증 성공"),
     WALLET_TRANSACTION_READ_SUCCESS(HttpStatus.OK, "PAYMENT206", "거래 내역 조회 성공"),
     WALLET_TRANSACTION_SETTLE_SUCCESS(HttpStatus.OK, "PAYMENT207", "경매 정산 성공"),
+    WALLET_DELETE_SUCCESS(HttpStatus.OK, "PAYMENT208", "지갑 삭제 성공"),
     ;
 
     private final HttpStatus status;

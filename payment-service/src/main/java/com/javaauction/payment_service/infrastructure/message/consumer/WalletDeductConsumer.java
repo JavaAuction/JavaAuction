@@ -26,7 +26,7 @@ public class WalletDeductConsumer {
             groupId = "payment-service"
     )
     public void onMessage(WalletDeductRequestedEvent event) {
-        log.info("[WalletDeductRequestConsumer] auction.wallet.deduct 이벤트 수신: {}", event);
+        log.info("[WalletDeductConsumer] auction.wallet.deduct 이벤트 수신: {}", event);
 
         try {
             // 1. 이벤트 -> DTO 변환
@@ -56,7 +56,7 @@ public class WalletDeductConsumer {
 
         } catch (PaymentException e) {
             // 잔액 차감 실패 시 결과 이벤트 발행
-            log.warn("[WalletDeductRequestConsumer] 차감 실패 - 실패 이벤트 발행: {}", e.getResponseCode().getCode());
+            log.warn("[WalletDeductConsumer] 차감 실패 - 실패 이벤트 발행: {}", e.getResponseCode().getCode());
 
             WalletDeductFailedEvent failedEvent = WalletDeductFailedEvent.builder()
                     .userId(event.getUserId())

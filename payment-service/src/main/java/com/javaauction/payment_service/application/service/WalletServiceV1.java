@@ -126,6 +126,16 @@ public class WalletServiceV1 {
         return wallet.getBalance() >= request.getBidPrice();
     }
 
+    @Transactional
+    public void delete(ReqDeleteDto request) {
+        Wallet wallet = findWalletByUserId(request.getUserId());
+
+        if (wallet.getBalance() > 0)
+            throw new PaymentException(WALLET_BALANCE_NOT_ZERO);
+
+        walletRepository.delete(wallet.getId());
+    }
+
     // ====================================== 유틸 메서드 ======================================
 
     private Wallet findWalletById(UUID walletId) {
