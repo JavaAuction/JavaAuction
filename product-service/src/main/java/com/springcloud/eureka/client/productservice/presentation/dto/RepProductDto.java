@@ -2,14 +2,18 @@ package com.springcloud.eureka.client.productservice.presentation.dto;
 
 import com.springcloud.eureka.client.productservice.domain.entity.Product;
 import com.springcloud.eureka.client.productservice.domain.enums.ProductStatus;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class RepProductDto {
     private UUID productId;
     private String userId;
