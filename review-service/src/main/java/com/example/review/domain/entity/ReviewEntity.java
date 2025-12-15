@@ -25,8 +25,8 @@ public class ReviewEntity extends BaseEntity {
     @Column(nullable = false)
     private double rating;
 
-//    @Column(nullable = false, unique = true)
-//    private UUID auctionId;
+    @Column(nullable = false)
+    private UUID auctionId;
 
     @Column(nullable = false)
     private String writer;

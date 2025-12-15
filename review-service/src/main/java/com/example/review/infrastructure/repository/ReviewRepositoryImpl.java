@@ -53,6 +53,11 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
+    public Optional<ReviewEntity> findByAuctionIdAndDeletedAtIsNull(UUID auctionId) {
+        return reviewjpaRepository.findByAuctionIdAndDeletedAtIsNull(auctionId);
+    }
+
+    @Override
     public Double calculateAverageRatingByTarget(String target) {
         return reviewjpaRepository.calculateAverageRatingByTarget(target);
     }

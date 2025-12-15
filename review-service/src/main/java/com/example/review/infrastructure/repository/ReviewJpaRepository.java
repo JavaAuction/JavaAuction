@@ -19,6 +19,8 @@ public interface ReviewJpaRepository extends JpaRepository<ReviewEntity, UUID> {
 
     List<ReviewEntity> findByWriter(String writer);
 
+    java.util.Optional<ReviewEntity> findByAuctionIdAndDeletedAtIsNull(UUID auctionId);
+
     @org.springframework.data.jpa.repository.Query("SELECT AVG(r.rating) FROM ReviewEntity r WHERE r.target = :target")
     Double calculateAverageRatingByTarget(String target);
 }
