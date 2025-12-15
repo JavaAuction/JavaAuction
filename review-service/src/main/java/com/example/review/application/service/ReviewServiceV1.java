@@ -6,6 +6,8 @@ import com.example.review.presentation.dto.ResGetReviewDto;
 import com.example.review.domain.entity.ReviewEntity;
 import com.example.review.domain.repository.ReviewRepository;
 import com.example.review.infrastructure.kafka.UserEventService;
+import com.example.review.infrastructure.kafka.AuctionEventService;
+import com.example.review.infrastructure.event.AuctionValidationResponseEvent;
 import com.example.review.presentation.advice.ReviewErrorCode;
 import com.javaauction.global.infrastructure.code.BaseErrorCode;
 import com.javaauction.global.presentation.exception.BussinessException;
@@ -26,6 +28,7 @@ import java.util.UUID;
 public class ReviewServiceV1 {
     private final ReviewRepository reviewRepository;
     private final UserEventService userEventService;
+    private final AuctionEventService auctionEventService;
 
     public void createReview(String userId, String username, ReqCreateReviewDto reqCreateReviewDto) {
         if(!userEventService.existsUser(userId)) {
@@ -36,11 +39,42 @@ public class ReviewServiceV1 {
             throw new BussinessException(ReviewErrorCode.CANNOT_WRITE_OWN_REVIEW);
         }
 
-        //옥션 입찰자인지 확인 절차(추후 연결)
+        // auctionId 검증
+        UUID auctionId = reqCreateReviewDto.getAuctionId();
+        if (auctionId == null) {
+            throw new BussinessException(ReviewErrorCode.AUCTION_NOT_FOUND);
+        }
+
+        // 해당 auctionId로 이미 작성된 리뷰가 있는지 확인
+        if (reviewRepository.findByAuctionIdAndDeletedAtIsNull(auctionId).isPresent()) {
+            throw new BussinessException(ReviewErrorCode.REVIEW_ALREADY_EXISTS);
+        }
+
+        // auction이 사용자의 거래인지 확인 (auction-service로 이벤트 발행)
+        AuctionValidationResponseEvent validationResponse = auctionEventService.validateAuction(auctionId, username);
+        if (!validationResponse.isValid()) {
+            throw new BussinessException(ReviewErrorCode.AUCTION_NOT_USER_TRANSACTION);
+        }
+
+        // seller 또는 buyer인지 확인
+        // seller는 buyer에게, buyer는 seller에게 리뷰를 작성할 수 있음
+        boolean isSeller = validationResponse.getSellerId().equals(username);
+        boolean isBuyer = validationResponse.getBuyerId() != null && validationResponse.getBuyerId().equals(username);
+        
+        if (isSeller && !validationResponse.getBuyerId().equals(userId)) {
+            throw new BussinessException(ReviewErrorCode.AUCTION_NOT_USER_TRANSACTION);
+        }
+        if (isBuyer && !validationResponse.getSellerId().equals(userId)) {
+            throw new BussinessException(ReviewErrorCode.AUCTION_NOT_USER_TRANSACTION);
+        }
+        if (!isSeller && !isBuyer) {
+            throw new BussinessException(ReviewErrorCode.AUCTION_NOT_USER_TRANSACTION);
+        }
 
         ReviewEntity review = ReviewEntity.builder()
                 .rating(reqCreateReviewDto.getRating())
                 .content(reqCreateReviewDto.getContent())
+                .auctionId(auctionId)
                 .writer(username)
                 .target(userId)
                 .build();

@@ -1,7 +1,5 @@
 package com.example.review.infrastructure.kafka;
 
-import com.example.review.infrastructure.event.UserGetResponseEvent;
-import com.example.review.infrastructure.event.UserExistsResponseEvent;
 import com.example.review.infrastructure.feign.dto.ResGetUserIntDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -11,12 +11,12 @@ import com.javaauction.user.domain.repository.AddressRepository;
 import com.javaauction.user.domain.repository.UserRepository;
 import com.javaauction.user.infrastructure.JWT.JwtUserContext;
 import com.javaauction.user.infrastructure.JWT.JwtUtil;
-import com.javaauction.user.infrastructure.external.client.PaymentServiceClient;
-import com.javaauction.user.infrastructure.external.client.AuctionServiceClient;
 import com.javaauction.user.infrastructure.external.dto.GetReviewIntDto;
 import com.javaauction.user.infrastructure.external.kafka.ReviewEventService;
+import com.javaauction.user.infrastructure.external.kafka.AuctionEventService;
 import com.javaauction.user.infrastructure.external.dto.ResInternalBidsDto;
 import com.javaauction.user.infrastructure.external.event.WalletCreateEvent;
+import com.javaauction.user.infrastructure.external.event.WalletDeleteEvent;
 import com.javaauction.user.presentation.advice.UserErrorCode;
 import com.javaauction.user.presentation.dto.*;
 import jakarta.transaction.Transactional;
@@ -47,8 +47,7 @@ public class UserServiceV1 {
     private final AuthenticationManager authenticationManager;
     private final AddressRepository addressRepository;
     private final ReviewEventService reviewEventService;
-    private final PaymentServiceClient paymentServiceClient;
-    private final AuctionServiceClient auctionServiceClient;
+    private final AuctionEventService auctionEventService;
     private final UserCacheService userCacheService;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -183,6 +182,11 @@ public class UserServiceV1 {
 
         reviewEventService.deleteAllByUserId(userId);
 
+        // 지갑 삭제 (Payment-Service)
+        kafkaTemplate.send("wallet.delete", userId, WalletDeleteEvent.builder()
+                .userId(userId)
+                .build());
+
         addressRepository.findByUser(user)
                 .forEach(a -> a.softDelete(Instant.now(), requester));
 
@@ -190,7 +194,8 @@ public class UserServiceV1 {
     }
 
     public ResponseEntity<ApiResponse<ResInternalBidsDto>> getUserBids(String usernameFromHeader, String roleFromHeader) {
-        return auctionServiceClient.getBidsInternal(usernameFromHeader);
+        ResInternalBidsDto bids = auctionEventService.getBidsInternal(usernameFromHeader);
+        return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, bids));
     }
 
     //internal api

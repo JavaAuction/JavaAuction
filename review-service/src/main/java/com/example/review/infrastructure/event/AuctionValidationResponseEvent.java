@@ -1,16 +1,18 @@
 package com.example.review.infrastructure.event;
 
-import com.example.review.infrastructure.feign.dto.ResGetUserIntDto;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserGetResponseEvent {
+@Builder
+public class AuctionValidationResponseEvent {
     private String correlationId;
-    private ResGetUserIntDto user;
+    private boolean isValid;
+    private String sellerId;
+    private String buyerId;
 }
-
 

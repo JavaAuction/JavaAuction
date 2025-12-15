@@ -18,5 +18,6 @@ public interface ReviewRepository {
     Page<ReviewEntity> findAll(Pageable pageable);
     List<ReviewEntity> findByTarget(String target);
     List<ReviewEntity> findByWriter(String writer);
+    Optional<ReviewEntity> findByAuctionIdAndDeletedAtIsNull(UUID auctionId);
     Double calculateAverageRatingByTarget(String target);
 }

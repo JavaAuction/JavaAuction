@@ -1,15 +1,19 @@
-package com.javaauction.user.infrastructure.external.event;
+package com.example.review.infrastructure.event;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserGetRequestEvent {
+@Builder
+public class AuctionValidationRequestEvent {
+    private UUID auctionId;
     private String userId;
     private String correlationId;
 }
-
 

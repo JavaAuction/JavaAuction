@@ -1,14 +1,15 @@
-package com.example.review.infrastructure.event;
+package com.javaauction.user.infrastructure.external.event;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReviewDeleteRequestEvent {
+@Builder
+public class WalletDeleteEvent {
     private String userId;
 }
-
 

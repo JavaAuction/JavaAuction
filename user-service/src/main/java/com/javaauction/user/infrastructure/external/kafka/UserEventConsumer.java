@@ -1,6 +1,5 @@
 package com.javaauction.user.infrastructure.external.kafka;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.javaauction.user.application.service.UserServiceV1;
 import com.javaauction.user.presentation.dto.ResGetUserIntDto;
 import com.javaauction.user.infrastructure.external.event.UserGetResponseEvent;
@@ -21,7 +20,6 @@ public class UserEventConsumer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final UserServiceV1 userServiceV1;
-    private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "user.get.request", groupId = "user-service-group")
     public void consumeUserGetRequest(Map<String, Object> payload, Acknowledgment acknowledgment) {
