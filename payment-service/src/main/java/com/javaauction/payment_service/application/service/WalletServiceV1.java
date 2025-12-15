@@ -136,23 +136,15 @@ public class WalletServiceV1 {
         walletRepository.delete(wallet.getId());
     }
 
-    // ====================================== 유틸 메서드 ======================================
-
-    private Wallet findWalletById(UUID walletId) {
-        return walletRepository.findById(walletId)
-                .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
-    }
-
-    private Wallet findWalletByUserId(String userId) {
-        return walletRepository.findByUserId(userId)
-                .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
-    }
+    // ====================================== PAYMENT ======================================
 
     private ResDeductDto handlePaymentDeduct(Wallet wallet, ReqDeductDto request) {
 
         long amount = request.getDeductAmount();
 
         validateSufficientBalance(wallet, amount);
+
+        releasePreviousHoldIfExists(request);
 
         return applyDeductAndCreateTransaction(
                 wallet,
@@ -162,6 +154,26 @@ public class WalletServiceV1 {
                 request.getBidId()
         );
     }
+
+    private void releasePreviousHoldIfExists(ReqDeductDto request) {
+
+        // 1. 이전 입찰자 여부 조회
+        Optional<WalletTransaction> holdOpt = walletTransactionRepository
+                .findByAuctionIdAndTransactionTypeAndHoldStatus(
+                        request.getAuctionId(),
+                        HOLD,
+                        HOLD_ACTIVE
+                );
+
+        if (holdOpt.isEmpty()) return;
+
+        WalletTransaction prevHold = holdOpt.get();
+
+        // 2. 이전 입찰자의 입찰금 반환
+        releaseHoldAndRefundWallet(prevHold);
+    }
+
+    // ====================================== HOLD ======================================
 
     private ResDeductDto handleHoldDeduct(Wallet wallet, ReqDeductDto request) {
 
@@ -182,6 +194,41 @@ public class WalletServiceV1 {
                 request.getAuctionId(),
                 request.getBidId()
         );
+    }
+
+    private void releasePreviousHoldIfExists(ReqDeductDto request, long newBidAmount) {
+
+        // 1. 현재 최고 입찰금 조회
+        Optional<WalletTransaction> holdOpt = walletTransactionRepository
+                .findByAuctionIdAndTransactionTypeAndHoldStatus(
+                        request.getAuctionId(),
+                        HOLD,
+                        HOLD_ACTIVE
+                );
+
+        if (holdOpt.isEmpty()) return;
+
+        WalletTransaction prevHold = holdOpt.get();
+
+        // 2. 새 입찰금이 이전 입찰금보다 작으면 예외 발생
+        if (newBidAmount <= prevHold.getAmount()) {
+            throw new PaymentException(WALLET_TRANSACTION_HOLD_AMOUNT_NOT_HIGHER_THAN_PREVIOUS);
+        }
+
+        // 3. 이전 입찰자의 입찰금 반환
+        releaseHoldAndRefundWallet(prevHold);
+    }
+
+    // ====================================== 공통 메서드 ======================================
+
+    private Wallet findWalletById(UUID walletId) {
+        return walletRepository.findById(walletId)
+                .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
+    }
+
+    private Wallet findWalletByUserId(String userId) {
+        return walletRepository.findByUserId(userId)
+                .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
     }
 
     private void validateSufficientBalance(Wallet wallet, long amount) {
@@ -214,38 +261,16 @@ public class WalletServiceV1 {
         return ResDeductDto.from(updated, walletTransaction, beforeBalance);
     }
 
-    private void releasePreviousHoldIfExists(ReqDeductDto request, long newBidAmount) {
-
-        // 1. 현재 최고 입찰금 조회
-        Optional<WalletTransaction> holdOpt = walletTransactionRepository
-                .findByAuctionIdAndTransactionTypeAndHoldStatus(
-                        request.getAuctionId(),
-                        HOLD,
-                        HOLD_ACTIVE
-                );
-
-        if (holdOpt.isEmpty()) return;
-
-        WalletTransaction prevHold = holdOpt.get();
-
-        // 2. 새 입찰금이 이전 입찰금보다 작으면 예외 발생
-        if (newBidAmount <= prevHold.getAmount()) {
-            throw new PaymentException(WALLET_TRANSACTION_HOLD_AMOUNT_NOT_HIGHER_THAN_PREVIOUS);
-        }
-
-        // 3. 이전 입찰자의 입찰금 반환
+    private void releaseHoldAndRefundWallet(WalletTransaction prevHold) {
         Wallet prevHoldWallet = walletRepository.findById(prevHold.getWalletId())
                 .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
 
         WalletTransaction released = prevHold.withHoldStatus(HOLD_RELEASED);
         walletTransactionRepository.save(released);
 
-        Wallet releasedWallet = prevHoldWallet.withBalance(
-                prevHoldWallet.getBalance() + prevHold.getAmount()
-        );
+        Wallet releasedWallet = prevHoldWallet.withBalance(prevHoldWallet.getBalance() + prevHold.getAmount());
         walletRepository.save(releasedWallet);
     }
-
 
     private boolean isNotAdmin(String role) {
         return !ADMIN.equals(role);
