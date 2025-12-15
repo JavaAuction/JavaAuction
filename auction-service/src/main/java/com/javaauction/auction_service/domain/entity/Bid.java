@@ -37,7 +37,7 @@ public class Bid extends BaseEntity {
         this.auctionId = auctionId;
         this.userId = userId;
         this.bidPrice = bidPrice;
-        this.status = BidStatus.HELD;
+        this.status = BidStatus.PENDING;
     }
 
     public static Bid create(UUID auctionId, String userId, Long bidPrice) {
@@ -47,4 +47,28 @@ public class Bid extends BaseEntity {
     public void release() {
         this.status = BidStatus.RELEASED;
     }
+    public boolean isPending() {
+        return this.status == BidStatus.PENDING;
+    }
+
+    public boolean isHeld() {
+        return this.status == BidStatus.HELD;
+    }
+
+    public boolean isFailed() {
+        return this.status == BidStatus.FAILED;
+    }
+
+    public void markHeld() {
+        this.status = BidStatus.HELD;
+    }
+
+    public void markReleased() {
+        this.status = BidStatus.RELEASED;
+    }
+
+    public void markFailed() {
+        this.status = BidStatus.FAILED;
+    }
+
 }
