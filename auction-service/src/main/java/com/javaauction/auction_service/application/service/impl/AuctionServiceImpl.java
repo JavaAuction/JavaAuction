@@ -384,25 +384,6 @@ public class AuctionServiceImpl implements AuctionService {
 
         auctionKafkaEvent.send(settleDto);
 
-        ReqPostInternalAlertsDtoV1 successReq = ReqPostInternalAlertsDtoV1.builder()
-            .auctionId(auctionId)
-            .alertType(AlertType.SUCCESS)
-            .content(String.format("%s의 경매가 %s 님에게 %s 원에 낙찰되었습니다.", auction.getProductName(),
-                auction.getSuccessfulBidder(),
-                auction.getCurrentPrice()))
-            .userId(auction.getUserId())
-            .build();
-
-        ReqPostInternalAlertsDtoV1 successBidReq = ReqPostInternalAlertsDtoV1.builder()
-            .auctionId(auctionId)
-            .alertType(AlertType.SUCCESS)
-            .content(String.format("%s의 경매가 입찰하신 %s 원에 낙찰되었습니다.", auction.getProductName(),
-                auction.getCurrentPrice()))
-            .userId(auction.getSuccessfulBidder())
-            .build();
-
-        auctionKafkaEvent.send(successReq);
-        auctionKafkaEvent.send(successBidReq);
 
     }
 
