@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.Instant;
 import java.util.List;
@@ -162,6 +163,23 @@ public class ChatServiceV1 {
                 .readChatIds(unreadChatIds)
                 .message(unreadChatIds.size() + "건의 읽지 않은 채팅이 읽음 처리 되었습니다.")
                 .build();
+    }
+
+    // SSE 구독
+    @Transactional(readOnly = true)
+    public SseEmitter subscribeChatroom(UUID chatroomId, String userId, String role) {
+
+        Chatroom chatroom = chatroomRepository.findByChatroomIdAndDeletedAtIsNull(chatroomId)
+                .orElseThrow(() -> new BussinessException(ChatErrorCode.CHAT_CHATROOM_NOT_FOUND));
+
+        // 권한 체크
+        if ("USER".equals(role) &&
+                !(chatroom.getChatroomHost().equals(userId)
+                        || chatroom.getChatroomGuest().equals(userId))) {
+            throw new BussinessException(ChatErrorCode.CHATROOM_ACCESS_DENIED);
+        }
+
+        return sseEmitterService.subscribe(chatroomId, userId);
     }
 
     // 커서 기반 채팅 리스트 조회

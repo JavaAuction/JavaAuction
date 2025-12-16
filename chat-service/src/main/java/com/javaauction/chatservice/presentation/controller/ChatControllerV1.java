@@ -99,13 +99,13 @@ public class ChatControllerV1 {
     }
 
     // SSE 구독
-    @GetMapping(value= "/{chatroomId}/subscribe", produces = "text/event-stream")
-    public SseEmitter getSubscribe(
+    @GetMapping(value="/{chatroomId}/subscribe", produces="text/event-stream")
+    public SseEmitter subscribe(
             @PathVariable UUID chatroomId,
-            @RequestHeader("X-User-Username") String username,
+            @RequestHeader("X-User-Username") String userId,
             @RequestHeader("X-User-Role") String role
     ) {
-        return sseEmitterService.subscribe(chatroomId, username, role);
+        return chatService.subscribeChatroom(chatroomId, userId, role);
     }
 
     // 커서 기반 채팅 리스트 조회

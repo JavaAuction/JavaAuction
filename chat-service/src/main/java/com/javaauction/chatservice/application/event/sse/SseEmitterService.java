@@ -15,88 +15,47 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SseEmitterService {
 
     private final SseEmitterRepository emitterRepository;
-    private final ChatroomJpaRepository chatroomRepository;
     private final ObjectMapper objectMapper;
 
-    private static final long TIMEOUT = 1000L * 60 * 60; // 1시간
+    private static final long TIMEOUT = 1000L * 60 * 60;
 
-    public SseEmitter subscribe(UUID chatroomId, String userId, String role) {
-
-        // 권한 체크
-        validateAccess(chatroomId, userId, role);
+    public SseEmitter subscribe(UUID chatroomId, String userId) {
 
         SseEmitter emitter = new SseEmitter(TIMEOUT);
-
         emitterRepository.save(chatroomId, userId, emitter);
 
-        emitter.onCompletion(() -> {
-            log.info("[SSE] onCompletion: {}", userId);
-            emitterRepository.delete(chatroomId, userId, role);
-        });
+        emitter.onCompletion(() -> emitterRepository.delete(chatroomId, userId));
+        emitter.onTimeout(() -> emitterRepository.delete(chatroomId, userId));
+        emitter.onError(e -> emitterRepository.delete(chatroomId, userId));
 
-        emitter.onTimeout(() -> {
-            log.info("[SSE] onTimeout: {}", userId);
-            emitterRepository.delete(chatroomId, userId, role);
-        });
-
-        emitter.onError(e -> {
-            log.error("[SSE] onError: {}", userId);
-            emitterRepository.delete(chatroomId, userId, role);
-        });
-
-        // 초기 연결 이벤트
         try {
-            emitter.send(
-                    SseEmitter.event()
-                            .name("connect")
-                            .data("connected")
-            );
+            emitter.send(SseEmitter.event().name("connect").data("connected"));
         } catch (Exception ignored) {}
 
         return emitter;
     }
 
-
-    private void validateAccess(UUID chatroomId, String userId, String role) {
-
-        // ADMIN은 모든 채팅방 접근 가능
-        if ("ADMIN".equals(role)) return;
-
-        Chatroom chatroom = chatroomRepository.findById(chatroomId)
-                .orElseThrow(() -> new BussinessException(ChatErrorCode.CHAT_CHATROOM_NOT_FOUND));
-
-        boolean isMember =
-                chatroom.getChatroomHost().equals(userId) ||
-                        chatroom.getChatroomGuest().equals(userId);
-
-        if (!isMember) {
-            throw new BussinessException(ChatErrorCode.CHATROOM_ACCESS_DENIED);
-        }
-    }
-
-
     public void sendChatMessage(UUID chatroomId, Chatting chatData) {
-
-        String json;
         try {
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("senderId", chatData.getSenderId());
-            payload.put("content", chatData.getContent());
-            payload.put("createdAt", chatData.getCreatedAt());
+            Map<String, Object> payload = Map.of(
+                    "senderId", chatData.getSenderId(),
+                    "content", chatData.getContent(),
+                    "createdAt", chatData.getCreatedAt()
+            );
 
-            json = objectMapper.writeValueAsString(payload);
+            emitterRepository.send(chatroomId,
+                    objectMapper.writeValueAsString(payload));
 
         } catch (Exception e) {
-            log.error("[SSE] JSON 직렬화 실패", e);
-            return;
+            log.error("[SSE] send error", e);
         }
-
-        emitterRepository.send(chatroomId, json);
     }
 }
+
+

@@ -22,11 +22,11 @@ public class SseEmitterRepository {
         return emitter;
     }
 
-    public void delete(UUID chatroomId, String userId, String role) {
+    public void delete(UUID chatroomId, String userId) {
         Map<String, SseEmitter> map = emitterMap.get(chatroomId);
         if (map != null) {
             map.remove(userId);
-            log.info("[SSE] emitter removed: {} (role={})", userId, role);
+            log.info("[SSE] emitter removed: {}", userId);
         }
     }
 
