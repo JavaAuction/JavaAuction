@@ -91,10 +91,14 @@ public class BidDomainService {
                 ? auction.getCurrentPrice()
                 : auction.getStartPrice();
 
+        long buyNowPrice = auction.getBuyNowPrice();
+
         long requiredMin = current + auction.getUnit();
 
         if (bidPrice < requiredMin) {
             throw new BussinessException(BidErrorCode.BID_PRICE_TOO_LOW);
+        } else if (buyNowPrice <= bidPrice) {
+            throw new BussinessException(BidErrorCode.BID_BUY_NOW_AVAILABLE);
         }
     }
 
