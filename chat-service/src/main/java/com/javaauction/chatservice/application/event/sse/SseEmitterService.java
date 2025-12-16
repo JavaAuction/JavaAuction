@@ -1,19 +1,16 @@
-package com.javaauction.chatservice.application.service;
+package com.javaauction.chatservice.application.event.sse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.javaauction.chatservice.domain.entity.Chatroom;
 import com.javaauction.chatservice.domain.entity.Chatting;
 import com.javaauction.chatservice.infrastructure.repository.ChatroomJpaRepository;
-import com.javaauction.chatservice.infrastructure.repository.SseEmitterRepository;
 import com.javaauction.chatservice.presentation.advice.ChatErrorCode;
 import com.javaauction.global.presentation.exception.BussinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -21,7 +18,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SseEmitterServiceV1 {
+public class SseEmitterService {
 
     private final SseEmitterRepository emitterRepository;
     private final ChatroomJpaRepository chatroomRepository;

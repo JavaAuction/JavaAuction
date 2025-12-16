@@ -1,4 +1,4 @@
-package com.javaauction.chatservice.infrastructure.repository;
+package com.javaauction.chatservice.application.event.sse;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

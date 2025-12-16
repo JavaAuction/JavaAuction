@@ -1,6 +1,7 @@
 package com.javaauction.chatservice.application.service;
 
 import com.javaauction.chatservice.application.client.ProductClientV1;
+import com.javaauction.chatservice.application.event.sse.SseEmitterService;
 import com.javaauction.chatservice.domain.entity.Chatroom;
 import com.javaauction.chatservice.domain.entity.Chatting;
 import com.javaauction.chatservice.infrastructure.repository.ChatroomJpaRepository;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,7 +30,7 @@ public class ChatServiceV1 {
     private final ChatroomJpaRepository chatroomRepository;
     private final ChattingJpaRepository chattingRepository;
     private final ProductClientV1 productClient;
-    private final SseEmitterServiceV1 sseEmitterService;
+    private final SseEmitterService sseEmitterService;
 
     // 채팅방 생성
     @Transactional
@@ -161,4 +163,66 @@ public class ChatServiceV1 {
                 .message(unreadChatIds.size() + "건의 읽지 않은 채팅이 읽음 처리 되었습니다.")
                 .build();
     }
+
+    // 커서 기반 채팅 리스트 조회
+    @Transactional(readOnly = true)
+    public RepGetChatsCursorDtoV1 getChatsByCursor(
+            UUID chatroomId,
+            UUID cursorChattingId,
+            String userId,
+            String role
+    ) {
+        // 채팅방 존재 확인
+        Chatroom chatroom = chatroomRepository.findByChatroomIdAndDeletedAtIsNull(chatroomId)
+                .orElseThrow(() -> new BussinessException(ChatErrorCode.CHAT_CHATROOM_NOT_FOUND));
+
+        // 권한 체크
+        if (role.equals("USER") &&
+                !(chatroom.getChatroomHost().equals(userId)
+                        || chatroom.getChatroomGuest().equals(userId))) {
+            throw new BussinessException(ChatErrorCode.CHATROOM_ACCESS_DENIED);
+        }
+
+        int pageSize = 100;
+
+        // 커서 chattingId로 createdAt 조회
+        Instant cursorCreatedAt = null;
+        if (cursorChattingId != null) {
+            Chatting cursorChatting = chattingRepository.findById(cursorChattingId)
+                    .orElseThrow(() -> new BussinessException(ChatErrorCode.CHAT_CHATTING_NOT_FOUND));
+            cursorCreatedAt = cursorChatting.getCreatedAt();
+        }
+
+        List<RepGetChatsDtoV1> chats =
+                chattingRepository.findChatsByCursor(
+                        chatroomId,
+                        cursorChattingId,
+                        cursorCreatedAt,
+                        pageSize + 1, // hasNext 판별용 : 100 이하면 다음 페이지 없음
+                        userId,
+                        role
+                );
+
+        boolean hasNext = chats.size() > pageSize;
+
+        if (hasNext) {
+            chats.remove(chats.size() - 1);
+        }
+
+        // nextCursor 생성
+        RepGetChatsCursorDtoV1.Cursor nextCursor = null;
+        if (!chats.isEmpty()) {
+            RepGetChatsDtoV1 last = chats.get(chats.size() - 1);
+            nextCursor = RepGetChatsCursorDtoV1.Cursor.builder()
+                    .chattingId(last.getChattingId())
+                    .build();
+        }
+
+        return RepGetChatsCursorDtoV1.builder()
+                .chats(chats)
+                .nextCursor(nextCursor)
+                .hasNext(hasNext)
+                .build();
+    }
+
 }

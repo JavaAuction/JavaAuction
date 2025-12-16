@@ -1,7 +1,7 @@
 package com.javaauction.chatservice.presentation.controller;
 
 import com.javaauction.chatservice.application.service.ChatServiceV1;
-import com.javaauction.chatservice.application.service.SseEmitterServiceV1;
+import com.javaauction.chatservice.application.event.sse.SseEmitterService;
 import com.javaauction.chatservice.presentation.advice.ChatSuccessCode;
 import com.javaauction.chatservice.presentation.dto.common.ChatroomSearchParam;
 import com.javaauction.chatservice.presentation.dto.common.ChattingSearchParam;
@@ -25,7 +25,7 @@ import java.util.UUID;
 @RequestMapping("/v1/chatrooms")
 public class ChatControllerV1 {
     private final ChatServiceV1 chatService;
-    private final SseEmitterServiceV1 sseEmitterService;
+    private final SseEmitterService sseEmitterService;
 
     // 채팅방 생성
     @PostMapping
@@ -107,4 +107,26 @@ public class ChatControllerV1 {
     ) {
         return sseEmitterService.subscribe(chatroomId, username, role);
     }
+
+    // 커서 기반 채팅 리스트 조회
+    @GetMapping("/{chatroomId}/chats/cursor")
+    public ResponseEntity<ApiResponse<RepGetChatsCursorDtoV1>> getChatsByCursor(
+            @PathVariable UUID chatroomId,
+            @RequestParam(required = false) UUID cursorChattingId,
+            @RequestHeader("X-User-Username") String username,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        RepGetChatsCursorDtoV1 result =
+                chatService.getChatsByCursor(
+                        chatroomId,
+                        cursorChattingId,
+                        username,
+                        role
+                );
+
+        return ResponseEntity.ok(
+                ApiResponse.success(ChatSuccessCode.CHAT_FIND_SUCCESS, result)
+        );
+    }
+
 }
