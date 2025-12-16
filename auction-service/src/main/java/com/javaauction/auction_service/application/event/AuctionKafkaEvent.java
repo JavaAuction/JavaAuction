@@ -1,6 +1,7 @@
 package com.javaauction.auction_service.application.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.javaauction.auction_service.domain.event.AuctionValidationResponseEvent;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqDeductDto;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqPostInternalAlertsDtoV1;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqSettleDto;
@@ -19,6 +20,10 @@ public class AuctionKafkaEvent {
 
     public void send(ReqPostInternalAlertsDtoV1 req) {
         kafkaTemplate.send("auction-alert-topic", req);
+    }
+
+    public void send(AuctionValidationResponseEvent res) {
+        kafkaTemplate.send("auction.validation.response", res);
     }
 
     public void send(ReqSettleDto req) {

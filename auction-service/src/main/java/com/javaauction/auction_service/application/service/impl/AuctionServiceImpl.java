@@ -379,6 +379,9 @@ public class AuctionServiceImpl implements AuctionService {
             .build();
 
 //        paymentClient.settle(settleDto);
+
+        auction.setStatus(AuctionStatus.SETTLE_RUNNING);
+
         auctionKafkaEvent.send(settleDto);
 
         ReqPostInternalAlertsDtoV1 successReq = ReqPostInternalAlertsDtoV1.builder()
