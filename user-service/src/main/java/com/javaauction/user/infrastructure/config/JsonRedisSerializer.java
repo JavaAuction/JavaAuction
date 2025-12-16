@@ -1,5 +1,6 @@
 package com.javaauction.user.infrastructure.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
@@ -38,7 +39,28 @@ public class JsonRedisSerializer implements RedisSerializer<Object> {
             // ObjectMapper에 타입 정보가 포함되어 있으면 정확한 타입으로 역직렬화됨
             // activateDefaultTyping이 설정되어 있으면 LinkedHashMap이 아닌 원래 타입으로 복원
             return objectMapper.readValue(bytes, Object.class);
+        } catch (com.fasterxml.jackson.databind.exc.InvalidTypeIdException e) {
+            // 타입 정보 관련 오류 시 LinkedHashMap으로 fallback
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper fallbackMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                fallbackMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+                fallbackMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                return fallbackMapper.readValue(bytes, java.util.LinkedHashMap.class);
+            } catch (Exception ex) {
+                throw new SerializationException("역직렬화 실패 (fallback 실패): " + e.getMessage(), e);
+            }
         } catch (Exception e) {
+            // 다른 오류도 fallback 시도
+            if (e.getMessage() != null && e.getMessage().contains("missing type id")) {
+                try {
+                    com.fasterxml.jackson.databind.ObjectMapper fallbackMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    fallbackMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+                    fallbackMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                    return fallbackMapper.readValue(bytes, java.util.LinkedHashMap.class);
+                } catch (Exception ex) {
+                    throw new SerializationException("역직렬화 실패 (fallback 실패): " + e.getMessage(), e);
+                }
+            }
             throw new SerializationException("역직렬화 실패: " + e.getMessage(), e);
         }
     }
