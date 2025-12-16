@@ -29,6 +29,7 @@ public class ReviewServiceV1 {
     private final ReviewRepository reviewRepository;
     private final UserEventService userEventService;
     private final AuctionEventService auctionEventService;
+    private final com.example.review.infrastructure.kafka.ReviewEventProducer reviewEventProducer;
 
     public void createReview(String userId, String username, ReqCreateReviewDto reqCreateReviewDto) {
         if(!userEventService.existsUser(userId)) {
@@ -82,6 +83,9 @@ public class ReviewServiceV1 {
         review.setCreate(Instant.now(),username);
 
         reviewRepository.save(review);
+        
+        // 리뷰 생성 이벤트 발행 (user-service 캐시 무효화)
+        reviewEventProducer.publishReviewChanged(username, userId);
     }
 
     @Transactional(readOnly = true)
@@ -118,6 +122,9 @@ public class ReviewServiceV1 {
 
         review.update(reqUpdateReviewDto);
         review.setUpdated(Instant.now(),usernameFromHeader);
+        
+        // 리뷰 수정 이벤트 발행 (user-service 캐시 무효화)
+        reviewEventProducer.publishReviewChanged(review.getWriter(), review.getTarget());
     }
 
     @Transactional
@@ -129,6 +136,9 @@ public class ReviewServiceV1 {
         }
 
         review.softDelete(Instant.now(),usernameFromHeader);
+        
+        // 리뷰 삭제 이벤트 발행 (user-service 캐시 무효화)
+        reviewEventProducer.publishReviewChanged(review.getWriter(), review.getTarget());
     }
 
     private Pageable buildPageable(int page, int size, String sortBy, boolean isAsc) {
@@ -164,7 +174,15 @@ public class ReviewServiceV1 {
         List<ReviewEntity> getReviews = reviewRepository.findByTarget(userId);
         List<ReviewEntity> writeReviews = reviewRepository.findByWriter(userId);
 
-        getReviews.forEach(review -> {review.softDelete(Instant.now(),usernameFromHeader);});
-        writeReviews.forEach(review -> {review.softDelete(Instant.now(),usernameFromHeader);});
+        getReviews.forEach(review -> {
+            review.softDelete(Instant.now(),usernameFromHeader);
+            // 리뷰 삭제 이벤트 발행 (user-service 캐시 무효화)
+            reviewEventProducer.publishReviewChanged(review.getWriter(), review.getTarget());
+        });
+        writeReviews.forEach(review -> {
+            review.softDelete(Instant.now(),usernameFromHeader);
+            // 리뷰 삭제 이벤트 발행 (user-service 캐시 무효화)
+            reviewEventProducer.publishReviewChanged(review.getWriter(), review.getTarget());
+        });
     }
 }
