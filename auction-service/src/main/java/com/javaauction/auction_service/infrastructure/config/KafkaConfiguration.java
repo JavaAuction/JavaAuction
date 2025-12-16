@@ -14,6 +14,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.converter.JacksonJsonMessageConverter;
 import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
 
@@ -58,6 +59,8 @@ public class KafkaConfiguration {
         factory.setConsumerFactory(consumerFactory());
 
         factory.setRecordMessageConverter(new JacksonJsonMessageConverter());
+
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
 
         return factory;
     }
