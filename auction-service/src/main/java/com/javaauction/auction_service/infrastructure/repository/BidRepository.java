@@ -36,7 +36,11 @@ public interface BidRepository extends JpaRepository<Bid, UUID>, BidQueryDslRepo
     );
 
     // 최신 입찰 순 입찰 내역 조회
-    List<Bid> findByAuctionIdOrderByCreatedAtDesc(UUID auctionId);
+    // List<Bid> findByAuctionIdOrderByCreatedAtDesc(UUID auctionId);
+    List<Bid> findTop5ByAuctionIdAndStatusInOrderByCreatedAtDesc(
+            UUID auctionId,
+            List<BidStatus> statuses
+    );
 
     Optional<Bid> findTopByAuctionIdOrderByBidPriceDesc(UUID auctionId);
 
