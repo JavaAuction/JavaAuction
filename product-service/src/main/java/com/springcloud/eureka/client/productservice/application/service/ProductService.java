@@ -11,6 +11,8 @@ import com.springcloud.eureka.client.productservice.infrastructure.repository.Pr
 import com.springcloud.eureka.client.productservice.infrastructure.s3.S3ImageUploader;
 import com.springcloud.eureka.client.productservice.presentation.dto.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -50,6 +52,8 @@ public class ProductService {
     }
 
     // 상품 단건 조회
+    @Cacheable(value = "productDetail", key = "#productId")
+    @Transactional(readOnly = true)
     public RepProductDto getProduct(UUID productId){
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
@@ -89,6 +93,7 @@ public class ProductService {
     }
 
     // 상품 정보 수정
+    @CacheEvict(value = "productDetail", key = "#productId")
     public RepProductDto updateProduct(UUID productId, ReqProductUpdateDto request, MultipartFile file, String username) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
@@ -116,6 +121,7 @@ public class ProductService {
     }
 
     // 상품 상태 변경 (판매 완료)
+    @CacheEvict(value = "productDetail", key = "#productId")
     public RepProductDto updateProductStatus(UUID productId, ReqProductStatusUpdateDto request, String username) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
@@ -128,6 +134,7 @@ public class ProductService {
     }
 
     // 상품 논리 삭제
+    @CacheEvict(value = "productDetail", key = "#productId")
     public void deleteProduct(UUID productId, String username) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
