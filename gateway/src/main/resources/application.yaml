@@ -14,27 +14,37 @@ spring:
         - id: product-service
           uri: lb://product-service
           predicates:
-            - Path=/v1/products/**, /v1/categories/**
+            - Path=/v1/products/**, /v1/categories/**, /v3/api-docs/product
+          filters:
+            - RewritePath=/v3/api-docs/product, /v3/api-docs
 
         - id: auction-service
           uri: lb://auction-service
           predicates:
             - Path=/v1/auctions/**, /internal/bids/**, /v3/api-docs/auction
+          filters:
+            - RewritePath=/v3/api-docs/auction, /v3/api-docs
 
         - id: payment-service
           uri: lb://payment-service
           predicates:
-            - Path=/v1/wallets/**, /internal/wallets/**, /internal/deposits/**
+            - Path=/v1/wallets/**, /internal/wallets/**, /internal/deposits/**, /v3/api-docs/payment
+          filters:
+            - RewritePath=/v3/api-docs/payment, /v3/api-docs
 
         - id: chat-service
           uri: lb://chat-service
           predicates:
-            - Path=/v1/chatrooms/**
+            - Path=/v1/chatrooms/**, /v3/api-docs/chatroom
+          filters:
+            - RewritePath=/v3/api-docs/chatroom, /v3/api-docs
 
         - id: alert-service
           uri: lb://alert-service
           predicates:
-            - Path=/v1/alerts/**, /internal/v1/alerts/**
+            - Path=/v1/alerts/**, /internal/alerts/**, /v3/api-docs/alert
+          filters:
+            - RewritePath=/v3/api-docs/alert, /v3/api-docs
 
         - id: review-service
           uri: lb://review-service
@@ -70,5 +80,15 @@ springdoc:
     urls:
       - name: user-service
         url: /v3/api-docs/user
+      - name: product-service
+        url: /v3/api-docs/product
+      - name: auction-service
+        url: /v3/api-docs/auction
+      - name: payment-service
+        url: /v3/api-docs/payment
+      - name: chat-service
+        url: /v3/api-docs/chat
+      - name: alert-service
+        url: /v3/api-docs/alert
       - name: review-service
         url: /v3/api-docs/review
