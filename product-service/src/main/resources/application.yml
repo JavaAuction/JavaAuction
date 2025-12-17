@@ -17,8 +17,9 @@ spring:
   # Redis 설정 추가 (여기부터 새로 추가)
   data:
     redis:
-      host: localhost  # 로컬 IntelliJ 실행 시
+      host: localhost # 로컬 IntelliJ 실행 시
       port: 6379
+      database: 0
       timeout: 3000ms
 
   cache:
@@ -52,3 +53,8 @@ management:
   endpoint:
     health:
       show-details: always
+
+popular-products:
+  top-count: 10  # 상위 N개
+  cache-ttl-minutes: 60  # 캐시 유효 시간 (1시간)
+  refresh-cron: "0 */10 * * * *"  # 10분마다 갱신
