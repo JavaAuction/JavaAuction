@@ -4,19 +4,15 @@ import com.javaauction.global.presentation.response.ApiResponse;
 import com.javaauction.user.application.dto.ReqCreateAddressDto;
 import com.javaauction.user.application.dto.ReqUpdateAddressDto;
 import com.javaauction.user.application.service.AddressServiceV1;
-import com.javaauction.user.domain.entity.AddressEntity;
 import com.javaauction.user.infrastructure.JWT.JwtUserContext;
 import com.javaauction.user.presentation.advice.UserSuccessCode;
-import com.javaauction.user.presentation.dto.ResGetAddressDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
