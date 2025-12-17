@@ -50,6 +50,18 @@ public class WalletRepositoryImpl implements WalletRepository {
     }
 
     @Override
+    public Optional<Wallet> findByIdForUpdate(UUID walletId) {
+        return walletJpaRepository.findByIdForUpdate(walletId)
+                .map(walletMapper::toDomain);
+    }
+
+    @Override
+    public Optional<Wallet> findByUserIdForUpdate(String userId) {
+        return walletJpaRepository.findByUserIdForUpdate(userId)
+                .map(walletMapper::toDomain);
+    }
+
+    @Override
     public void delete(UUID walletId) {
         long delete = queryFactory
                 .update(wallet)

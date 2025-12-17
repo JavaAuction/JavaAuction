@@ -25,4 +25,6 @@ public interface WalletTransactionRepository {
     Optional<WalletTransaction> findByAuctionIdAndTransactionTypeAndHoldStatus(
             UUID auctionId, TransactionType transactionType, HoldStatus holdStatus
     );
+
+    Optional<WalletTransaction> findActiveHoldForUpdate(UUID auctionId);
 }
