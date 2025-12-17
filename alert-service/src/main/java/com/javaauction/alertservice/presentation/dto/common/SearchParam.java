@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SearchParam {
-    private String term;
+    private String content;
     private AlertType alertType;
     private Boolean isRead;
 }
