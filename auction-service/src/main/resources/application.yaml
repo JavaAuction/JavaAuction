@@ -46,3 +46,12 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:19090/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info
+  endpoint:
+    prometheus:
+      enabled: true
