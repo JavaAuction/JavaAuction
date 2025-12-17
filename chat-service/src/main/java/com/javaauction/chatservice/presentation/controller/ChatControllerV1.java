@@ -22,7 +22,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.UUID;
 
 @Tag(
-        name = "Chat API",
+        name = "채팅 서비스 API",
         description = "상품과 관련된 1:1 채팅방 및 채팅 메시지를 관리하는 API"
 )
 @RestController
