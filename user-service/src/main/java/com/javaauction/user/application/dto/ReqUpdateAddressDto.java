@@ -1,5 +1,6 @@
 package com.javaauction.user.application.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,5 +14,6 @@ public class ReqUpdateAddressDto {
     private String address;
     private String postcode;
     private String addressDetail;
+    @JsonProperty("default")
     private boolean isDefault;
 }

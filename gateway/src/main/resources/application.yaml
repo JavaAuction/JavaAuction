@@ -39,7 +39,7 @@ spring:
         - id: review-service
           uri: lb://review-service
           predicates:
-            - Path=/v1/reviews/**, /internal/v1/reviews/**, /v3/api-docs/review
+            - Path=/v1/reviews/**, /internal/reviews/**, /v3/api-docs/review
           filters:
             - RewritePath=/v3/api-docs/review, /v3/api-docs
 
@@ -53,7 +53,7 @@ eureka:
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration: 86400000
+  expiration: 1800000
 
 management:
   endpoints:
