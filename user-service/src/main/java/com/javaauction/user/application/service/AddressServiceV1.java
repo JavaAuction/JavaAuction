@@ -11,6 +11,7 @@ import com.javaauction.user.domain.repository.UserRepository;
 import com.javaauction.user.presentation.advice.UserErrorCode;
 import com.javaauction.user.presentation.dto.ResGetAddressDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +31,7 @@ public class AddressServiceV1 {
     private final UserRepository userRepository;
 
     @Transactional
+    @CacheEvict(value = "user", key = "'dto_' + #username")
     public void createAddress(String userId, ReqCreateAddressDto dto, String username) {
         UserEntity user = getUserOrThrow(userId);
         validateOwnership(user, username);
@@ -89,6 +91,7 @@ public class AddressServiceV1 {
     }
 
     @Transactional
+    @CacheEvict(value = "user", key = "'dto_' + #username")
     public void updateAddress(UUID addressId, ReqUpdateAddressDto req, String username) {
         AddressEntity address = getAddressOrThrow(addressId);
         UserEntity user = getUserOrThrow(username);
@@ -124,6 +127,7 @@ public class AddressServiceV1 {
     }
 
     @Transactional
+    @CacheEvict(value = "user", key = "'dto_' + #username")
     public void deleteAddress(UUID addressId, String username) {
         AddressEntity address = getAddressOrThrow(addressId);
 

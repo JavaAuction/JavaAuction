@@ -28,7 +28,10 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             "/v1/auth/login",
             "/v1/auth/signup",
             "/internal/",
-            "/actuator/"
+            "/actuator/",
+            "/swagger-ui/",
+            "/swagger-ui.html",
+            "/v3/api-docs/"
     );
 
     @Autowired

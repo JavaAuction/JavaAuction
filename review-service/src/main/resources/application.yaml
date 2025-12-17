@@ -55,3 +55,9 @@ management:
         enabled: true
     tags:
       application: ${spring.application.name}
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: false

@@ -7,31 +7,41 @@ spring:
         - id: user-service
           uri: lb://user-service
           predicates:
-            - Path=/v1/users/**, /v1/auth/**, /internal/users/**, /v1/address/**
+            - Path=/v1/users/**, /v1/auth/**, /v1/address/**, /internal/users/**, /v3/api-docs/user
+          filters:
+            - RewritePath=/v3/api-docs/user, /v3/api-docs
+
         - id: product-service
           uri: lb://product-service
           predicates:
             - Path=/v1/products/**, /v1/categories/**
+
         - id: auction-service
           uri: lb://auction-service
           predicates:
-            - Path=/v1/auctions/**, /internal/bids/**
+            - Path=/v1/auctions/**, /internal/bids/**, /v3/api-docs/auction
+
         - id: payment-service
           uri: lb://payment-service
           predicates:
             - Path=/v1/wallets/**, /internal/wallets/**, /internal/deposits/**
+
         - id: chat-service
           uri: lb://chat-service
           predicates:
             - Path=/v1/chatrooms/**
+
         - id: alert-service
           uri: lb://alert-service
           predicates:
             - Path=/v1/alerts/**, /internal/v1/alerts/**
+
         - id: review-service
           uri: lb://review-service
           predicates:
-            - Path=/v1/reviews/**, /internal/v1/reviews/**
+            - Path=/v1/reviews/**, /internal/reviews/**, /v3/api-docs/review
+          filters:
+            - RewritePath=/v3/api-docs/review, /v3/api-docs
 
 server:
   port: 19091
@@ -42,8 +52,8 @@ eureka:
       defaultZone: http://localhost:19090/eureka
 
 jwt:
-  secret: c3BhcnRhX3Rpa2l0YWthX2JhcHppcF8xMjM0NTY3ODk=
-  expiration: 86400000
+  secret: ${JWT_SECRET}
+  expiration: 1800000
 
 management:
   endpoints:
@@ -53,3 +63,12 @@ management:
   endpoint:
     health:
       show-details: always
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: user-service
+        url: /v3/api-docs/user
+      - name: review-service
+        url: /v3/api-docs/review
