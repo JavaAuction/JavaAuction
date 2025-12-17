@@ -21,8 +21,8 @@ public class UserCacheService {
 
     @Cacheable(value = "user", key = "'dto_' + #username", unless = "#result == null")
     public CachedUserDto getCachedUserDto(String username) {
-
-        log.info("📌 CACHE MISS → DB 조회: {}", username);
+        // 이 로그가 출력되면 캐시 미스 (DB 조회)
+        log.warn("❌❌❌ CACHE MISS → DB 조회 시작: username={}, cacheKey=user::dto_{}", username, username);
 
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BussinessException(UserErrorCode.USER_NOT_FOUND));
@@ -38,7 +38,7 @@ public class UserCacheService {
                     .orElse(null);
         }
 
-        return CachedUserDto.builder()
+        CachedUserDto result = CachedUserDto.builder()
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .name(user.getName())
@@ -46,5 +46,8 @@ public class UserCacheService {
                 .role(user.getRole().name())
                 .address(address)
                 .build();
+        
+        log.info("📌 CACHE MISS → DB 조회 완료: username={}, 결과를 캐시에 저장합니다", username);
+        return result;
     }
 }

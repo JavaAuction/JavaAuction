@@ -49,6 +49,7 @@ public class UserServiceV1 {
     private final ReviewEventService reviewEventService;
     private final AuctionEventService auctionEventService;
     private final UserCacheService userCacheService;
+    private final ReviewCacheService reviewCacheService;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
 
@@ -121,9 +122,9 @@ public class UserServiceV1 {
         Page<UserEntity> users = userRepository.getUsers(pageable);
 
         return users.map(user -> {
-            ReviewInfo review = getReviewInfo(user.getUsername());
+            ReviewCacheService.ReviewInfo review = getReviewInfo(user.getUsername());
             String address = getAddressStringSafe(user.getAddress());
-            return ResGetAllDto.of(user, address, review.rating());
+            return ResGetAllDto.of(user, address, review.getRating());
         });
     }
 
@@ -131,31 +132,31 @@ public class UserServiceV1 {
 
         CachedUserDto cached = userCacheService.getCachedUserDto(userId);
 
-        ReviewInfo reviewInfo = getReviewInfo(userId);
+        ReviewCacheService.ReviewInfo reviewInfo = getReviewInfo(userId);
 
         // 본인 조회
         if (cached.getUsername().equals(requester)) {
             return ApiResponse.success(BaseSuccessCode.OK,
-                    ResGetMyInfoDto.of(cached, reviewInfo.rating(), reviewInfo.reviews()));
+                    ResGetMyInfoDto.of(cached, reviewInfo.getRating(), reviewInfo.getReviews()));
         }
 
         // 관리자 조회
         if ("ADMIN".equals(role)) {
             return ApiResponse.success(BaseSuccessCode.OK,
-                    ResGetUserAdminDto.of(cached, reviewInfo.rating(), reviewInfo.reviews()));
+                    ResGetUserAdminDto.of(cached, reviewInfo.getRating(), reviewInfo.getReviews()));
         }
 
         // 일반 유저
         return ApiResponse.success(BaseSuccessCode.OK,
-                ResGetUserDto.of(cached, reviewInfo.rating(), reviewInfo.reviews()));
+                ResGetUserDto.of(cached, reviewInfo.getRating(), reviewInfo.getReviews()));
     }
 
     public ResGetMyInfoDto getMyInfo(String username) {
 
         CachedUserDto cached = userCacheService.getCachedUserDto(username);
-        ReviewInfo review = getReviewInfo(username);
+        ReviewCacheService.ReviewInfo review = getReviewInfo(username);
 
-        return ResGetMyInfoDto.of(cached, review.rating(), review.reviews());
+        return ResGetMyInfoDto.of(cached, review.getRating(), review.getReviews());
     }
 
     @Transactional
@@ -233,15 +234,11 @@ public class UserServiceV1 {
     }
 
 
-    //리뷰 정보 조회
-    private ReviewInfo getReviewInfo(String userId) {
-
-        List<GetReviewIntDto> reviews = reviewEventService.getReviewByUser(userId);
-        double rating = Math.round(reviewEventService.getUserRating(userId) * 10) / 10.0;
-
-        return new ReviewInfo(reviews, rating);
-    }
-
-    private record ReviewInfo(List<GetReviewIntDto> reviews, double rating) {
+    //리뷰 정보 조회 (캐싱 적용)
+    // 같은 클래스 내부 호출 방지를 위해 UserServiceV1에서 직접 호출
+    private ReviewCacheService.ReviewInfo getReviewInfo(String userId) {
+        List<GetReviewIntDto> reviews = reviewCacheService.getCachedReviews(userId);
+        double rating = reviewCacheService.getCachedRating(userId);
+        return new ReviewCacheService.ReviewInfo(reviews, rating);
     }
 }

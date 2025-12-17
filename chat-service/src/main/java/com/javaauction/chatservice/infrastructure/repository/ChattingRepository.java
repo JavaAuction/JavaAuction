@@ -5,9 +5,21 @@ import com.javaauction.chatservice.presentation.dto.response.RepGetChatsDtoV1;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public interface ChattingRepository {
     // 검색 조건, 페이지 정보 기반 채팅 목록 동적 조회
     Page<RepGetChatsDtoV1> findChattingPage(UUID chatroomId, ChattingSearchParam chattingSearchParam, Pageable pageable, String userId, String role);
+
+    // 커서 기반 채팅 목록 조회
+    List<RepGetChatsDtoV1> findChatsByCursor(
+            UUID chatroomId,
+            UUID cursorChattingId,
+            Instant cursorCreatedAt,
+            int size,
+            String userId,
+            String role
+    );
 }
