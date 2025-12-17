@@ -9,11 +9,12 @@ import com.javaauction.payment_service.presentation.advice.PaymentException;
 import com.javaauction.payment_service.presentation.dto.request.*;
 import com.javaauction.payment_service.presentation.dto.response.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import static com.javaauction.payment_service.domain.enums.HoldStatus.HOLD_ACTIVE;
 import static com.javaauction.payment_service.domain.enums.HoldStatus.HOLD_RELEASED;
@@ -121,7 +122,8 @@ public class WalletServiceV1 {
     }
 
     public Boolean validate(ReqValidateDto request) {
-        Wallet wallet = findWalletByUserId(request.getUserId());
+        Wallet wallet = walletRepository.findByUserId(request.getUserId())
+                .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
 
         return wallet.getBalance() >= request.getBidPrice();
     }
@@ -156,21 +158,8 @@ public class WalletServiceV1 {
     }
 
     private void releasePreviousHoldIfExists(ReqDeductDto request) {
-
-        // 1. 이전 입찰자 여부 조회
-        Optional<WalletTransaction> holdOpt = walletTransactionRepository
-                .findByAuctionIdAndTransactionTypeAndHoldStatus(
-                        request.getAuctionId(),
-                        HOLD,
-                        HOLD_ACTIVE
-                );
-
-        if (holdOpt.isEmpty()) return;
-
-        WalletTransaction prevHold = holdOpt.get();
-
-        // 2. 이전 입찰자의 입찰금 반환
-        releaseHoldAndRefundWallet(prevHold);
+        // 이전 입찰자 조회 및 입찰금 반환
+        withActiveHold(request.getAuctionId(), this::releaseHoldAndRefundWallet);
     }
 
     // ====================================== HOLD ======================================
@@ -199,35 +188,29 @@ public class WalletServiceV1 {
     private void releasePreviousHoldIfExists(ReqDeductDto request, long newBidAmount) {
 
         // 1. 현재 최고 입찰금 조회
-        Optional<WalletTransaction> holdOpt = walletTransactionRepository
-                .findByAuctionIdAndTransactionTypeAndHoldStatus(
-                        request.getAuctionId(),
-                        HOLD,
-                        HOLD_ACTIVE
+        withActiveHold(request.getAuctionId(), prevHold -> {
+
+            // 2. 새 입찰금이 이전 입찰금보다 작으면 예외 발생
+            if (newBidAmount <= prevHold.getAmount()) {
+                throw new PaymentException(
+                        WALLET_TRANSACTION_HOLD_AMOUNT_NOT_HIGHER_THAN_PREVIOUS
                 );
+            }
 
-        if (holdOpt.isEmpty()) return;
-
-        WalletTransaction prevHold = holdOpt.get();
-
-        // 2. 새 입찰금이 이전 입찰금보다 작으면 예외 발생
-        if (newBidAmount <= prevHold.getAmount()) {
-            throw new PaymentException(WALLET_TRANSACTION_HOLD_AMOUNT_NOT_HIGHER_THAN_PREVIOUS);
-        }
-
-        // 3. 이전 입찰자의 입찰금 반환
-        releaseHoldAndRefundWallet(prevHold);
+            // 3. 이전 입찰자의 입찰금 반환
+            releaseHoldAndRefundWallet(prevHold);
+        });
     }
 
     // ====================================== 공통 메서드 ======================================
 
     private Wallet findWalletById(UUID walletId) {
-        return walletRepository.findById(walletId)
+        return walletRepository.findByIdForUpdate(walletId)
                 .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
     }
 
     private Wallet findWalletByUserId(String userId) {
-        return walletRepository.findByUserId(userId)
+        return walletRepository.findByUserIdForUpdate(userId)
                 .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
     }
 
@@ -247,29 +230,40 @@ public class WalletServiceV1 {
         walletRepository.save(updated);
 
         // 2. 거래 내역 생성
-        WalletTransaction walletTransaction = walletTransactionRepository.save(
-                WalletTransaction.builder()
-                        .walletId(updated.getId())
-                        .transactionType(transactionType)
-                        .amount(deductAmount)
-                        .holdStatus(transactionType == HOLD ? HOLD_ACTIVE : null)
-                        .auctionId(auctionId)
-                        .bidId(bidId)
-                        .build()
-        );
+        try {
+            WalletTransaction walletTransaction = walletTransactionRepository.save(
+                    WalletTransaction.builder()
+                            .walletId(updated.getId())
+                            .transactionType(transactionType)
+                            .amount(deductAmount)
+                            .holdStatus(transactionType == HOLD ? HOLD_ACTIVE : null)
+                            .auctionId(auctionId)
+                            .bidId(bidId)
+                            .build()
+            );
 
-        return ResDeductDto.from(updated, walletTransaction, beforeBalance);
+            return ResDeductDto.from(updated, walletTransaction, beforeBalance);
+        } catch (DataIntegrityViolationException e) {
+            if (transactionType == HOLD)
+                throw new PaymentException(WALLET_TRANSACTION_HOLD_ALREADY_EXISTS);
+
+            throw new RuntimeException(e);
+        }
     }
 
     private void releaseHoldAndRefundWallet(WalletTransaction prevHold) {
-        Wallet prevHoldWallet = walletRepository.findById(prevHold.getWalletId())
-                .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
+        Wallet prevHoldWallet = findWalletById(prevHold.getWalletId());
 
         WalletTransaction released = prevHold.withHoldStatus(HOLD_RELEASED);
         walletTransactionRepository.save(released);
 
         Wallet releasedWallet = prevHoldWallet.withBalance(prevHoldWallet.getBalance() + prevHold.getAmount());
         walletRepository.save(releasedWallet);
+    }
+
+    private void withActiveHold(UUID auctionId, Consumer<WalletTransaction> action) {
+        walletTransactionRepository.findActiveHoldForUpdate(auctionId)
+                .ifPresent(action);
     }
 
     private boolean isNotAdmin(String role) {
