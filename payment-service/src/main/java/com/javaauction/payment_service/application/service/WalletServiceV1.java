@@ -57,7 +57,7 @@ public class WalletServiceV1 {
     @Transactional
     public ResChargeDto charge(UUID walletId, ReqChargeDto request, String userId, String role) {
 
-        Wallet wallet = findWalletById(walletId);
+        Wallet wallet = findWalletByIdForUpdate(walletId);
 
         if (isNotAdmin(role) && isNotOwner(wallet, userId)) {
             throw new PaymentException(WALLET_OWNER_MISMATCH);
@@ -83,7 +83,7 @@ public class WalletServiceV1 {
     @Transactional
     public ResWithdrawDto withdraw(UUID walletId, ReqWithdrawDto request, String userId, String role) {
 
-        Wallet wallet = findWalletById(walletId);
+        Wallet wallet = findWalletByIdForUpdate(walletId);
 
         if (isNotAdmin(role) && isNotOwner(wallet, userId)) {
             throw new PaymentException(WALLET_OWNER_MISMATCH);
@@ -112,7 +112,7 @@ public class WalletServiceV1 {
     @Transactional
     public ResDeductDto deduct(ReqDeductDto request) {
 
-        Wallet wallet = findWalletByUserId(request.getUserId());
+        Wallet wallet = findWalletByUserIdForUpdate(request.getUserId());
 
         return switch (request.getTransactionType()) {
             case PAYMENT -> handlePaymentDeduct(wallet, request);
@@ -130,7 +130,7 @@ public class WalletServiceV1 {
 
     @Transactional
     public void delete(ReqDeleteDto request) {
-        Wallet wallet = findWalletByUserId(request.getUserId());
+        Wallet wallet = findWalletByUserIdForUpdate(request.getUserId());
 
         if (wallet.getBalance() > 0)
             throw new PaymentException(WALLET_BALANCE_NOT_ZERO);
@@ -205,11 +205,21 @@ public class WalletServiceV1 {
     // ====================================== 공통 메서드 ======================================
 
     private Wallet findWalletById(UUID walletId) {
-        return walletRepository.findByIdForUpdate(walletId)
+        return walletRepository.findById(walletId)
                 .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
     }
 
     private Wallet findWalletByUserId(String userId) {
+        return walletRepository.findByUserId(userId)
+                .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
+    }
+
+    private Wallet findWalletByIdForUpdate(UUID walletId) {
+        return walletRepository.findByIdForUpdate(walletId)
+                .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
+    }
+
+    private Wallet findWalletByUserIdForUpdate(String userId) {
         return walletRepository.findByUserIdForUpdate(userId)
                 .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
     }
@@ -252,7 +262,7 @@ public class WalletServiceV1 {
     }
 
     private void releaseHoldAndRefundWallet(WalletTransaction prevHold) {
-        Wallet prevHoldWallet = findWalletById(prevHold.getWalletId());
+        Wallet prevHoldWallet = findWalletByIdForUpdate(prevHold.getWalletId());
 
         WalletTransaction released = prevHold.withHoldStatus(HOLD_RELEASED);
         walletTransactionRepository.save(released);
