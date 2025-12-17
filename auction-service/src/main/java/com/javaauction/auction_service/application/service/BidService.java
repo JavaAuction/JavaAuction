@@ -3,9 +3,9 @@ package com.javaauction.auction_service.application.service;
 import com.javaauction.auction_service.application.event.AuctionKafkaEvent;
 import com.javaauction.auction_service.domain.entity.Auction;
 import com.javaauction.auction_service.domain.entity.Bid;
+import com.javaauction.auction_service.domain.entity.enums.BidStatus;
 import com.javaauction.auction_service.domain.event.BidResult;
 import com.javaauction.auction_service.domain.service.BidDomainService;
-import com.javaauction.auction_service.infrastructure.client.PaymentClient;
 import com.javaauction.auction_service.infrastructure.client.dto.DeductType;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqDeductDto;
 import com.javaauction.auction_service.infrastructure.lock.DistributedLock;
@@ -18,7 +18,6 @@ import com.javaauction.auction_service.presentation.dto.response.internal.ResInt
 import com.javaauction.global.presentation.exception.BussinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,10 +30,8 @@ import java.util.UUID;
 public class BidService {
 
     private final BidDomainService bidDomainService;
-    private final ApplicationEventPublisher eventPublisher;
     private final BidRepository bidRepository;
     private final AuctionRepository auctionRepository;
-    private final PaymentClient paymentClient;
     private final AuctionKafkaEvent auctionKafkaEvent;
 
     /**
@@ -69,7 +66,11 @@ public class BidService {
         Auction auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new BussinessException(AuctionErrorCode.AUCTION_NOT_FOUND));
 
-        List<Bid> bids = bidRepository.findByAuctionIdOrderByCreatedAtDesc(auctionId);
+        List<Bid> bids = bidRepository
+                .findTop5ByAuctionIdAndStatusInOrderByCreatedAtDesc(
+                        auctionId,
+                        List.of(BidStatus.HELD, BidStatus.RELEASED)
+                );
 
         List<ResGetBidsDto.BidDto> bidDtos = bids.stream()
                 .map(b -> ResGetBidsDto.BidDto.builder()
@@ -90,7 +91,13 @@ public class BidService {
 
     @Transactional(readOnly = true)
     public ResInternalBidsDto internalGetBids(String userId) {
-        List<InternalBidDto> bids = bidRepository.findInternalBidsByUserId(userId);
+        List<InternalBidDto> bids = bidRepository.findInternalBidsByUserId(userId)
+                .stream()
+                .filter(bid ->
+                        bid.getStatus() == BidStatus.HELD ||
+                                bid.getStatus() == BidStatus.RELEASED
+                )
+                .toList();
 
         return ResInternalBidsDto.builder()
                 .userId(userId)

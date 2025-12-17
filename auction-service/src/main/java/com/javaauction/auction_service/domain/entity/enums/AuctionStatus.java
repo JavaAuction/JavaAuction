@@ -4,5 +4,7 @@ public enum AuctionStatus {
     PENDING,
     IN_PROGRESS,
     FAIL_BID,
-    SUCCESSFUL_BID
+    SUCCESSFUL_BID,
+    SETTLE_RUNNING,
+    SETTLE_FAIL
 }
