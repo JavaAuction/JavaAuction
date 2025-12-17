@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class BidGetRequestConsumer {
             topics = "bid.get.request",
             groupId = "auction-service-group"
     )
-    public void consume(BidGetRequestEvent event) {
+    public void consume(BidGetRequestEvent event, Acknowledgment ack) {
 
         String userId = event.getUserId();
         String correlationId = event.getCorrelationId();
@@ -59,12 +60,18 @@ public class BidGetRequestConsumer {
                         new BidsWrapper(result.getUserId(), bidPayloads)
                 );
 
-        // response 이벤트 발행
-        kafkaTemplate.send(
-                "bid.get.response",
-                correlationId,
-                responsePayload
-        );
+        ack.acknowledge();
+        try {
+            // response 이벤트 발행
+            kafkaTemplate.send(
+                    "bid.get.response",
+                    correlationId,
+                    responsePayload
+            );
+            ack.acknowledge();
+        } catch (Exception e) {
+            log.error("[auction] bid.get.response 발행 실패", e);
+        }
     }
 
     /* ================= Kafka Response Payload ================= */

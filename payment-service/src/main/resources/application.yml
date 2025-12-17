@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: payment-service
+  sql:
+    init:
+      mode: always
 
   jpa:
     hibernate:
@@ -13,6 +16,7 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    defer-datasource-initialization: true
 
   datasource:
     driver-class-name: org.postgresql.Driver

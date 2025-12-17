@@ -98,9 +98,9 @@ public class AlertRepositoryImpl implements AlertRepository {
         }
 
         // 검색 조건
-        if (searchParam.getTerm() != null) {
+        if (searchParam.getContent() != null) {
             booleanBuilder.and(
-                    qAlert.content.containsIgnoreCase(searchParam.getTerm())
+                    qAlert.content.containsIgnoreCase(searchParam.getContent())
             );
         }
 

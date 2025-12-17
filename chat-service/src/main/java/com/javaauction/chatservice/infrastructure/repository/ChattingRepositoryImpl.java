@@ -21,6 +21,7 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +37,6 @@ public class ChattingRepositoryImpl implements ChattingRepository {
             "senderId", "receiverId", "isRead", "createdAt"
     );
 
-    QChatroom qChatroom = QChatroom.chatroom;
     QChatting qChatting = QChatting.chatting;
 
     // 채팅 조회
@@ -81,6 +81,46 @@ public class ChattingRepositoryImpl implements ChattingRepository {
         return PageableExecutionUtils.getPage(results, adjustedPageable, cnt::fetchOne);
 
     }
+
+    // 커서 기반 채팅 조회
+    @Override
+    public List<RepGetChatsDtoV1> findChatsByCursor(
+            UUID chatroomId,
+            UUID cursorChattingId,
+            Instant cursorCreatedAt,
+            int size,
+            String userId,
+            String role
+    ) {
+
+        BooleanBuilder where = new BooleanBuilder();
+        where.and(qChatting.chatroom.chatroomId.eq(chatroomId));
+
+        if ("USER".equals(role)) {
+            where.and(
+                    qChatting.senderId.eq(userId)
+                            .or(qChatting.receiverId.eq(userId))
+            ).and(qChatting.deletedAt.isNull());
+        }
+
+        // 커서 조건
+        if (cursorChattingId != null) {
+            where.and(
+                    qChatting.createdAt.lt(cursorCreatedAt)
+            );
+        }
+
+        return queryFactory
+                .select(getChattingProjection())
+                .from(qChatting)
+                .where(where)
+                .orderBy(
+                        qChatting.createdAt.desc()
+                )
+                .limit(size)
+                .fetch();
+    }
+
 
     private QRepGetChatsDtoV1 getChattingProjection() {
         return new QRepGetChatsDtoV1(

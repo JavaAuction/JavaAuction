@@ -84,7 +84,7 @@ public class WalletTransactionRepositoryImpl implements WalletTransactionReposit
         JPQLQuery<WalletTransactionEntity> pagingQuery =
                 querydsl.applyPagination(pageable, baseQuery);
 
-        List<WalletTransaction> content = baseQuery.fetch().stream()
+        List<WalletTransaction> content = pagingQuery.fetch().stream()
                 .map(walletTransactionMapper::toDomain)
                 .toList();
 
@@ -122,4 +122,11 @@ public class WalletTransactionRepositoryImpl implements WalletTransactionReposit
 
         return walletTransactionEntity.map(walletTransactionMapper::toDomain);
     }
+
+    @Override
+    public Optional<WalletTransaction> findActiveHoldForUpdate(UUID auctionId) {
+        return walletTransactionJpaRepository.findActiveHoldForUpdate(auctionId)
+                .map(walletTransactionMapper::toDomain);
+    }
+
 }

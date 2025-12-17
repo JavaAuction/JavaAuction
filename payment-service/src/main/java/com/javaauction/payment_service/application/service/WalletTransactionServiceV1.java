@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.javaauction.payment_service.domain.enums.HoldStatus.HOLD_ACTIVE;
 import static com.javaauction.payment_service.domain.enums.HoldStatus.HOLD_CAPTURED;
-import static com.javaauction.payment_service.domain.enums.TransactionType.*;
+import static com.javaauction.payment_service.domain.enums.TransactionType.PAYMENT;
+import static com.javaauction.payment_service.domain.enums.TransactionType.SELLER_PROCEED;
 import static com.javaauction.payment_service.presentation.advice.PaymentErrorCode.*;
 
 @Service
@@ -81,7 +81,7 @@ public class WalletTransactionServiceV1 {
     private void settleHold(ReqSettleDto request) {
 
         WalletTransaction hold = walletTransactionRepository
-                .findByAuctionIdAndTransactionTypeAndHoldStatus(request.getAuctionId(), HOLD, HOLD_ACTIVE)
+                .findActiveHoldForUpdate(request.getAuctionId())
                 .orElseThrow(() -> new PaymentException(WALLET_TRANSACTION_HOLD_NOT_FOUND));
 
         verifyAmountAndBuyer(hold, request.getBuyerId(), request.getAmount());
@@ -96,7 +96,7 @@ public class WalletTransactionServiceV1 {
         if (!Objects.equals(walletTransaction.getAmount(), amount))
             throw new PaymentException(WALLET_TRANSACTION_AMOUNT_MISMATCH);
 
-        Wallet buyerWallet = walletRepository.findById(walletTransaction.getWalletId())
+        Wallet buyerWallet = walletRepository.findByIdForUpdate(walletTransaction.getWalletId())
                 .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
 
         if (!buyerWallet.getUserId().equals(buyerId))
@@ -104,7 +104,7 @@ public class WalletTransactionServiceV1 {
     }
 
     private void settleSellerProceeds(String sellerId, WalletTransaction walletTransaction, UUID auctionId) {
-        Wallet sellerWallet = walletRepository.findByUserId(sellerId)
+        Wallet sellerWallet = walletRepository.findByUserIdForUpdate(sellerId)
                 .orElseThrow(() -> new PaymentException(WALLET_NOT_FOUND));
 
         long sellerBeforeAmount = sellerWallet.getBalance();

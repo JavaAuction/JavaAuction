@@ -24,6 +24,7 @@ public enum PaymentErrorCode implements ResponseCode {
     WALLET_TRANSACTION_PAYMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "PAYMENT-012", "즉시 구매 정보가 존재하지 않습니다."),
     WALLET_BALANCE_NOT_ZERO(HttpStatus.BAD_REQUEST, "PAYMENT-013", "지갑에 잔액이 남아있어 요청을 처리할 수 없습니다."),
     WALLET_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "PAYMENT-014", "이미 삭제된 지갑입니다."),
+    WALLET_TRANSACTION_HOLD_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "PAYMENT-015", "이미 다른 입찰의 HOLD가 처리 중입니다."),
     ;
 
     private final HttpStatus status;

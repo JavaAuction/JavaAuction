@@ -18,6 +18,7 @@ import com.javaauction.auction_service.infrastructure.client.dto.ReqProductStatu
 import com.javaauction.auction_service.infrastructure.client.dto.ReqSettleDto;
 import com.javaauction.auction_service.infrastructure.client.dto.ReqValidateDto;
 import com.javaauction.auction_service.infrastructure.client.dto.TransactionType;
+import com.javaauction.auction_service.infrastructure.lock.DistributedLock;
 import com.javaauction.auction_service.infrastructure.repository.AuctionRepository;
 import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import com.javaauction.auction_service.presentation.advice.AuctionErrorCode;
@@ -216,6 +217,12 @@ public class AuctionServiceImpl implements AuctionService {
         auction.updateStatus(req.status());
     }
 
+    @DistributedLock(
+            key = "#auctionId",           // 경매 ID 기준으로 락
+            prefix = "auction:bids",      // 락 prefix
+            waitTime = 5L,
+            leaseTime = 3L
+    )
     @Transactional
     @Override
     public ResBuyNowDto buyNow(UUID auctionId, String user) {

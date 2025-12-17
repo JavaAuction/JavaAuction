@@ -10,6 +10,7 @@ import com.javaauction.auction_service.infrastructure.repository.AuctionReposito
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,18 +23,20 @@ public class WalletSettleEventConsumer {
 
     @KafkaListener(topics = "wallet.settle.result", groupId = "auction-service-group")
     @Transactional
-    public void settleSuccess(WalletSettleSucceededEvent event) {
+    public void settleSuccess(WalletSettleSucceededEvent event, Acknowledgment ack) {
 
         Auction auction = auctionRepository.findById(event.getAuctionId())
             .orElseThrow();
 
         auction.setStatus(AuctionStatus.SUCCESSFUL_BID);
         auctionRepository.save(auction);
+
+        ack.acknowledge();
     }
 
     @KafkaListener(topics = "wallet.settle.result", groupId = "auction-service")
     @Transactional
-    public void onFail(WalletSettleFailedEvent event) {
+    public void onFail(WalletSettleFailedEvent event, Acknowledgment ack) {
 
         Auction auction = auctionRepository.findById(event.getAuctionId())
             .orElseThrow();
@@ -61,6 +64,7 @@ public class WalletSettleEventConsumer {
         auctionKafkaEvent.send(successReq);
         auctionKafkaEvent.send(successBidReq);
 
+        ack.acknowledge();
     }
 
 }
