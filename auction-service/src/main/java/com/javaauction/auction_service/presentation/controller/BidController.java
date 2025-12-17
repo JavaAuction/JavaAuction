@@ -19,7 +19,6 @@ import java.util.UUID;
 public class BidController {
 
     private final BidService bidService;
-    private final BidRepository bidRepository;
 
     /**
      * 입찰 생성
