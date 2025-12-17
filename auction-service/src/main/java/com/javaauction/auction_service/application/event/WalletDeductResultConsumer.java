@@ -15,6 +15,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +35,7 @@ public class WalletDeductResultConsumer {
 
     @KafkaListener(topics = "wallet.deduct.result", groupId = "auction-service")
     @Transactional
-    public void onMessage(ConsumerRecord<String, String> record) {
+    public void onMessage(ConsumerRecord<String, String> record, Acknowledgment ack) {
         String typeId = getTypeId(record);
         String json = record.value();
 
@@ -48,25 +49,30 @@ public class WalletDeductResultConsumer {
             UUID bidId = uuid(root, "bidId");
             if (auctionId == null || bidId == null) {
                 log.warn("[auction] 필수값 누락(auctionId/bidId). typeId={}, json={}", typeId, json);
+                ack.acknowledge();
                 return;
             }
 
             if (typeId != null && typeId.contains("WalletDeductFailedEvent")) {
                 handleFail(bidId);
+                ack.acknowledge();
                 return;
             }
 
             if (typeId != null && typeId.contains("WalletDeductSucceededEvent")) {
                 handleSuccess(auctionId, bidId);
+                ack.acknowledge();
                 return;
             }
 
             if (root.has("errorCode") || root.has("errorMessage")) {
                 handleFail(bidId);
+                ack.acknowledge();
                 return;
             }
 
             log.warn("[auction] 알 수 없는 타입. typeId={}, json={}", typeId, json);
+            ack.acknowledge();
 
         } catch (Exception e) {
             log.error("[auction] 이벤트 처리 실패. typeId={}, offset={}, json={}", typeId, record.offset(), json, e);

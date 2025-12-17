@@ -1,8 +1,6 @@
 package com.javaauction.auction_service.presentation.controller;
 
 import com.javaauction.auction_service.application.service.BidService;
-import com.javaauction.auction_service.domain.entity.Bid;
-import com.javaauction.auction_service.infrastructure.repository.BidRepository;
 import com.javaauction.auction_service.presentation.advice.BidSuccessCode;
 import com.javaauction.auction_service.presentation.dto.request.ReqPostBidDto;
 import com.javaauction.auction_service.presentation.dto.response.ResGetBidsDto;
@@ -12,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -21,7 +18,6 @@ import java.util.UUID;
 public class BidController {
 
     private final BidService bidService;
-    private final BidRepository bidRepository;
 
     /**
      * 입찰 생성
@@ -68,12 +64,5 @@ public class BidController {
         return ResponseEntity.ok(ApiResponse.success(BidSuccessCode.BID_FIND_SUCCESS,
                 bidService.getBids(auctionId)));
     }
-
-    // 상태 테스트용 조회 api - 추후 삭제 예정
-    @GetMapping("/debug/bids")
-    public List<Bid> getAllBids() {
-        return bidRepository.findAll();
-    }
-
 }
 
