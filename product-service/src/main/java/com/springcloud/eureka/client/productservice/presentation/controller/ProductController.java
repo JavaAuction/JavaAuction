@@ -2,7 +2,9 @@ package com.springcloud.eureka.client.productservice.presentation.controller;
 
 import com.javaauction.global.infrastructure.code.BaseSuccessCode;
 import com.javaauction.global.presentation.response.ApiResponse;
+import com.springcloud.eureka.client.productservice.application.service.PopularProductService;
 import com.springcloud.eureka.client.productservice.application.service.ProductService;
+import com.springcloud.eureka.client.productservice.application.service.ProductViewService;
 import com.springcloud.eureka.client.productservice.domain.enums.ProductStatus;
 import com.springcloud.eureka.client.productservice.presentation.dto.*;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -19,6 +22,8 @@ import java.util.UUID;
 public class ProductController {
 
     private final ProductService productService;
+    private final PopularProductService popularProductService;
+    private final ProductViewService productViewService;  // 추가!
 
     // 상품 등록
     @PostMapping(consumes = "multipart/form-data")
@@ -35,14 +40,24 @@ public class ProductController {
 
     // 상품 단건 조회
     @GetMapping("/{productId}")
-    public ResponseEntity<ApiResponse<RepProductDto>> getProduct(
-            @PathVariable UUID productId
-    ) {
-        RepProductDto response = productService.getProduct(productId);
-        return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, response));
+    public ResponseEntity<ApiResponse<RepProductDto>> getProduct(@PathVariable UUID productId) {
+
+        // 1. 조회수 증가 (매번 실행!)
+        productViewService.incrementViewCount(productId);
+
+        // 2. 상품 조회 (캐시 활용!)
+        RepProductDto dto = productService.getProduct(productId);
+
+        // 3. 조회수 설정 (Redis에서 가져옴)
+        Double viewCount = productViewService.getViewCount(productId);
+        if (viewCount != null) {
+            dto.setViewCount(viewCount.longValue());
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, dto));
     }
 
-    // 상품 목록 조회 (검색/상태, 카테고리 제외)
+    // 상품 목록 조회
     @GetMapping
     public ResponseEntity<ApiResponse<RepProductPageDto>> getProducts(
             @RequestParam(required = false) String keyword,
@@ -53,6 +68,13 @@ public class ProductController {
         RepProductPageDto response =
                 productService.getProducts(keyword, status, page, size);
 
+        return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, response));
+    }
+
+    // 인기 상품 목록 조회
+    @GetMapping("/popular")
+    public ResponseEntity<ApiResponse<List<RepProductDto>>> getPopularProducts() {
+        List<RepProductDto> response = popularProductService.getPopularProducts();
         return ResponseEntity.ok(ApiResponse.success(BaseSuccessCode.OK, response));
     }
 

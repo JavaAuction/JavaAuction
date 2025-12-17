@@ -12,6 +12,7 @@ import com.springcloud.eureka.client.productservice.infrastructure.s3.S3ImageUpl
 import com.springcloud.eureka.client.productservice.presentation.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +33,7 @@ public class ProductService {
     private final ProductCategoryRepository categoryRepository;
     private final UserServiceClient userServiceClient;
     private final S3ImageUploader s3ImageUploader;
+    private final ProductViewService productViewService;
 
     // 상품 생성
     public RepProductDto createProduct(String username, ReqProductCreateDto request, MultipartFile file){
@@ -57,8 +59,13 @@ public class ProductService {
     public RepProductDto getProduct(UUID productId){
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BussinessException(ProductErrorCode.PRODUCT_NOT_FOUND));
+
         return RepProductDto.from(product);
     }
+
+
+
+
 
     // 상품 목록 조회 (검색/상태, 카테고리는 나중에)
     @Transactional(readOnly = true)
@@ -80,7 +87,16 @@ public class ProductService {
             }
         }
 
-        Page<RepProductDto> mapped = result.map(RepProductDto::from);
+        Page<RepProductDto> mapped = result.map(product -> {
+            RepProductDto dto = RepProductDto.from(product);
+
+            // Redis에서 조회수 가져오기
+            Double viewCount = productViewService.getViewCount(product.getId());
+            dto.setViewCount(viewCount != null ? viewCount.longValue() : 0L);
+
+            return dto;
+        });
+
         return RepProductPageDto.from(mapped);
     }
 
