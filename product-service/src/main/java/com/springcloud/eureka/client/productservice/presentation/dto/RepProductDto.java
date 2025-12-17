@@ -28,6 +28,9 @@ public class RepProductDto {
     private Instant updatedAt;
     private Instant deletedAt;
 
+    // 조회수 추가 (Redis에서만 가져옴!)
+    private Long viewCount;
+
     public static RepProductDto from(Product product) {
         return RepProductDto.builder()
                 .productId(product.getId())
@@ -43,5 +46,10 @@ public class RepProductDto {
                 .updatedAt(product.getUpdatedAt())
                 .deletedAt(product.getDeletedAt())
                 .build();
+    }
+
+    // 조회수 설정용 메서드
+    public void setViewCount(Long viewCount) {
+        this.viewCount = viewCount;
     }
 }
