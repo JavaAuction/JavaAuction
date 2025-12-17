@@ -40,7 +40,7 @@ public class AlertControllerV1 {
             """)
     @GetMapping
     public ResponseEntity<ApiResponse<Page<RepGetAlertsDtoV1>>> getAlerts(
-            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String content,
             @RequestParam(required = false) AlertType alertType,
             @RequestParam(required = false) Boolean isRead,
             @PageableDefault(size = 10)
@@ -52,7 +52,7 @@ public class AlertControllerV1 {
             @RequestHeader("X-User-Role") String role
     ) {
 
-        SearchParam searchParam = new SearchParam(search, alertType, isRead);
+        SearchParam searchParam = new SearchParam(content, alertType, isRead);
         Page<RepGetAlertsDtoV1> getAlertsDto =
                 alertServiceV1.getAlerts(searchParam, pageable, username, role);
 
