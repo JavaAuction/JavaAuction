@@ -46,12 +46,12 @@ public class RedisCacheConfig {
         return factory;
     }
 
-    // ⭐ ObjectMapper Bean 생성 (JavaTimeModule 포함)
+    // ObjectMapper Bean 생성 (JavaTimeModule 포함)
     @Bean
     public ObjectMapper redisObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
 
-        // ⭐ JavaTimeModule 등록 (Instant, LocalDateTime 등 처리)
+        // JavaTimeModule 등록 (Instant, LocalDateTime 등 처리)
         objectMapper.registerModule(new JavaTimeModule());
 
         // Timestamp 대신 ISO-8601 형식으로 직렬화
@@ -71,7 +71,7 @@ public class RedisCacheConfig {
         return objectMapper;
     }
 
-    // ⭐ RedisCacheManager (캐싱용)
+    // RedisCacheManager (캐싱용)
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         GenericJackson2JsonRedisSerializer serializer =
@@ -92,7 +92,7 @@ public class RedisCacheConfig {
                 .build();
     }
 
-    // ⭐ 조회수 전용 RedisTemplate (String/String)
+    // 조회수 전용 RedisTemplate (String/String)
     @Primary
     @Bean("viewCountRedisTemplate")
     public RedisTemplate<String, String> viewCountRedisTemplate(RedisConnectionFactory connectionFactory) {
@@ -112,7 +112,7 @@ public class RedisCacheConfig {
         return template;
     }
 
-    // ⭐ 일반 RedisTemplate (Object 저장용)
+    // 일반 RedisTemplate (Object 저장용)
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();

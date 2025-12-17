@@ -12,6 +12,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -52,7 +53,7 @@ public class PopularProductService {
         // 3. DB에서 상품 정보 조회
         List<Product> products = productRepository.findAllById(productUUIDs);
 
-        // 4. DTO 변환 + viewCount 추가 ⭐
+        // 4. DTO 변환 + viewCount 추가
         List<RepProductDto> productDtos = products.stream()
                 .map(product -> {
                     RepProductDto dto = RepProductDto.from(product);
@@ -61,6 +62,7 @@ public class PopularProductService {
                     dto.setViewCount(viewCount != null ? viewCount.longValue() : 0L);
                     return dto;
                 })
+                .sorted(Comparator.comparing(RepProductDto::getViewCount).reversed())
                 .collect(Collectors.toList());
 
         // 5. Redis에 캐시 저장
