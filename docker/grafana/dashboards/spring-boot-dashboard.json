@@ -14,7 +14,7 @@
   },
   "editable": true,
   "gnetId": null,
-  "graphTooltip": 0,
+  "graphTooltip": 1,
   "id": null,
   "links": [],
   "panels": [
@@ -22,19 +22,62 @@
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
           "mappings": [],
+          "max": 1,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 0.8
               }
             ]
           },
-          "unit": "reqps"
-        }
+          "unit": "percentunit"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -45,29 +88,64 @@
       "id": 1,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
           "placement": "bottom"
         },
         "tooltip": {
-          "mode": "single"
+          "mode": "multi",
+          "sort": "none"
         }
       },
+      "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_count[5m])) by (application, status)",
-          "legendFormat": "{{application}} - {{status}}",
+          "expr": "process_cpu_usage{application=~\"$service\"} * 100",
+          "interval": "",
+          "legendFormat": "{{application}} CPU Usage",
           "refId": "A"
         }
       ],
-      "title": "HTTP Requests Total",
+      "title": "CPU 사용량 (%)",
       "type": "timeseries"
     },
     {
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -79,7 +157,8 @@
             ]
           },
           "unit": "bytes"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -90,29 +169,70 @@
       "id": 2,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
           "placement": "bottom"
         },
         "tooltip": {
-          "mode": "single"
+          "mode": "multi",
+          "sort": "none"
         }
       },
+      "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "sum(jvm_memory_used_bytes) by (application, area)",
-          "legendFormat": "{{application}} - {{area}}",
+          "expr": "jvm_memory_used_bytes{application=~\"$service\", area=\"heap\"}",
+          "interval": "",
+          "legendFormat": "{{application}} - Heap Used",
           "refId": "A"
+        },
+        {
+          "expr": "jvm_memory_max_bytes{application=~\"$service\", area=\"heap\"}",
+          "interval": "",
+          "legendFormat": "{{application}} - Heap Max",
+          "refId": "B"
         }
       ],
-      "title": "JVM Memory Used",
+      "title": "메모리 사용량",
       "type": "timeseries"
     },
     {
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -123,8 +243,9 @@
               }
             ]
           },
-          "unit": "short"
-        }
+          "unit": "reqps"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -135,29 +256,64 @@
       "id": 3,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": ["mean", "last"],
+          "displayMode": "table",
           "placement": "bottom"
         },
         "tooltip": {
-          "mode": "single"
+          "mode": "multi",
+          "sort": "none"
         }
       },
+      "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "jvm_threads_live_threads{application=~\"user-service|review-service\"}",
-          "legendFormat": "{{application}}",
+          "expr": "sum(rate(http_server_requests_seconds_count{application=~\"$service\"}[5m])) by (application, status)",
+          "interval": "",
+          "legendFormat": "{{application}} - {{status}}",
           "refId": "A"
         }
       ],
-      "title": "JVM Threads",
+      "title": "HTTP 요청 처리 속도 (초당 요청 수)",
       "type": "timeseries"
     },
     {
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -168,8 +324,9 @@
               }
             ]
           },
-          "unit": "short"
-        }
+          "unit": "ms"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -180,30 +337,127 @@
       "id": 4,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": ["mean", "p95", "p99"],
+          "displayMode": "table",
           "placement": "bottom"
         },
         "tooltip": {
-          "mode": "single"
+          "mode": "multi",
+          "sort": "none"
         }
       },
+      "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "hikari_connections_active{application=~\"user-service|review-service\"}",
+          "expr": "sum(rate(http_server_requests_seconds_sum{application=~\"$service\"}[5m])) by (application) / sum(rate(http_server_requests_seconds_count{application=~\"$service\"}[5m])) by (application) * 1000",
+          "interval": "",
+          "legendFormat": "{{application}} - 평균",
+          "refId": "A"
+        },
+        {
+          "expr": "max(http_server_requests_seconds_max{application=~\"$service\"}) by (application) * 1000",
+          "interval": "",
+          "legendFormat": "{{application}} - 최대",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(http_server_requests_seconds_sum{application=~\"$service\",uri!=\"/actuator/prometheus\"}[5m])) by (application) / sum(rate(http_server_requests_seconds_count{application=~\"$service\",uri!=\"/actuator/prometheus\"}[5m])) by (application) * 1000",
+          "interval": "",
+          "legendFormat": "{{application}} - 평균 (actuator 제외)",
+          "refId": "C"
+        }
+      ],
+      "title": "HTTP 응답 시간 (밀리초)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "expr": "jvm_threads_live_threads{application=~\"$service\"}",
+          "interval": "",
           "legendFormat": "{{application}}",
           "refId": "A"
         }
       ],
-      "title": "Database Connections",
-      "type": "timeseries"
+      "title": "JVM Thread 수",
+      "type": "stat"
     }
   ],
+  "refresh": "10s",
   "schemaVersion": 27,
   "style": "dark",
-  "tags": ["spring-boot", "java"],
+  "tags": ["spring-boot", "java", "microservices"],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": ["All"],
+          "value": ["$__all"]
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(application)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": {
+          "query": "label_values(application)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-6h",
@@ -211,7 +465,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Spring Boot Application Metrics",
-  "uid": "spring-boot-metrics",
+  "title": "JavaAuction 서비스 모니터링 대시보드",
+  "uid": "javaauction-metrics",
   "version": 1
 }
