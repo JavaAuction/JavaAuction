@@ -218,10 +218,10 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @DistributedLock(
-            key = "#auctionId",           // 경매 ID 기준으로 락
-            prefix = "auction:bids",      // 락 prefix
-            waitTime = 5L,
-            leaseTime = 3L
+        key = "#auctionId",           // 경매 ID 기준으로 락
+        prefix = "auction:bids",      // 락 prefix
+        waitTime = 5L,
+        leaseTime = 3L
     )
     @Transactional
     @Override
@@ -302,17 +302,6 @@ public class AuctionServiceImpl implements AuctionService {
         );
 
         // 5) 알림 전송(판매자)
-//        alertFeignClient.createAlert(
-//            ReqPostInternalAlertsDtoV1.builder()
-//                .auctionId(auctionId)
-//                .alertType(AlertType.SUCCESS)
-//                .userId(auction.getUserId())
-//                .content(String.format(
-//                    "%s 상품이 %d원에 즉시 구매되었습니다.",
-//                    auction.getProductName(), price))
-//                .build()
-//        );
-
         auctionKafkaEvent.send(
             ReqPostInternalAlertsDtoV1.builder()
                 .auctionId(auctionId)
@@ -354,7 +343,6 @@ public class AuctionServiceImpl implements AuctionService {
                 .build();
 
             auctionKafkaEvent.send(req);
-//            alertFeignClient.createAlert(req);
 
             ReqProductStatusUpdateDto productReq = ReqProductStatusUpdateDto.builder()
                 .productStatus(ProductStatus.AUCTION_WAITING)
@@ -384,8 +372,6 @@ public class AuctionServiceImpl implements AuctionService {
             .auctionId(auction.getAuctionId())
             .amount(auction.getCurrentPrice())
             .build();
-
-//        paymentClient.settle(settleDto);
 
         auction.setStatus(AuctionStatus.SETTLE_RUNNING);
 
