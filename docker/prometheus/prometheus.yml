@@ -9,10 +9,26 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
+  - job_name: 'gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['gateway:8080']
+        labels:
+          service: 'gateway'
+          application: 'gateway'
+
+  - job_name: 'eureka-server'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['eureka-server:8080']
+        labels:
+          service: 'eureka-server'
+          application: 'eureka-server'
+
   - job_name: 'user-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['host.docker.internal:19092']
+      - targets: ['user-service:8080']
         labels:
           service: 'user-service'
           application: 'user-service'
@@ -20,7 +36,7 @@ scrape_configs:
   - job_name: 'product-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'host.docker.internal:19093' ]
+      - targets: ['product-service:8080']
         labels:
           service: 'product-service'
           application: 'product-service'
@@ -28,7 +44,7 @@ scrape_configs:
   - job_name: 'auction-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'host.docker.internal:19094' ]
+      - targets: ['auction-service:8080']
         labels:
           service: 'auction-service'
           application: 'auction-service'
@@ -36,7 +52,7 @@ scrape_configs:
   - job_name: 'payment-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'host.docker.internal:19095' ]
+      - targets: ['payment-service:8080']
         labels:
           service: 'payment-service'
           application: 'payment-service'
@@ -44,7 +60,7 @@ scrape_configs:
   - job_name: 'chat-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'host.docker.internal:19096' ]
+      - targets: ['chat-service:8080']
         labels:
           service: 'chat-service'
           application: 'chat-service'
@@ -52,7 +68,7 @@ scrape_configs:
   - job_name: 'alert-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'host.docker.internal:19097' ]
+      - targets: ['alert-service:8080']
         labels:
           service: 'alert-service'
           application: 'alert-service'
@@ -60,7 +76,7 @@ scrape_configs:
   - job_name: 'review-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'host.docker.internal:19098' ]
+      - targets: ['review-service:8080']
         labels:
           service: 'review-service'
           application: 'review-service'

@@ -16,6 +16,9 @@ CREATE DATABASE chat_db;
 -- Alert Service Database
 CREATE DATABASE alert_db;
 
+-- Review Service Database
+CREATE DATABASE review_db;
+
 -- 권한 부여
 -- Docker-compose: POSTGRES_USER = javaauction
 GRANT ALL PRIVILEGES ON DATABASE user_db TO javaauction;
@@ -24,3 +27,4 @@ GRANT ALL PRIVILEGES ON DATABASE auction_db TO javaauction;
 GRANT ALL PRIVILEGES ON DATABASE payment_db TO javaauction;
 GRANT ALL PRIVILEGES ON DATABASE chat_db TO javaauction;
 GRANT ALL PRIVILEGES ON DATABASE alert_db TO javaauction;
+GRANT ALL PRIVILEGES ON DATABASE review_db TO javaauction;

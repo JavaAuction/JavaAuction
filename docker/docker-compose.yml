@@ -1,80 +1,10 @@
-version: "3.9"
+name: JavaAuction
+
+# 애플리케이션 서비스만 실행하는 docker-compose 파일
+# 사용법: docker-compose up -d
+# 인프라는 먼저 docker-compose -f docker-compose.infrastructure.yml up -d 로 실행 필요
 
 services:
-
-  # PostgreSQL
-  postgres:
-    image: postgres:15
-    container_name: javaauction-postgres
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: javaauction
-      POSTGRES_PASSWORD: 1234
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
-    networks:
-      - javaauction-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U javaauction"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Redis
-  redis:
-    image: redis:7-alpine
-    container_name: javaauction-redis
-    ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
-    volumes:
-      - redis-data:/data
-    networks:
-      - javaauction-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-
-  # Zookeeper
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.4.0
-    container_name: javaauction-zookeeper
-    ports:
-      - "2181:2181"
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    networks:
-      - javaauction-network
-
-  # Kafka
-  kafka:
-    image: confluentinc/cp-kafka:7.4.0
-    container_name: javaauction-kafka
-    ports:
-      - "9092:9092"
-    depends_on:
-      - zookeeper
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-    networks:
-      - javaauction-network
-    healthcheck:
-      test:
-        ["CMD-SHELL", "echo > /dev/tcp/localhost/9092"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   # Zipkin
   zipkin:
@@ -100,161 +30,187 @@ services:
     container_name: eureka-server
     ports:
       - "19090:8080"
-    networks:
-      - javaauction-network
-
-  # Config Server (19100)
-  config-server:
-    build:
-      context: ../config-server
-      dockerfile: ../docker/Dockerfile
-    container_name: config-server
-    ports:
-      - "19100:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      EUREKA_SERVER_URL: http://eureka-server:8080/eureka
+      SERVER_PORT: 8080
     networks:
       - javaauction-network
-    depends_on:
-      - eureka-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   # Gateway (19091)
   gateway:
     build:
       context: ../gateway
       dockerfile: ../docker/Dockerfile
+      args:
+        - JWT_SECRET=${JWT_SECRET}
     container_name: gateway
     ports:
       - "19091:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      CONFIG_SERVER_URL: http://config-server:19100
-      EUREKA_SERVER_URL: http://eureka-server:8080/eureka
+      SERVER_PORT: 8080
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8080/eureka
+      JWT_SECRET: ${JWT_SECRET}
     networks:
       - javaauction-network
     depends_on:
-      - eureka-server
-      - config-server
+      eureka-server:
+        condition: service_healthy
 
   # User Service (19092)
   user-service:
     build:
       context: ../user-service
       dockerfile: ../docker/Dockerfile
+      args:
+        - JWT_SECRET=${JWT_SECRET}
     container_name: user-service
     ports:
       - "19092:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      CONFIG_SERVER_URL: http://config-server:19100
+      SERVER_PORT: 8080
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8080/eureka
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/user_db
       SPRING_DATASOURCE_USERNAME: javaauction
       SPRING_DATASOURCE_PASSWORD: 1234
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_SECRET: ${JWT_SECRET}
     networks:
       - javaauction-network
     depends_on:
-      - postgres
-      - redis
-      - config-server
+      eureka-server:
+        condition: service_healthy
 
   # Product Service (19093)
   product-service:
     build:
-      context: ../product
+      context: ../product-service
       dockerfile: ../docker/Dockerfile
+      args:
+        - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+        - AWS_SECRET_KEY=${AWS_SECRET_KEY}
     container_name: product-service
     ports:
       - "19093:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8080
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8080/eureka
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/product_db
       SPRING_DATASOURCE_USERNAME: javaauction
       SPRING_DATASOURCE_PASSWORD: 1234
-      CONFIG_SERVER_URL: http://config-server:19100
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+      AWS_SECRET_KEY: ${AWS_SECRET_KEY}
     networks:
       - javaauction-network
     depends_on:
-      - postgres
-      - config-server
+      eureka-server:
+        condition: service_healthy
 
   # Auction Service (19094)
   auction-service:
     build:
-      context: ../auction
+      context: ../auction-service
       dockerfile: ../docker/Dockerfile
     container_name: auction-service
     ports:
       - "19094:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8080
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8080/eureka
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auction_db
       SPRING_DATASOURCE_USERNAME: javaauction
       SPRING_DATASOURCE_PASSWORD: 1234
-      CONFIG_SERVER_URL: http://config-server:19100
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     networks:
       - javaauction-network
     depends_on:
-      - postgres
+      eureka-server:
+        condition: service_healthy
 
   # Payment Service (19095)
   payment-service:
     build:
-      context: ../payment
+      context: ../payment-service
       dockerfile: ../docker/Dockerfile
     container_name: payment-service
     ports:
       - "19095:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8080
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8080/eureka
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/payment_db
       SPRING_DATASOURCE_USERNAME: javaauction
       SPRING_DATASOURCE_PASSWORD: 1234
-      CONFIG_SERVER_URL: http://config-server:19100
     networks:
       - javaauction-network
     depends_on:
-      - postgres
+      eureka-server:
+        condition: service_healthy
 
   # Chat Service (19096)
   chat-service:
     build:
-      context: ../chat
+      context: ../chat-service
       dockerfile: ../docker/Dockerfile
     container_name: chat-service
     ports:
       - "19096:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8080
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8080/eureka
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/chat_db
       SPRING_DATASOURCE_USERNAME: javaauction
       SPRING_DATASOURCE_PASSWORD: 1234
-      CONFIG_SERVER_URL: http://config-server:19100
     networks:
       - javaauction-network
     depends_on:
-      - postgres
+      eureka-server:
+        condition: service_healthy
 
   # Alert Service (19097)
   alert-service:
     build:
       context: ../alert-service
       dockerfile: ../docker/Dockerfile
+      args:
+        - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+        - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+        - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
     container_name: alert-service
     ports:
       - "19097:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8080
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8080/eureka
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/alert_db
       SPRING_DATASOURCE_USERNAME: javaauction
       SPRING_DATASOURCE_PASSWORD: 1234
-      CONFIG_SERVER_URL: http://config-server:19100
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+      AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+      SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS: kafka:9092
     networks:
       - javaauction-network
     depends_on:
-      - postgres
+      eureka-server:
+        condition: service_healthy
 
   # Review Service (19098)
   review-service:
@@ -266,78 +222,21 @@ services:
       - "19098:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      CONFIG_SERVER_URL: http://config-server:19100
+      SERVER_PORT: 8080
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka-server:8080/eureka
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/review_db
       SPRING_DATASOURCE_USERNAME: javaauction
       SPRING_DATASOURCE_PASSWORD: 1234
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     networks:
       - javaauction-network
     depends_on:
-      - postgres
-      - redis
-      - config-server
-
-  # Prometheus (19099)
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: javaauction-prometheus
-    ports:
-      - "19099:9090"
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
-    networks:
-      - javaauction-network
-    depends_on:
-      - user-service
-      - review-service
-      - gateway
-      - eureka-server
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Grafana (19101)
-  grafana:
-    image: grafana/grafana:latest
-    container_name: javaauction-grafana
-    ports:
-      - "19101:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
-    networks:
-      - javaauction-network
-    depends_on:
-      - prometheus
-    healthcheck:
-      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3000/api/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      eureka-server:
+        condition: service_healthy
 
 networks:
   javaauction-network:
-    driver: bridge
-
-volumes:
-  postgres-data:
-  redis-data:
-  prometheus-data:
-  grafana-data:
+    external: true
+    name: javaauction-network

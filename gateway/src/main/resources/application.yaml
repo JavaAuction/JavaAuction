@@ -87,7 +87,7 @@ springdoc:
       - name: payment-service
         url: /v3/api-docs/payment
       - name: chat-service
-        url: /v3/api-docs/chat
+        url: /v3/api-docs/chatroom
       - name: alert-service
         url: /v3/api-docs/alert
       - name: review-service
