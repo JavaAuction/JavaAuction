@@ -14,7 +14,7 @@ spring:
         - id: product-service
           uri: lb://product-service
           predicates:
-            - Path=/v1/products/**, /v1/categories/**
+            - Path=/v1/products/**, /v1/categories/**, /v3/api-docs/product
 
         - id: auction-service
           uri: lb://auction-service
@@ -70,5 +70,7 @@ springdoc:
     urls:
       - name: user-service
         url: /v3/api-docs/user
+      - name: product-service
+        url: /v3/api-docs/product
       - name: review-service
         url: /v3/api-docs/review
