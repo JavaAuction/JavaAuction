@@ -38,6 +38,19 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
 
+# Swagger 설정 추가
+springdoc:
+  enable-querydsl: false
+  api-docs:
+    enabled: true
+    path: /v3/api-docs/product
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+
 aws:
   s3:
     bucket: java-auction-bucket
