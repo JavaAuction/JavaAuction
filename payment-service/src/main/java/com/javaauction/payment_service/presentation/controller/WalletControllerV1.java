@@ -7,7 +7,6 @@ import com.javaauction.payment_service.presentation.dto.request.ReqWithdrawDto;
 import com.javaauction.payment_service.presentation.dto.response.ResChargeDto;
 import com.javaauction.payment_service.presentation.dto.response.ResGetWallet;
 import com.javaauction.payment_service.presentation.dto.response.ResWithdrawDto;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,10 +43,11 @@ public class WalletControllerV1 {
         );
     }
 
-    @Hidden
+    @Operation(summary = "지갑 조회 (관리자)", description = "특정 지갑의 정보를 조회합니다. (관리자용)")
     @GetMapping("/{walletId}")
     public ResponseEntity<ApiResponse<ResGetWallet>> getWalletById(
-            @PathVariable UUID walletId, @RequestHeader(ROLE) String role
+            @Parameter(description = "지갑 ID") @PathVariable UUID walletId,
+            @Parameter(hidden = true) @RequestHeader(ROLE) String role
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.success(
