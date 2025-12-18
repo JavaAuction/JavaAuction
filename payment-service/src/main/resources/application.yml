@@ -47,6 +47,6 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
-
-springdoc:
-  paths-to-match: /v1/**
+#
+#springdoc:
+#  paths-to-match: /v1/**
