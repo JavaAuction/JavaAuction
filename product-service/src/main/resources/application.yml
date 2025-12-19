@@ -43,7 +43,7 @@ springdoc:
   enable-querydsl: false
   api-docs:
     enabled: true
-    path: /v3/api-docs/product
+    path: /v3/api-docs
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
