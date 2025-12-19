@@ -11,6 +11,6 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "popular-products")
 public class PopularProductConfig {
     private int topCount = 10;
-    private int cacheTtlMinutes = 60;
-    private String refreshCron = "0 */10 * * * *";
+    private int cacheTtlMinutes = 5;  // 5분
+    private String refreshCron = "0 * * * * *";  // 1분마다 갱신
 }

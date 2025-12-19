@@ -69,5 +69,5 @@ management:
 
 popular-products:
   top-count: 10  # 상위 N개
-  cache-ttl-minutes: 60  # 캐시 유효 시간 (1시간)
-  refresh-cron: "0 */10 * * * *"  # 10분마다 갱신
+  cache-ttl-minutes: 5  # 캐시 유효 시간 (5분)
+  refresh-cron: "0 * * * * *"  # 1분마다 갱신 (매 분 0초)
