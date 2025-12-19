@@ -3,6 +3,7 @@ package com.javaauction.alertservice.infrastructure.config;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.javaauction.alertservice.presentation.dto.request.ReqPostInternalAlertsDtoV1;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -18,10 +19,13 @@ import java.util.Map;
 @EnableKafka
 public class KafkaConsumerConfig {
 
+    @Value("${spring.kafka.consumer.bootstrap-servers}")
+    private String bootstrapServers;
+
     @Bean
     public ConsumerFactory<String, ReqPostInternalAlertsDtoV1> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "alert-group");
 
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
