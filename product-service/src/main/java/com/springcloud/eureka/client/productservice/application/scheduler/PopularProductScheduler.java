@@ -16,7 +16,7 @@ public class PopularProductScheduler {
     private final PopularProductService popularProductService;
 
     /**
-     * 인기 상품 목록 주기적 갱신 (10분마다)
+     * 인기 상품 목록 주기적 갱신 (1분마다)
      */
     @Scheduled(cron = "${popular-products.refresh-cron}")
     public void refreshPopularProducts() {
