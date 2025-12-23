@@ -131,6 +131,13 @@
 
 ---
 
+### 📄 API 문서 (Swagger UI)
+
+- Gateway Swagger UI:  
+   [http://43.203.161.61:19091/webjars/swagger-ui/index.html](http://43.203.161.61:19091/webjars/swagger-ui/index.html)
+
+
+
 ## 🎯 핵심 기능 & 기술 구현
 
 ### 1️⃣ 조회수 및 인기 상품
